@@ -1,0 +1,135 @@
+@use "sass:color";
+@use "../abstracts/variables" as *;
+
+// Headers & Text
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.page-title {
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+
+.page-subtitle {
+  color: #64748b !important;
+}
+
+.section-title {
+  font-weight: 700 !important;
+  margin-bottom: 16px !important;
+}
+
+.text-muted {
+  color: #64748b !important;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.font-bold {
+  font-weight: 700 !important;
+}
+
+.font-semibold {
+  font-weight: 600 !important;
+}
+
+// Buttons
+.btn-primary {
+  background-color: $primary !important;
+  color: white !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  padding: 8px 20px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+
+  &:hover {
+    background-color: color.adjust($primary, $lightness: -5%) !important;
+  }
+}
+
+.btn-outlined {
+  border: 1px solid $primary !important;
+  color: $primary !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  padding: 8px 20px !important;
+  font-weight: 600 !important;
+
+  &:hover {
+    background-color: rgba($primary, 0.04) !important;
+    border-color: color.adjust($primary, $lightness: -5%) !important;
+  }
+}
+
+// Grid & Spacing
+.mb-4 {
+  margin-bottom: 32px !important;
+}
+
+// Stat Cards
+.stat-card {
+  padding: 24px !important;
+  border-radius: $radius !important;
+  border: 1px solid #e2e8f0 !important;
+  background-color: $card !important;
+}
+
+.stat-title {
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+}
+
+.stat-value {
+  font-weight: 800 !important;
+  margin-top: 4px !important;
+}
+
+// Cards
+.card-flat {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: $radius !important;
+  background-color: $card !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &.hoverable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.card-content-flex {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  
+  &:last-child {
+    padding-bottom: 16px !important;
+  }
+}
+
+.flex-center-y {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+// Lists & Tables
+.table-header {
+  background-color: #f8fafc !important;
+}
+
+.list-wrapper {
+  padding: 0 !important;
+}
+
+.list-item-border {
+  border-bottom: 1px solid #e2e8f0 !important;
+}

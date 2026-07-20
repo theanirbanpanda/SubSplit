@@ -1,0 +1,67 @@
+@use "sass:color";
+@use "../../../styles/abstracts/variables" as *;
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.auth-card {
+  border-radius: $radius;
+  border: 1px solid #e2e8f0;
+  background-color: $card;
+  padding: 16px;
+}
+
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.auth-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: -10%) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.auth-title {
+  font-weight: 800;
+}
+
+.auth-subtitle {
+  color: #64748b;
+}
+
+.auth-field {
+  margin-bottom: 16px !important;
+}
+
+.auth-field-lg {
+  margin-bottom: 24px !important;
+}
+
+.auth-button {
+  background-color: $primary !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+
+  &:hover {
+    background-color: color.adjust($primary, $lightness: -5%) !important;
+  }
+}

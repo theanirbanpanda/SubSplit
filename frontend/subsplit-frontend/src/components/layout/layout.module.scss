@@ -1,0 +1,131 @@
+@use "sass:color";
+@use "../../styles/abstracts/variables" as *;
+
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: $background;
+}
+
+.appbar {
+  background-color: rgba(248, 250, 252, 0.8) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b !important;
+
+  @media (min-width: 900px) {
+    width: calc(100% - 240px) !important;
+    margin-left: 240px !important;
+  }
+}
+
+.toolbar {
+  justify-content: space-between;
+}
+
+.avatarBtn {
+  padding: 4px !important;
+}
+
+.avatar {
+  width: 36px !important;
+  height: 36px !important;
+  background-color: $primary !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+.drawerPaper {
+  box-sizing: border-box;
+  width: 240px;
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+.drawerInner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: -10%) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.title {
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.5px !important;
+}
+
+.divider {
+  border-style: dashed !important;
+}
+
+.navList {
+  padding: 16px 12px !important;
+  flex-grow: 1;
+}
+
+.navItem {
+  margin-bottom: 4px !important;
+}
+
+.navBtn {
+  border-radius: 8px !important;
+  padding: 9.6px 16px !important;
+  color: #64748b !important;
+  
+  &:hover {
+    background-color: rgba(15, 23, 42, 0.04) !important;
+    color: #0f172a !important;
+  }
+
+  &.active {
+    background-color: rgba(37, 99, 235, 0.08) !important;
+    color: #2563eb !important;
+    font-weight: 600 !important;
+    
+    &:hover {
+      background-color: rgba(37, 99, 235, 0.08) !important;
+    }
+  }
+}
+
+.logoutBtn {
+  border-radius: 8px !important;
+  padding: 9.6px 16px !important;
+  color: #ef4444 !important;
+
+  &:hover {
+    background-color: rgba(239, 68, 68, 0.08) !important;
+  }
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: 24px;
+  width: 100%;
+  padding-top: 80px;
+
+  @media (min-width: 900px) {
+    width: calc(100% - 240px);
+    padding-top: 88px;
+  }
+}
