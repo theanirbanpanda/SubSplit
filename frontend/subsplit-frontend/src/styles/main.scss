@@ -1,4 +1,6 @@
-@use "./base/reset";
-@use "./base/typography";
-@use "./base/global";
+@use "./abstracts";
+@use "./base";
+@use "./themes";
+@use "./vendors";
+@use "./utilities";
 @use "./components/shared";

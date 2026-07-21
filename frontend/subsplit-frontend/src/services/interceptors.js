@@ -1,4 +1,5 @@
-import api from './api';
+import api from './axios';
+import { logout } from '../features/auth/authSlice';
 
 export const setupInterceptors = (store) => {
   api.interceptors.request.use(
@@ -18,7 +19,7 @@ export const setupInterceptors = (store) => {
     (response) => response,
     (error) => {
       if (error.response && error.response.status === 401) {
-        // Handle unauthorized logic (e.g., dispatch logout)
+        store.dispatch(logout());
       }
       return Promise.reject(error);
     }

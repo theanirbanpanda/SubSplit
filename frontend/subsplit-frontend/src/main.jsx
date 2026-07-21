@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import App from "./App";
 import { store } from "./app/store";
-import theme from "./app/theme";
+import theme from "./theme";
 import { setupInterceptors } from "./services/interceptors";
 
 import "./styles/main.scss";
