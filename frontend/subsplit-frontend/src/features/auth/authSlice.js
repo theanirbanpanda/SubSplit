@@ -2,10 +2,22 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { loginApi, logoutApi, registerApi } from './services/authApi';
 import { STORAGE_KEYS, MESSAGES } from '../../constants';
 
-const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
-const savedUser = localStorage.getItem(STORAGE_KEYS.USER)
-  ? JSON.parse(localStorage.getItem(STORAGE_KEYS.USER))
-  : null;
+const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN) || null;
+
+const safeParseUser = () => {
+  const raw = localStorage.getItem(STORAGE_KEYS.USER);
+  if (!raw || raw === 'undefined' || raw === 'null') {
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    return null;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    return null;
+  }
+};
+const savedUser = safeParseUser();
 
 const initialState = {
   user: savedUser,
