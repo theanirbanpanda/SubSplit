@@ -1,6 +1,7 @@
 package com.subsplit.user.entity;
 
 import com.subsplit.common.entity.BaseEntity;
+import com.subsplit.common.entity.User;
 import com.subsplit.common.enums.GovernmentIdType;
 import com.subsplit.common.enums.VerificationStatus;
 import jakarta.persistence.*;

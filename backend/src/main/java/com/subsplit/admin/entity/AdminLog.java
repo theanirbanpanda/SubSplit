@@ -1,7 +1,7 @@
 package com.subsplit.admin.entity;
 
 import com.subsplit.common.entity.BaseEntity;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 

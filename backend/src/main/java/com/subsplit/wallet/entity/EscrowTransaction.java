@@ -3,7 +3,7 @@ package com.subsplit.wallet.entity;
 import com.subsplit.common.entity.BaseEntity;
 import com.subsplit.common.enums.EscrowStatus;
 import com.subsplit.listing.entity.JoinRequest;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 

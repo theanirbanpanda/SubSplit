@@ -1,7 +1,7 @@
 package com.subsplit.user.controller;
 
 import com.subsplit.user.dto.UserCreationRequest;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 import com.subsplit.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.subsplit.user.service;
 
 import com.subsplit.user.dto.UserCreationRequest;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 
 import java.util.List;
 

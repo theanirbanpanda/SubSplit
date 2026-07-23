@@ -1,18 +1,16 @@
 package com.subsplit.user.service.impl;
 
-import java.util.List;
-
+import com.subsplit.common.entity.Role;
+import com.subsplit.common.entity.User;
+import com.subsplit.user.dto.UserCreationRequest;
+import com.subsplit.user.repository.RoleRepository;
+import com.subsplit.user.repository.UserRepository;
+import com.subsplit.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.subsplit.role.entity.Role;
-import com.subsplit.role.repository.RoleRepository;
-import com.subsplit.user.dto.UserCreationRequest;
-import com.subsplit.user.entity.User;
-import com.subsplit.user.repository.UserRepository;
-import com.subsplit.user.service.UserService;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,18 +30,13 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
-        if (request.getPhone() != null && !request.getPhone().isBlank() && userRepository.existsByPhone(request.getPhone())) {
-            throw new IllegalArgumentException("Phone number already exists");
-        }
 
-        Role role = null;
-        if (request.getRoleName() != null && !request.getRoleName().isBlank()) {
-            role = roleRepository.findByRoleName(request.getRoleName())
-                    .orElseGet(() -> roleRepository.save(Role.builder().roleName(request.getRoleName()).build()));
-        } else {
-            role = roleRepository.findByRoleName("USER")
-                    .orElseGet(() -> roleRepository.save(Role.builder().roleName("USER").build()));
-        }
+        String roleName = (request.getRoleName() != null && !request.getRoleName().isBlank())
+                ? request.getRoleName()
+                : "USER";
+
+        Role role = roleRepository.findByName(roleName)
+                .orElseGet(() -> roleRepository.save(Role.builder().name(roleName).build()));
 
         User user = User.builder()
                 .fullName(request.getFullName())
@@ -52,7 +45,7 @@ public class UserServiceImpl implements UserService {
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(role)
                 .profileImage(request.getProfileImage())
-                .active(true)
+                .isActive(true)
                 .emailVerified(false)
                 .build();
 
