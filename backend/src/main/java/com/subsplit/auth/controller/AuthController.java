@@ -16,6 +16,7 @@ import com.subsplit.auth.dto.UserResponse;
 import com.subsplit.auth.service.AuthService;
 import com.subsplit.common.dto.ApiResponse;
 import com.subsplit.common.entity.User;
+import com.subsplit.common.exception.UnauthorizedException;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,7 @@ public class AuthController {
                         .success(true)
                         .message("Registration successful")
                         .data(response)
-                        .build()
-        );
+                        .build());
     }
 
     @PostMapping("/login")
@@ -53,8 +53,7 @@ public class AuthController {
                         .success(true)
                         .message("Login successful")
                         .data(response)
-                        .build()
-        );
+                        .build());
     }
 
     @PostMapping("/refresh")
@@ -68,14 +67,14 @@ public class AuthController {
                         .success(true)
                         .message("Token refreshed successfully")
                         .data(response)
-                        .build()
-        );
+                        .build());
     }
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> currentUser(Authentication authentication) {
-
-        User user = (User) authentication.getPrincipal();
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new UnauthorizedException("User is not authenticated");
+        }
 
         String roleName = (user.getRole() != null) ? user.getRole().getName() : "USER";
 
@@ -85,16 +84,14 @@ public class AuthController {
                 user.getEmail(),
                 user.getPhone(),
                 user.getProfileImage(),
-                roleName
-        );
+                roleName);
 
         return ResponseEntity.ok(
                 ApiResponse.<UserResponse>builder()
                         .success(true)
                         .message("User retrieved successfully")
                         .data(userResponse)
-                        .build()
-        );
+                        .build());
     }
 
     @PostMapping("/logout")
@@ -104,7 +101,6 @@ public class AuthController {
                         .success(true)
                         .message("Logout successful")
                         .data("Logged out successfully")
-                        .build()
-        );
+                        .build());
     }
 }

@@ -1,6 +1,0 @@
--- Seed default roles
-INSERT INTO role (name)
-SELECT 'USER' WHERE NOT EXISTS (SELECT 1 FROM role WHERE name = 'USER');
-
-INSERT INTO role (name)
-SELECT 'ADMIN' WHERE NOT EXISTS (SELECT 1 FROM role WHERE name = 'ADMIN');

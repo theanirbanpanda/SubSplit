@@ -12,6 +12,7 @@ public class SubsplitApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SubsplitApplication.class, args);
+        System.out.println("Application Started Successfully......");
     }
 
 }
