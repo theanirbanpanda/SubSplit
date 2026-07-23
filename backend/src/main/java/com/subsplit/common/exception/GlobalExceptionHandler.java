@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(FieldError::getDefaultMessage)
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList();
 
         return ResponseEntity.badRequest()
@@ -74,11 +74,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraint(ConstraintViolationException ex) {
+        List<String> errors = ex.getConstraintViolations()
+                .stream()
+                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .toList();
+
         return ResponseEntity.badRequest()
                 .body(ErrorResponse.builder()
                         .status(400)
                         .error("Validation Failed")
-                        .message(ex.getMessage())
+                        .message("Validation error")
+                        .validationErrors(errors)
                         .build());
     }
 

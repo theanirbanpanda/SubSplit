@@ -1,79 +1,55 @@
 import React, { useState } from 'react';
 import { Snackbar, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import AuthLayout from '../components/AuthLayout';
 import LoginForm from '../components/LoginForm';
 import SignupForm from '../components/SignupForm';
-import EmailVerificationForm from '../components/EmailVerificationForm';
 import ProfileCompletionForm from '../components/ProfileCompletionForm';
 import ForgotPasswordForm from '../components/ForgotPasswordForm';
 import ValidationAlert from '../components/ValidationAlert';
+import { registerUser, loginUser, clearAuthError } from '../authSlice';
 
 function Auth() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  // Mode: 'login' | 'signup' | 'verify' | 'onboarding' | 'forgot_password'
+  // Mode: 'login' | 'signup' | 'onboarding' | 'forgot_password'
   const [mode, setMode] = useState('login');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
-  const [userEmail, setUserEmail] = useState('user@subsplit.com');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   // Handle Login
-  const handleLoginSubmit = (credentials) => {
-    setLoading(true);
-    setError(null);
-
-    setTimeout(() => {
-      setLoading(false);
-      setSuccessMsg('Login successful! Welcome back to SubSplit.');
+  const handleLoginSubmit = async (credentials) => {
+    dispatch(clearAuthError());
+    const action = await dispatch(loginUser(credentials));
+    if (loginUser.fulfilled.match(action)) {
+      setSuccessMsg(action.payload?.message || 'Login successful! Welcome back to SubSplit.');
       setSnackbarOpen(true);
       setTimeout(() => {
         navigate('/app/dashboard');
       }, 500);
-    }, 500);
+    }
   };
 
   // Handle Signup
-  const handleSignupSubmit = (userData) => {
-    setLoading(true);
-    setError(null);
-    setUserEmail(userData.email);
-
-    setTimeout(() => {
-      setLoading(false);
-      setSuccessMsg('Account created! Please verify your email.');
+  const handleSignupSubmit = async (userData) => {
+    dispatch(clearAuthError());
+    const action = await dispatch(registerUser(userData));
+    if (registerUser.fulfilled.match(action)) {
+      setSuccessMsg(action.payload?.message || 'Account created successfully! Please log in.');
       setSnackbarOpen(true);
-      setMode('verify');
-    }, 500);
-  };
-
-  // Handle Email Verification
-  const handleVerifiedSubmit = () => {
-    setLoading(true);
-    setError(null);
-
-    setTimeout(() => {
-      setLoading(false);
-      setSuccessMsg('Email verified successfully!');
-      setSnackbarOpen(true);
-      setMode('onboarding');
-    }, 500);
+      setMode('login');
+    }
   };
 
   // Handle Profile Completion
   const handleProfileCompleteSubmit = (profileData) => {
-    setLoading(true);
-    setError(null);
-
+    setSuccessMsg('Profile setup complete! Launching SubSplit...');
+    setSnackbarOpen(true);
     setTimeout(() => {
-      setLoading(false);
-      setSuccessMsg('Profile setup complete! Launching SubSplit...');
-      setSnackbarOpen(true);
-      setTimeout(() => {
-        navigate('/app/dashboard');
-      }, 500);
+      navigate('/app/dashboard');
     }, 500);
   };
 
@@ -83,7 +59,7 @@ function Auth() {
         error={error}
         success={successMsg && !snackbarOpen ? successMsg : null}
         onClose={() => {
-          setError(null);
+          dispatch(clearAuthError());
           setSuccessMsg(null);
         }}
       />
@@ -92,11 +68,11 @@ function Auth() {
         <LoginForm
           onLogin={handleLoginSubmit}
           onSwitchToSignup={() => {
-            setError(null);
+            dispatch(clearAuthError());
             setMode('signup');
           }}
           onSwitchToForgot={() => {
-            setError(null);
+            dispatch(clearAuthError());
             setMode('forgot_password');
           }}
           loading={loading}
@@ -107,17 +83,9 @@ function Auth() {
         <SignupForm
           onSignup={handleSignupSubmit}
           onSwitchToLogin={() => {
-            setError(null);
+            dispatch(clearAuthError());
             setMode('login');
           }}
-          loading={loading}
-        />
-      )}
-
-      {mode === 'verify' && (
-        <EmailVerificationForm
-          email={userEmail}
-          onVerified={handleVerifiedSubmit}
           loading={loading}
         />
       )}
@@ -132,7 +100,7 @@ function Auth() {
       {mode === 'forgot_password' && (
         <ForgotPasswordForm
           onSwitchToLogin={() => {
-            setError(null);
+            dispatch(clearAuthError());
             setMode('login');
           }}
         />

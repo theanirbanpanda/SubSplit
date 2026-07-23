@@ -265,6 +265,7 @@ function SignupForm({ onSignup, onSwitchToLogin, loading }) {
         <Button
           fullWidth
           type="submit"
+          onClick={handleSubmit}
           disabled={loading}
           variant="contained"
           size="large"
@@ -285,37 +286,6 @@ function SignupForm({ onSignup, onSwitchToLogin, loading }) {
           }}
         >
           {loading ? 'Creating Account...' : 'Create Account'}
-        </Button>
-
-        <Divider sx={{ my: 2, borderColor: '#2A2A30', color: '#71717A', fontSize: '0.78rem' }}>
-          or continue with
-        </Divider>
-
-        {/* Continue with Google */}
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={() => onSignup({ fullName: 'Google User', email: 'google.user@subsplit.com' })}
-          startIcon={
-            <Box
-              component="img"
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-              alt="Google"
-              sx={{ width: 18, height: 18 }}
-            />
-          }
-          sx={{
-            borderRadius: '12px',
-            borderColor: '#2A2A30',
-            color: '#ffffff',
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            py: 1.1,
-            textTransform: 'none',
-            '&:hover': { borderColor: '#3b82f6', background: 'rgba(59,130,246,0.08)' },
-          }}
-        >
-          Continue with Google
         </Button>
 
         {/* Bottom Link */}

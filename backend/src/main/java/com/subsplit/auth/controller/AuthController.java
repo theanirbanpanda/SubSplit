@@ -1,5 +1,13 @@
 package com.subsplit.auth.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.subsplit.auth.dto.AuthResponse;
 import com.subsplit.auth.dto.LoginRequest;
 import com.subsplit.auth.dto.RefreshTokenRequest;
@@ -8,12 +16,9 @@ import com.subsplit.auth.dto.UserResponse;
 import com.subsplit.auth.service.AuthService;
 import com.subsplit.common.dto.ApiResponse;
 import com.subsplit.common.entity.User;
-import com.subsplit.user.repository.UserRepository;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -21,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(

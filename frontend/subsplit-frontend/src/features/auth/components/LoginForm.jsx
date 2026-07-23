@@ -196,37 +196,6 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
           {loading ? 'Authenticating...' : 'Log In'}
         </Button>
 
-        <Divider sx={{ my: 2.5, borderColor: 'rgba(255,255,255,0.08)', color: '#9ca3af', fontSize: '0.78rem' }}>
-          or continue with
-        </Divider>
-
-        {/* Continue with Google */}
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={() => onLogin({ email: 'google.user@subsplit.com', rememberMe: true })}
-          startIcon={
-            <Box
-              component="img"
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-              alt="Google"
-              sx={{ width: 18, height: 18 }}
-            />
-          }
-          sx={{
-            borderRadius: '12px',
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-            color: '#f3f4f6',
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            py: 1.1,
-            textTransform: 'none',
-            '&:hover': { borderColor: '#2563eb', background: 'rgba(37,99,235,0.08)' },
-          }}
-        >
-          Continue with Google
-        </Button>
-
         {/* Bottom Link */}
         <Box sx={{ textAlign: 'center', mt: 3 }}>
           <Typography sx={{ fontSize: '0.85rem', color: '#9ca3af' }}>
