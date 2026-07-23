@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
   Drawer,
@@ -11,83 +10,155 @@ import {
   ListItem,
   ListItemButton,
   ListItemIcon,
-  ListItemText
+  ListItemText,
 } from '@mui/material';
 import {
   LayoutDashboard,
-  Users,
-  Receipt,
-  DollarSign,
+  Store,
+  CreditCard,
+  Wallet,
+  Shield,
+  Bell,
   User,
-  LogOut
+  HelpCircle,
+  LogOut,
 } from 'lucide-react';
-import { closeSidebar } from '../../features/ui/uiSlice';
-import styles from './layout.module.scss';
 
-const drawerWidth = 240;
+const DRAWER_WIDTH = 240;
+
+const MENU_ITEMS = [
+  { text: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
+  { text: 'Marketplace', icon: Store, path: '/app/marketplace' },
+  { text: 'My Memberships', icon: CreditCard, path: '/app/groups' },
+  { text: 'Wallet', icon: Wallet, path: '/app/settlements' },
+  { text: 'Host Center', icon: Shield, path: '/app/host' },
+  { text: 'Notifications', icon: Bell, path: '/app/notifications' },
+  { text: 'Profile', icon: User, path: '/app/profile' },
+];
 
 function Sidebar({ mobileOpen, handleDrawerToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
-  const sidebarOpen = useSelector((state) => state.ui.sidebarOpen);
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
-    { text: 'Groups', icon: <Users size={20} />, path: '/groups' },
-    { text: 'Expenses', icon: <Receipt size={20} />, path: '/expenses' },
-    { text: 'Settlements', icon: <DollarSign size={20} />, path: '/settlements' },
-    { text: 'Profile', icon: <User size={20} />, path: '/profile' }
-  ];
 
   const drawerContent = (
-    <Box className={styles.drawerInner}>
-      <Toolbar className={styles.logoContainer}>
-        <Box className={styles.logo}>
-          S
-        </Box>
-        <Typography variant="h6" className={styles.title}>
-          SubSplit
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#14161a',
+        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+        color: '#f3f4f6',
+      }}
+    >
+      {/* Brand Header Wordmark */}
+      <Toolbar
+        sx={{
+          px: 2.5,
+          py: 2,
+          minHeight: '76px !important',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+        onClick={() => navigate('/')}
+      >
+        <Typography
+          sx={{
+            fontWeight: 900,
+            fontSize: '1.35rem',
+            color: '#f3f4f6',
+            letterSpacing: '-0.04em',
+            fontFamily: '"Inter", sans-serif',
+          }}
+        >
+          Sub<Box component="span" sx={{ color: '#2563eb' }}>Split</Box>
         </Typography>
       </Toolbar>
-      <Divider className={styles.divider} />
-      <List className={styles.navList}>
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
+
+      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+
+      {/* Main Nav Links */}
+      <List sx={{ px: 1.5, py: 2, flexGrow: 1 }}>
+        {MENU_ITEMS.map(({ text, icon: Icon, path }) => {
+          const isActive = location.pathname === path;
           return (
-            <ListItem key={item.text} disablePadding className={styles.navItem}>
+            <ListItem key={text} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 onClick={() => {
-                  navigate(item.path);
+                  navigate(path);
                   if (mobileOpen) handleDrawerToggle();
                 }}
-                className={`${styles.navBtn} ${isActive ? styles.active : ''}`}
+                sx={{
+                  borderRadius: '12px',
+                  py: 1,
+                  px: 1.5,
+                  background: isActive ? 'rgba(37, 99, 235, 0.12)' : 'transparent',
+                  color: isActive ? '#3b82f6' : '#9ca3af',
+                  borderLeft: isActive ? '3px solid #2563eb' : '3px solid transparent',
+                  transition: 'all 0.15s ease',
+                  '&:hover': {
+                    background: isActive ? 'rgba(37, 99, 235, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+                    color: '#f3f4f6',
+                  },
+                }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
-                  {item.icon}
+                <ListItemIcon sx={{ minWidth: 36, color: isActive ? '#3b82f6' : '#9ca3af' }}>
+                  <Icon size={18} />
                 </ListItemIcon>
                 <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{ fontSize: '14px', fontWeight: isActive ? 600 : 500 }}
+                  primary={text}
+                  primaryTypographyProps={{
+                    fontSize: '0.88rem',
+                    fontWeight: isActive ? 800 : 500,
+                  }}
                 />
               </ListItemButton>
             </ListItem>
           );
         })}
       </List>
-      <Divider className={styles.divider} />
-      <List className={styles.navList} sx={{ flexGrow: 0 }}>
+
+      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+
+      {/* Bottom Actions */}
+      <List sx={{ px: 1.5, py: 1.5, flexGrow: 0 }}>
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            onClick={() => navigate('/app/profile')}
+            sx={{
+              borderRadius: '12px',
+              py: 0.9,
+              color: '#9ca3af',
+              '&:hover': { color: '#f3f4f6', background: 'rgba(255, 255, 255, 0.05)' },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+              <HelpCircle size={18} />
+            </ListItemIcon>
+            <ListItemText
+              primary="Help & Support"
+              primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 500 }}
+            />
+          </ListItemButton>
+        </ListItem>
+
         <ListItem disablePadding>
           <ListItemButton
             onClick={() => navigate('/auth')}
-            className={styles.logoutBtn}
+            sx={{
+              borderRadius: '12px',
+              py: 0.9,
+              color: '#ef4444',
+              '&:hover': { background: 'rgba(239, 68, 68, 0.1)' },
+            }}
           >
-            <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
-              <LogOut size={20} />
+            <ListItemIcon sx={{ minWidth: 36, color: '#ef4444' }}>
+              <LogOut size={18} />
             </ListItemIcon>
             <ListItemText
               primary="Logout"
-              primaryTypographyProps={{ fontSize: '14px', fontWeight: 600 }}
+              primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 700 }}
             />
           </ListItemButton>
         </ListItem>
@@ -98,8 +169,8 @@ function Sidebar({ mobileOpen, handleDrawerToggle }) {
   return (
     <Box
       component="nav"
-      sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
-      aria-label="mailbox folders"
+      sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
+      aria-label="Application Sidebar Navigation"
     >
       {/* Mobile Drawer */}
       <Drawer
@@ -108,7 +179,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle }) {
         onClose={handleDrawerToggle}
         ModalProps={{ keepMounted: true }}
         sx={{ display: { xs: 'block', md: 'none' } }}
-        PaperProps={{ className: styles.drawerPaper }}
+        PaperProps={{ sx: { width: DRAWER_WIDTH, background: '#14161a', border: 'none' } }}
       >
         {drawerContent}
       </Drawer>
@@ -116,9 +187,9 @@ function Sidebar({ mobileOpen, handleDrawerToggle }) {
       {/* Desktop Drawer */}
       <Drawer
         variant="permanent"
-        open={sidebarOpen}
+        open
         sx={{ display: { xs: 'none', md: 'block' } }}
-        PaperProps={{ className: styles.drawerPaper }}
+        PaperProps={{ sx: { width: DRAWER_WIDTH, background: '#14161a', border: 'none' } }}
       >
         {drawerContent}
       </Drawer>
