@@ -1,5 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import useLogoClick from '../../hooks/useLogoClick';
+import { logoutUser } from '../../features/auth/authSlice';
 import {
   Box,
   Drawer,
@@ -39,6 +42,13 @@ const MENU_ITEMS = [
 function Sidebar({ mobileOpen, handleDrawerToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  const handleLogoClick = useLogoClick();
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    navigate('/auth');
+  };
 
   const drawerContent = (
     <Box
@@ -61,7 +71,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle }) {
           display: 'flex',
           alignItems: 'center',
         }}
-        onClick={() => navigate('/')}
+        onClick={handleLogoClick}
       >
         <Typography
           sx={{
@@ -145,7 +155,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle }) {
 
         <ListItem disablePadding>
           <ListItemButton
-            onClick={() => navigate('/auth')}
+            onClick={handleLogout}
             sx={{
               borderRadius: '12px',
               py: 0.9,

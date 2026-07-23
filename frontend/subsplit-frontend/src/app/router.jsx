@@ -12,6 +12,8 @@ import Marketplace from "../features/marketplace/Marketplace";
 import ListingDetails from "../features/marketplace/ListingDetails";
 import HostCenter from "../features/host/HostCenter";
 import NotificationsCenter from "../features/notifications/NotificationsCenter";
+import PrivateRoute from "../components/routes/PrivateRoute";
+import PublicRoute from "../components/routes/PublicRoute";
 
 export default function AppRoutes() {
   return (
@@ -20,21 +22,25 @@ export default function AppRoutes() {
         {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Auth Route */}
-        <Route path="/auth" element={<Auth />} />
+        {/* Public-only Auth Route */}
+        <Route element={<PublicRoute />}>
+          <Route path="/auth" element={<Auth />} />
+        </Route>
 
-        {/* Main Application Layout with Nested Routes */}
-        <Route path="/app" element={<MainLayout />}>
-          <Route index element={<Navigate to="/app/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="marketplace" element={<Marketplace />} />
-          <Route path="marketplace/:id" element={<ListingDetails />} />
-          <Route path="groups" element={<Groups />} />
-          <Route path="expenses" element={<Expenses />} />
-          <Route path="settlements" element={<Settlements />} />
-          <Route path="host" element={<HostCenter />} />
-          <Route path="notifications" element={<NotificationsCenter />} />
-          <Route path="profile" element={<Profile />} />
+        {/* Protected Private Routes */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/app" element={<MainLayout />}>
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="marketplace" element={<Marketplace />} />
+            <Route path="marketplace/:id" element={<ListingDetails />} />
+            <Route path="groups" element={<Groups />} />
+            <Route path="expenses" element={<Expenses />} />
+            <Route path="settlements" element={<Settlements />} />
+            <Route path="host" element={<HostCenter />} />
+            <Route path="notifications" element={<NotificationsCenter />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
         </Route>
 
         {/* Catch-all Fallback */}

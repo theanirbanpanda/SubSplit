@@ -15,9 +15,11 @@ import {
 } from '@mui/material';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useLogoClick from '../../../hooks/useLogoClick';
 
 function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
   const navigate = useNavigate();
+  const handleLogoClick = useLogoClick();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -44,7 +46,7 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
       {/* SubSplit Typographic Wordmark Header */}
       <Box
         sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', mb: 2 }}
-        onClick={() => navigate('/')}
+        onClick={handleLogoClick}
       >
         <Typography
           sx={{

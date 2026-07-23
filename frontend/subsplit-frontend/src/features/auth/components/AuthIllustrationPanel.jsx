@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Stack, Paper, Chip } from '@mui/material';
 import { ShieldCheck, TrendingDown, Users, Sparkles, Tv2, Music, Bot, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useLogoClick from '../../../hooks/useLogoClick';
 
 const BRAND_CARDS = [
   {
@@ -48,6 +49,7 @@ const BRAND_CARDS = [
 
 function AuthIllustrationPanel() {
   const navigate = useNavigate();
+  const handleLogoClick = useLogoClick();
 
   return (
     <Box
@@ -79,7 +81,7 @@ function AuthIllustrationPanel() {
       {/* Top Bar: Wordmark */}
       <Box
         sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-        onClick={() => navigate('/')}
+        onClick={handleLogoClick}
       >
         <Typography
           sx={{

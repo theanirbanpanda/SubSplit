@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logoutUser } from '../../features/auth/authSlice';
 import {
   AppBar,
   Toolbar,
@@ -18,11 +20,18 @@ import { Menu as MenuIcon, Bell, Search, Plus, Wallet } from 'lucide-react';
 
 function Header({ handleDrawerToggle }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchVal, setSearchVal] = useState('');
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
+
+  const handleLogout = () => {
+    handleClose();
+    dispatch(logoutUser());
+    navigate('/auth');
+  };
 
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter' && searchVal.trim()) {
@@ -167,7 +176,7 @@ function Header({ handleDrawerToggle }) {
             <MenuItem onClick={() => { handleClose(); navigate('/app/settlements'); }} sx={{ fontSize: '0.88rem', fontWeight: 600 }}>
               Wallet & Escrow
             </MenuItem>
-            <MenuItem onClick={() => { handleClose(); navigate('/auth'); }} sx={{ fontSize: '0.88rem', fontWeight: 700, color: '#ef4444' }}>
+            <MenuItem onClick={handleLogout} sx={{ fontSize: '0.88rem', fontWeight: 700, color: '#ef4444' }}>
               Logout
             </MenuItem>
           </Menu>

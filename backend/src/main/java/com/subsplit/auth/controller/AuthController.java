@@ -96,4 +96,15 @@ public class AuthController {
                         .build()
         );
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout() {
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message("Logout successful")
+                        .data("Logged out successfully")
+                        .build()
+        );
+    }
 }

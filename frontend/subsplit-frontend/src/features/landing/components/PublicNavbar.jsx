@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { Menu as MenuIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useLogoClick from '../../../hooks/useLogoClick';
 
 const NAV_LINKS = [
   { label: 'Marketplace', href: '#marketplace' },
@@ -26,6 +27,7 @@ const NAV_LINKS = [
 
 function PublicNavbar() {
   const navigate = useNavigate();
+  const handleLogoClick = useLogoClick();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const scrolled = useScrollTrigger({
@@ -70,7 +72,7 @@ function PublicNavbar() {
             {/* ── Left: Pure Typographic Startup Wordmark ── */}
             <Box
               sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', mr: 'auto' }}
-              onClick={() => navigate('/')}
+              onClick={handleLogoClick}
               role="link"
               aria-label="SubSplit home"
             >

@@ -8,9 +8,11 @@ import {
   Divider,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import useLogoClick from '../../../hooks/useLogoClick';
 
 function Footer() {
   const navigate = useNavigate();
+  const handleLogoClick = useLogoClick();
 
   return (
     <Box component="footer" sx={{ background: '#09090B', borderTop: '1px solid #2A2A30', color: '#A1A1AA', pt: 8, pb: 4 }}>
@@ -26,7 +28,7 @@ function Footer() {
           <Grid item xs={12} md={4}>
             <Box
               sx={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', mb: 2 }}
-              onClick={() => navigate('/')}
+              onClick={handleLogoClick}
             >
               <Typography
                 sx={{

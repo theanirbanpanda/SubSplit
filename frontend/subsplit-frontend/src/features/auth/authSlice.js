@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { registerApi, loginApi } from './api/authApi';
+import { registerApi, loginApi, logoutApi } from './api/authApi';
 
 // Async Thunks for API integration
 export const registerUser = createAsyncThunk(
@@ -45,6 +45,19 @@ export const loginUser = createAsyncThunk(
         errorMessage = err.message;
       }
       return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, { dispatch }) => {
+    try {
+      await logoutApi();
+    } catch (err) {
+      // Ignore network/API errors on logout and still clean up local auth state
+    } finally {
+      dispatch(logout());
     }
   }
 );
