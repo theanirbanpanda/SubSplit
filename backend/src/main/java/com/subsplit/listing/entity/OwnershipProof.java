@@ -3,7 +3,7 @@ package com.subsplit.listing.entity;
 import com.subsplit.common.entity.BaseEntity;
 import com.subsplit.common.enums.AiValidationStatus;
 import com.subsplit.common.enums.ProofType;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 

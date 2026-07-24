@@ -4,7 +4,7 @@ import com.subsplit.common.entity.BaseEntity;
 import com.subsplit.common.enums.BillingCycle;
 import com.subsplit.common.enums.ListingStatus;
 import com.subsplit.subscription.entity.SubscriptionPlan;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -7,11 +7,7 @@ public class EnvLoader {
         Dotenv dotenv = Dotenv.configure()
                 .ignoreIfMissing()
                 .load();
-        setSystemProperty("DB_HOST", dotenv.get("DB_HOST"));
-        setSystemProperty("DB_PORT", dotenv.get("DB_PORT"));
-        setSystemProperty("DB_NAME", dotenv.get("DB_NAME"));
-        setSystemProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
-        setSystemProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+        dotenv.entries().forEach(entry -> setSystemProperty(entry.getKey(), entry.getValue()));
     }
 
     private static void setSystemProperty(String key, String value) {

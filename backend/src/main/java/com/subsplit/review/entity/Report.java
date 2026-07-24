@@ -3,7 +3,7 @@ package com.subsplit.review.entity;
 import com.subsplit.common.entity.BaseEntity;
 import com.subsplit.common.enums.ReportStatus;
 import com.subsplit.listing.entity.Listing;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 

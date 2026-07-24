@@ -1,61 +1,128 @@
-import React from 'react';
-import { Box, Button, Card, CardContent, TextField, Typography, Container } from '@mui/material';
+import React, { useState } from 'react';
+import { Snackbar, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import '../styles/auth.scss';
+import { useDispatch, useSelector } from 'react-redux';
+import AuthLayout from '../components/AuthLayout';
+import LoginForm from '../components/LoginForm';
+import SignupForm from '../components/SignupForm';
+import ProfileCompletionForm from '../components/ProfileCompletionForm';
+import ForgotPasswordForm from '../components/ForgotPasswordForm';
+import ValidationAlert from '../components/ValidationAlert';
+import { registerUser, loginUser, clearAuthError } from '../authSlice';
 
 function Auth() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    navigate('/dashboard');
+  // Mode: 'login' | 'signup' | 'onboarding' | 'forgot_password'
+  const [mode, setMode] = useState('login');
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  // Handle Login
+  const handleLoginSubmit = async (credentials) => {
+    dispatch(clearAuthError());
+    const action = await dispatch(loginUser(credentials));
+    if (loginUser.fulfilled.match(action)) {
+      setSuccessMsg(action.payload?.message || 'Login successful! Welcome back to SubSplit.');
+      setSnackbarOpen(true);
+      setTimeout(() => {
+        navigate('/app/dashboard');
+      }, 500);
+    }
+  };
+
+  // Handle Signup
+  const handleSignupSubmit = async (userData) => {
+    dispatch(clearAuthError());
+    const action = await dispatch(registerUser(userData));
+    if (registerUser.fulfilled.match(action)) {
+      setSuccessMsg(action.payload?.message || 'Account created successfully! Please log in.');
+      setSnackbarOpen(true);
+      setMode('login');
+    }
+  };
+
+  // Handle Profile Completion
+  const handleProfileCompleteSubmit = (profileData) => {
+    setSuccessMsg('Profile setup complete! Launching SubSplit...');
+    setSnackbarOpen(true);
+    setTimeout(() => {
+      navigate('/app/dashboard');
+    }, 500);
   };
 
   return (
-    <Box className="auth-container">
-      <Container maxWidth="xs">
-        <Card elevation={0} className="auth-card">
-          <CardContent>
-            <Box className="auth-header">
-              <Box className="auth-logo">
-                S
-              </Box>
-              <Typography variant="h5" className="auth-title">Welcome to SubSplit</Typography>
-              <Typography variant="body2" className="auth-subtitle">Settle your shared bills hassle-free</Typography>
-            </Box>
+    <AuthLayout>
+      <ValidationAlert
+        error={error}
+        success={successMsg && !snackbarOpen ? successMsg : null}
+        onClose={() => {
+          dispatch(clearAuthError());
+          setSuccessMsg(null);
+        }}
+      />
 
-            <form onSubmit={handleLogin}>
-              <TextField 
-                label="Email Address" 
-                variant="outlined" 
-                fullWidth 
-                required 
-                className="auth-field"
-                defaultValue="user@subsplit.com"
-              />
-              <TextField 
-                label="Password" 
-                type="password" 
-                variant="outlined" 
-                fullWidth 
-                required 
-                className="auth-field-lg"
-                defaultValue="password123"
-              />
-              <Button 
-                type="submit" 
-                variant="contained" 
-                fullWidth 
-                size="large"
-                className="auth-button"
-              >
-                Sign In
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+      {mode === 'login' && (
+        <LoginForm
+          onLogin={handleLoginSubmit}
+          onSwitchToSignup={() => {
+            dispatch(clearAuthError());
+            setMode('signup');
+          }}
+          onSwitchToForgot={() => {
+            dispatch(clearAuthError());
+            setMode('forgot_password');
+          }}
+          loading={loading}
+        />
+      )}
+
+      {mode === 'signup' && (
+        <SignupForm
+          onSignup={handleSignupSubmit}
+          onSwitchToLogin={() => {
+            dispatch(clearAuthError());
+            setMode('login');
+          }}
+          loading={loading}
+        />
+      )}
+
+      {mode === 'onboarding' && (
+        <ProfileCompletionForm
+          onComplete={handleProfileCompleteSubmit}
+          loading={loading}
+        />
+      )}
+
+      {mode === 'forgot_password' && (
+        <ForgotPasswordForm
+          onSwitchToLogin={() => {
+            dispatch(clearAuthError());
+            setMode('login');
+          }}
+        />
+      )}
+
+      {/* Snackbar Feedback */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%', borderRadius: '12px', fontWeight: 600, background: '#22c55e', color: '#fff' }}
+        >
+          {successMsg}
+        </Alert>
+      </Snackbar>
+    </AuthLayout>
   );
 }
 

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import com.subsplit.common.entity.BaseEntity;
 import com.subsplit.common.enums.MembershipStatus;
 import com.subsplit.listing.entity.Listing;
-import com.subsplit.user.entity.User;
+import com.subsplit.common.entity.User;
 import com.subsplit.wallet.entity.EscrowTransaction;
 
 import jakarta.persistence.CascadeType;

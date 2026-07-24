@@ -4,7 +4,7 @@ export const setupInterceptors = (store) => {
   api.interceptors.request.use(
     (config) => {
       const token = store.getState().auth.token;
-      if (token) {
+      if (token && token !== 'undefined' && token !== 'null') {
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
