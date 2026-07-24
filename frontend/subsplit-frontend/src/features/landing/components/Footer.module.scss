@@ -1,0 +1,236 @@
+@use '../../../styles/abstracts/variables' as *;
+
+.footer {
+  background: $bg-primary;
+  border-top: 1px solid $border-default;
+  color: $text-secondary;
+  padding-top: 64px;
+  padding-bottom: 32px;
+}
+
+.container {
+  width: $container-width;
+  max-width: $container-max;
+  margin: 0 auto;
+}
+
+/* ── Top Grid ── */
+.topGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr;
+  gap: 32px;
+  margin-bottom: 48px;
+
+  @media (max-width: 899px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  @media (max-width: 599px) {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+/* ── Brand Column ── */
+.brandCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.logoText {
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: $text-primary;
+  letter-spacing: -0.04em;
+  font-family: 'Inter', sans-serif;
+}
+
+.logoAccent {
+  color: $accent-blue-light;
+}
+
+.brandTagline {
+  font-size: 0.85rem;
+  color: $text-secondary;
+  line-height: 1.65;
+  max-width: 260px;
+  margin-bottom: 20px;
+}
+
+.socialRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.socialIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid $border-default;
+  background: $bg-card;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: $accent-blue-light;
+    color: $accent-blue-light;
+    background: rgba(59, 130, 246, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+/* ── Link Columns ── */
+.linkCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.colTitle {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: $text-primary;
+  margin-bottom: 20px;
+}
+
+.colLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.colLink {
+  font-size: 0.85rem;
+  color: $text-secondary;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  padding: 0;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $accent-blue-light;
+  }
+}
+
+/* ── Newsletter Column ── */
+.newsletterCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.newsletterTitle {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: $text-primary;
+  margin-bottom: 8px;
+}
+
+.newsletterDesc {
+  font-size: 0.82rem;
+  color: $text-secondary;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.newsletterForm {
+  display: flex;
+  gap: 8px;
+}
+
+.newsletterInput {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: $radius-sm;
+  border: 1px solid $border-default;
+  background: $bg-card;
+  color: $text-primary;
+  font-size: 0.85rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: $transition-fast;
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:focus {
+    border-color: $accent-blue-light;
+  }
+}
+
+.newsletterBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-sm;
+  border: none;
+  background: $accent-blue;
+  color: $text-primary;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $accent-blue-light;
+    transform: translateY(-1px);
+  }
+}
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: $border-default;
+  margin-bottom: 24px;
+}
+
+/* ── Bottom Bar ── */
+.bottomBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+}
+
+.copyright {
+  font-size: 0.8rem;
+  color: $text-muted;
+}
+
+.paymentRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.paymentBadge {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: $text-secondary;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: $bg-card;
+  border: 1px solid $border-default;
+  letter-spacing: 0.02em;
+}

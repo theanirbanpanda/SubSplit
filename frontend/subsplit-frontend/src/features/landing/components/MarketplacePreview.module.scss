@@ -1,0 +1,209 @@
+@use '../../../styles/abstracts/variables' as *;
+
+.marketplace {
+  padding: 64px 0;
+  background: $bg-primary;
+  border-top: 1px solid $border-default;
+
+  @media (max-width: 599px) {
+    padding: 40px 0;
+  }
+}
+
+.container {
+  width: $container-width;
+  max-width: $container-max;
+  margin: 0 auto;
+}
+
+/* ── Header Row ── */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.sectionTitle {
+  font-weight: 900;
+  font-size: 1.75rem;
+  color: $text-primary;
+  letter-spacing: -0.03em;
+
+  @media (max-width: 599px) {
+    font-size: 1.4rem;
+  }
+}
+
+.viewAll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-secondary;
+  font-weight: 600;
+  font-size: 0.88rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $accent-blue-light;
+  }
+}
+
+/* ── Category Filters ── */
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  /* Hide scrollbar */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filterChip {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid $border-default;
+  background: transparent;
+  color: $text-secondary;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: $accent-blue-light;
+    color: $text-primary;
+  }
+}
+
+.filterChipActive {
+  background: $accent-blue;
+  color: $text-primary;
+  border-color: $accent-blue;
+}
+
+/* ── Cards Grid ── */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+
+  @media (max-width: 1199px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 599px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* ── Subscription Card ── */
+.subCard {
+  padding: 20px 16px;
+  border-radius: $radius-xl;
+  border: 1px solid $border-default;
+  background: $bg-secondary;
+  cursor: pointer;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: $accent-blue-light;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.subLogo {
+  margin-bottom: 14px;
+}
+
+.subTitle {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: $text-primary;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.subSubtitle {
+  font-size: 0.72rem;
+  color: $text-muted;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.subPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.subPrice {
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: $accent-green;
+}
+
+.subPriceUnit {
+  font-size: 0.7rem;
+  color: $text-muted;
+  font-weight: 500;
+}
+
+.subOriginal {
+  font-size: 0.7rem;
+  color: $text-muted;
+  text-decoration: line-through;
+  margin-left: 4px;
+}
+
+/* ── Card Footer ── */
+.subFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid $border-default;
+  margin-top: auto;
+}
+
+.subSeats {
+  font-size: 0.68rem;
+  color: $text-muted;
+  font-weight: 600;
+}
+
+.subRating {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
+  color: $text-primary;
+  font-weight: 700;
+}

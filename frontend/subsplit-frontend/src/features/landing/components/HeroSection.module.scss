@@ -1,0 +1,387 @@
+@use '../../../styles/abstracts/variables' as *;
+
+.hero {
+  padding-top: 112px;
+  padding-bottom: 0;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  background: $bg-primary;
+  position: relative;
+  overflow: hidden;
+  color: $text-primary;
+
+  @media (max-width: 899px) {
+    padding-top: 88px;
+    min-height: auto;
+  }
+}
+
+.bgGlow {
+  position: absolute;
+  top: -150px;
+  right: -100px;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+
+  @media (max-width: 899px) {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+.container {
+  width: $container-width;
+  max-width: $container-max;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Eyebrow Badge ── */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: $bg-secondary;
+  border: 1px solid $border-default;
+  border-radius: $radius-sm;
+  color: $accent-blue-light;
+  font-weight: 700;
+  font-size: 0.74rem;
+  margin-bottom: 20px;
+}
+
+.eyebrowIcon {
+  display: flex;
+  align-items: center;
+}
+
+/* ── Headline ── */
+.headline {
+  font-weight: 900;
+  color: $text-primary;
+  font-size: 3.1rem;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  margin-bottom: 16px;
+
+  @media (max-width: 1199px) {
+    font-size: 2.6rem;
+  }
+
+  @media (max-width: 599px) {
+    font-size: 2rem;
+  }
+}
+
+.headlineAccent {
+  color: $accent-blue-light;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: rgba(59, 130, 246, 0.4);
+    border-radius: 2px;
+  }
+}
+
+/* ── Subtitle ── */
+.subtitle {
+  color: $text-secondary;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  font-weight: 500;
+  max-width: 520px;
+
+  @media (max-width: 599px) {
+    font-size: 1rem;
+  }
+}
+
+/* ── CTA Buttons ── */
+.ctaRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+  }
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.98rem;
+  padding: 12px 30px;
+  border-radius: $radius-md;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  text-transform: none;
+  background: $gradient-primary;
+  color: $text-primary;
+  box-shadow: $shadow-primary;
+  transition: $transition-default;
+
+  &:hover {
+    background: $gradient-primary-hover;
+    box-shadow: $shadow-primary-hover;
+    transform: translateY(-1px);
+  }
+}
+
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.98rem;
+  padding: 12px 30px;
+  border-radius: $radius-md;
+  border: 1px solid $border-default;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  text-transform: none;
+  background: $bg-secondary;
+  color: $text-primary;
+  transition: $transition-default;
+
+  &:hover {
+    border-color: $accent-blue-light;
+    color: $accent-blue-light;
+    background: $bg-card;
+    transform: translateY(-1px);
+  }
+}
+
+/* ── Trust Checkmarks ── */
+.trustChecks {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trustLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: $text-secondary;
+}
+
+/* ── Comparison Widget ── */
+.comparisonWidget {
+  background: linear-gradient(180deg, #141418, #0E0E11);
+  border: 1px solid #26262C;
+  border-radius: $radius-3xl;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 599px) {
+    padding: 20px;
+    border-radius: $radius-xl;
+  }
+}
+
+.widgetTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+
+.widgetTab {
+  padding: 8px 24px;
+  border-radius: $radius-sm;
+  border: 1px solid $border-default;
+  background: transparent;
+  color: $text-secondary;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: $accent-blue-light;
+  }
+}
+
+.widgetTabActive {
+  background: $accent-blue;
+  color: $text-primary;
+  border-color: $accent-blue;
+}
+
+.widgetTabCurrent {
+  background: transparent;
+  border-color: $text-secondary;
+  color: $text-secondary;
+
+  &.widgetTabActive {
+    background: $text-secondary;
+    color: $bg-primary;
+    border-color: $text-secondary;
+  }
+}
+
+.widgetTabSubsplit {
+  background: transparent;
+  border-color: $accent-green;
+  color: $accent-green;
+
+  &.widgetTabActive {
+    background: $accent-green;
+    color: $bg-primary;
+    border-color: $accent-green;
+  }
+}
+
+/* ── Pricing Rows ── */
+.pricingRows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pricingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.pricingService {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pricingServiceName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: $text-primary;
+}
+
+.pricingAmount {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: $text-primary;
+}
+
+.pricingAmountStrike {
+  text-decoration: line-through;
+  color: $text-muted;
+  font-weight: 600;
+}
+
+.pricingAmountGreen {
+  color: $accent-green;
+}
+
+/* ── Total Row ── */
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 0;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.totalLabel {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: $text-secondary;
+}
+
+.totalAmount {
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.totalAmountRed {
+  color: $accent-red;
+}
+
+.totalAmountGreen {
+  color: $accent-green;
+}
+
+/* ── Savings Banner ── */
+.savingsBanner {
+  margin-top: 16px;
+  padding: 14px 20px;
+  border-radius: $radius-md;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.savingsIcon {
+  display: flex;
+  align-items: center;
+}
+
+.savingsText {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: $accent-green;
+}
+
+/* ── Swirl / Transfer Icon between tabs ── */
+.transferIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: $bg-primary;
+  border: 2px solid $border-default;
+  color: $accent-blue-light;
+  margin: -8px auto 16px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Fade-in animation ── */
+.fadeInUp {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fadeInUpVisible {
+  opacity: 1;
+  transform: translateY(0);
+}

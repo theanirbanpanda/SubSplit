@@ -1,0 +1,131 @@
+@use '../../../styles/abstracts/variables' as *;
+
+.section {
+  padding: 56px 0;
+  background: $bg-primary;
+  border-top: 1px solid $border-default;
+
+  @media (max-width: 599px) {
+    padding: 40px 0;
+  }
+}
+
+.container {
+  width: $container-width;
+  max-width: $container-max;
+  margin: 0 auto;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 40px;
+
+  @media (max-width: 599px) {
+    margin-bottom: 28px;
+  }
+}
+
+.sectionTitle {
+  font-weight: 900;
+  font-size: 1.75rem;
+  color: $text-primary;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+
+  @media (max-width: 599px) {
+    font-size: 1.4rem;
+  }
+}
+
+.sectionSubtitle {
+  font-size: 0.95rem;
+  color: $text-secondary;
+  max-width: 460px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ── 2-Column FAQ Grid ── */
+.faqGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+
+  @media (max-width: 899px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── FAQ Accordion Item ── */
+.faqItem {
+  border-radius: 14px;
+  border: 1px solid $border-default;
+  background: $bg-secondary;
+  overflow: hidden;
+  transition: $transition-default;
+}
+
+.faqItemExpanded {
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+}
+
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 18px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $text-primary;
+  font-weight: 700;
+  font-size: 0.92rem;
+  font-family: 'Inter', sans-serif;
+  text-align: left;
+  gap: 12px;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $accent-blue-light;
+  }
+}
+
+.faqQuestionExpanded {
+  color: $accent-blue-light;
+}
+
+.faqIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-secondary;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.faqIconExpanded {
+  transform: rotate(45deg);
+  color: $accent-blue-light;
+}
+
+.faqAnswer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.faqAnswerExpanded {
+  max-height: 200px;
+}
+
+.faqAnswerContent {
+  padding: 0 20px 18px;
+  color: $text-secondary;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
