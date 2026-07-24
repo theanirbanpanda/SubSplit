@@ -1,0 +1,73 @@
+@import '../styles/marketplaceVariables.scss';
+
+.section {
+  margin-bottom: $spacing-2;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: $spacing-3;
+}
+
+.chipsContainer {
+  display: flex;
+  gap: $spacing-2;
+  overflow-x: auto;
+  padding-bottom: $spacing-2;
+  
+  // Hide scrollbar but keep functionality
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 90px;
+  height: 80px;
+  background: $marketplace-card-bg;
+  border: 1px solid $marketplace-border;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  .iconWrapper {
+    color: $text-secondary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $text-secondary;
+  }
+
+  &:hover {
+    background: lighten($marketplace-card-bg, 3%);
+    border-color: lighten($marketplace-border, 10%);
+  }
+
+  &.active {
+    border-color: $accent-green-border;
+    background: $marketplace-card-bg;
+    
+    .iconWrapper, span {
+      color: $accent-green;
+    }
+  }
+}

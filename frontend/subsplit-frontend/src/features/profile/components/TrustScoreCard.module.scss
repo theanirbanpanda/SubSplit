@@ -1,0 +1,159 @@
+@import '../../marketplace/styles/marketplaceVariables.scss';
+
+.card {
+  background: #111114;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-xl;
+  padding: $spacing-4;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 0 0 $spacing-4 0;
+}
+
+.content {
+  display: flex;
+  flex-grow: 1;
+  gap: $spacing-4;
+  align-items: center;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.leftSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+
+  .gaugeContainer {
+    position: relative;
+    width: 120px;
+    height: 60px;
+    overflow: hidden;
+    margin-bottom: $spacing-2;
+    display: flex;
+    justify-content: center;
+
+    .gaugeBg {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 8px solid rgba(255, 255, 255, 0.08);
+      top: 0;
+    }
+
+    .gaugeFill {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 8px solid $accent-green;
+      border-bottom-color: transparent;
+      border-right-color: transparent;
+      top: 0;
+      transform: rotate(45deg); // 135deg is full half circle. (4.8/5.0) * 180 = ~172deg -> rotate starting at -45?
+      // CSS trick for half circle progress: clip rect or rotate.
+      // Easiest is just SVG. I'll use SVG in JSX.
+    }
+  }
+
+  .scoreWrapper {
+    margin-top: -20px; // Pull up into the half circle
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+
+    .scoreValue {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: $text-primary;
+      line-height: 1;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .scoreLabel {
+      color: $accent-green;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+  }
+
+  .reviewsCount {
+    color: $text-secondary;
+    font-size: 0.75rem;
+    margin-top: $spacing-1;
+  }
+}
+
+.rightSection {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.metricRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .metricLeft {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    color: $text-secondary;
+    font-size: 0.85rem;
+
+    svg {
+      color: $accent-green;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .metricScore {
+    color: $text-primary;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+}
+
+.actionBtn {
+  margin-top: $spacing-4;
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: $text-primary;
+  padding: 10px;
+  border-radius: $radius-md;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+}

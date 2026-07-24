@@ -1,0 +1,91 @@
+@import '../../marketplace/styles/marketplaceVariables.scss';
+
+.card {
+  background: #111114;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-xl;
+  padding: $spacing-4;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 0 0 $spacing-4 0;
+}
+
+.badgesRow {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: $spacing-4;
+  }
+}
+
+.badgeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  
+  // Custom simple hexagon styling using SVG or clip-path
+  .hexContainer {
+    width: 64px;
+    height: 74px; // approx ratio for pointy-top hexagon
+    background: rgba(255,255,255,0.05);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-2;
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    .hexInner {
+      width: 50px;
+      height: 58px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        width: 24px;
+        height: 24px;
+        color: #fff;
+      }
+    }
+  }
+
+  // Colors
+  &.green .hexInner { background: $accent-green; }
+  &.purple .hexInner { background: #a855f7; }
+  &.yellow .hexInner { background: #eab308; }
+
+  &.green .hexContainer { background: rgba(34, 197, 94, 0.2); }
+  &.purple .hexContainer { background: rgba(168, 85, 247, 0.2); }
+  &.yellow .hexContainer { background: rgba(234, 179, 8, 0.2); }
+
+  .badgeTitle {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 2px;
+  }
+
+  .badgeSub {
+    font-size: 0.75rem;
+    color: $text-secondary;
+  }
+}

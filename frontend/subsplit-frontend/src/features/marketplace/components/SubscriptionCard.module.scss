@@ -1,0 +1,222 @@
+@import '../styles/marketplaceVariables.scss';
+
+.card {
+  background: $marketplace-card-bg;
+  border: 1px solid $marketplace-border;
+  border-radius: $radius-xl;
+  padding: $spacing-3;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-card-hover;
+    border-color: $marketplace-border-subtle;
+  }
+
+  &.variant-large {
+    min-height: 280px;
+  }
+
+  &.variant-small {
+    padding: $spacing-2;
+    min-height: 220px;
+    
+    .title {
+      font-size: 1rem;
+    }
+  }
+}
+
+.aiVerifiedBadge {
+  position: absolute;
+  top: $spacing-3;
+  left: $spacing-3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  color: #000000;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  z-index: 2;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    color: $accent-blue;
+  }
+
+  &.small {
+    top: $spacing-2;
+    left: $spacing-2;
+  }
+}
+
+.logoContainer {
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $spacing-2;
+  margin-top: $spacing-3; // Make space for the absolute badge if it exists
+
+  img, .fallbackIcon {
+    width: 32px;
+    height: 32px;
+    color: white;
+  }
+
+  &.small {
+    width: 48px;
+    height: 48px;
+    margin-top: 0; // Badge is smaller or absent
+    
+    img, .fallbackIcon {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: 2px;
+}
+
+.category {
+  font-size: 0.8rem;
+  color: $text-secondary;
+  margin-bottom: $spacing-2;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: $spacing-3;
+
+  .currentPrice {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: $accent-green;
+
+    .period {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: $text-secondary;
+      margin-left: 2px;
+    }
+  }
+
+  .originalPrice {
+    font-size: 0.8rem;
+    color: $text-muted;
+    text-decoration: line-through;
+  }
+
+  .discount {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $accent-green;
+  }
+}
+
+.divider {
+  height: 1px;
+  background: $marketplace-border;
+  margin-bottom: $spacing-2;
+}
+
+.hostRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: $spacing-2;
+
+  .hostLabel {
+    font-size: 0.8rem;
+    color: $text-secondary;
+  }
+
+  .hostName {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin-left: auto;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      color: $accent-amber;
+      fill: $accent-amber;
+    }
+  }
+}
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.seatsInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .seatsText {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $accent-green;
+  }
+
+  .progressBar {
+    width: 60px;
+    height: 4px;
+    background: $marketplace-border;
+    border-radius: 2px;
+    overflow: hidden;
+
+    .progressFill {
+      height: 100%;
+      background: $accent-green;
+      border-radius: 2px;
+    }
+  }
+}
+
+.joinBtn {
+  background: transparent;
+  border: 1px solid $accent-green-border;
+  color: $accent-green;
+  padding: 6px 16px;
+  border-radius: $radius-sm;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $accent-green-bg;
+  }
+}

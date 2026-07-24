@@ -1,0 +1,69 @@
+@import '../../marketplace/styles/marketplaceVariables.scss';
+
+.section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 0 0 $spacing-3 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-2;
+  flex-grow: 1;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.actionBtn {
+  background: #111114;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-xl;
+  padding: $spacing-3 $spacing-1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: $text-primary;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.15);
+    background: lighten(#111114, 2%);
+  }
+
+  .iconWrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-2;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+    max-width: 80px;
+  }
+}

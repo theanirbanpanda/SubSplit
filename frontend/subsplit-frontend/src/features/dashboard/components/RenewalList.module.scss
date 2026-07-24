@@ -1,0 +1,111 @@
+@import '../../marketplace/styles/marketplaceVariables.scss';
+
+.section {
+  background: #111114;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-xl;
+  padding: $spacing-3;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-3;
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: $text-primary;
+    margin: 0;
+  }
+
+  .viewAll {
+    font-size: 0.8rem;
+    color: $accent-green;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  margin-bottom: $spacing-3;
+  flex-grow: 1;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.leftContent {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+
+  .logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .textInfo {
+    display: flex;
+    flex-direction: column;
+
+    .title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: $text-primary;
+    }
+
+    .date {
+      font-size: 0.75rem;
+      color: $text-secondary;
+    }
+  }
+}
+
+.price {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: $text-primary;
+}
+
+.actionBtn {
+  width: 100%;
+  background: rgba(34, 197, 94, 0.1);
+  color: $accent-green;
+  border: none;
+  padding: 12px;
+  border-radius: $radius-md;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(34, 197, 94, 0.15);
+  }
+}

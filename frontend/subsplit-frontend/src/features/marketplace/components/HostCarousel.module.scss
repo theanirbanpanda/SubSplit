@@ -1,0 +1,149 @@
+@import '../styles/marketplaceVariables.scss';
+
+.section {
+  margin-bottom: $spacing-2;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-3;
+
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .verifiedIcon {
+      color: $accent-green;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .viewAll {
+    font-size: 0.85rem;
+    color: $text-secondary;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      color: $text-primary;
+    }
+  }
+}
+
+.carousel {
+  display: flex;
+  gap: $spacing-3;
+  overflow-x: auto;
+  padding-bottom: $spacing-2;
+  
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.hostCard {
+  min-width: 220px;
+  background: $marketplace-card-bg;
+  border: 1px solid $marketplace-border;
+  border-radius: $radius-xl;
+  padding: $spacing-3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-card-hover;
+    border-color: $marketplace-border-subtle;
+  }
+}
+
+.avatarContainer {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin-bottom: $spacing-2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  
+  // Faint ring around avatar
+  box-shadow: 0 0 0 4px $marketplace-bg;
+}
+
+.hostName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: 6px;
+}
+
+.topHostBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(245, 158, 11, 0.1);
+  color: $accent-amber;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-bottom: $spacing-2;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.statsList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: $text-secondary;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: $accent-green;
+  }
+}
+
+.rating {
+  color: $accent-amber !important;
+}
+
+.footerStat {
+  width: 100%;
+  text-align: left;
+  margin-top: $spacing-2;
+  padding-top: $spacing-2;
+  border-top: 1px solid $marketplace-border;
+  font-size: 0.75rem;
+  color: $text-secondary;
+  font-weight: 600;
+}
