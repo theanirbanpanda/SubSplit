@@ -4,7 +4,7 @@
 .wrapper {
   display: flex;
   min-height: 100vh;
-  background-color: $background;
+  background-color: $bg-primary;
 }
 
 .appbar {
@@ -30,7 +30,7 @@
 .avatar {
   width: 36px !important;
   height: 36px !important;
-  background-color: $primary !important;
+  background-color: $accent-blue !important;
   font-size: 15px !important;
   font-weight: 600 !important;
 }
@@ -59,7 +59,7 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: -10%) 100%);
+  background: linear-gradient(135deg, $accent-blue 0%, color.adjust($accent-blue, $lightness: -10%) 100%);
   display: flex;
   align-items: center;
   justify-content: center;

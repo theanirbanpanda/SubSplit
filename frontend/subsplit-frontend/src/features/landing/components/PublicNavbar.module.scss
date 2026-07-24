@@ -1,0 +1,177 @@
+@use '../../../styles/abstracts/variables' as *;
+
+.navbar {
+  transition: $transition-default;
+}
+
+.navbarScrolled {
+  background: rgba(9, 9, 11, 0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid $border-default;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.navbarTransparent {
+  background: transparent;
+  border-bottom: 1px solid transparent;
+}
+
+.container {
+  width: $container-width;
+  max-width: $container-max;
+  margin: 0 auto;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  height: 76px;
+  gap: 16px;
+
+  @media (max-width: 899px) {
+    height: 64px;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: auto;
+  text-decoration: none;
+}
+
+.logoText {
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: $text-primary;
+  letter-spacing: -0.04em;
+  font-family: 'Inter', sans-serif;
+}
+
+.logoAccent {
+  color: $accent-blue-light;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  @media (max-width: 899px) {
+    display: none;
+  }
+}
+
+.navLink {
+  color: $text-secondary;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-transform: none;
+  padding: 6px 16px;
+  border-radius: $radius-sm;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $text-primary;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.authButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 899px) {
+    display: none;
+  }
+}
+
+.loginBtn {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: $text-secondary;
+  text-transform: none;
+  padding: 6px 16px;
+  border-radius: $radius-sm;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $text-primary;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.signupBtn {
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: none;
+  padding: 8px 22px;
+  border-radius: 10px;
+  background: transparent;
+  color: $accent-green;
+  border: 1.5px solid $accent-green;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: $transition-default;
+
+  &:hover {
+    background: rgba(34, 197, 94, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+  }
+}
+
+.hamburger {
+  display: none;
+  color: $text-primary;
+  margin-left: auto;
+
+  @media (max-width: 899px) {
+    display: flex;
+  }
+}
+
+/* ── Mobile Drawer ── */
+.drawerPaper {
+  width: 290px;
+  padding: 20px 0 24px;
+  background: $bg-secondary;
+  color: $text-primary;
+  border-left: 1px solid $border-default;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-bottom: 8px;
+}
+
+.drawerLink {
+  border-radius: 9px;
+  margin-bottom: 4px;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $bg-card;
+    color: $accent-blue-light;
+  }
+}
+
+.drawerActions {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

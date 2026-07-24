@@ -41,7 +41,7 @@
 
 // Buttons
 .btn-primary {
-  background-color: $primary !important;
+  background-color: $accent-blue !important;
   color: white !important;
   border-radius: 8px !important;
   text-transform: none !important;
@@ -50,21 +50,21 @@
   box-shadow: none !important;
 
   &:hover {
-    background-color: color.adjust($primary, $lightness: -5%) !important;
+    background-color: color.adjust($accent-blue, $lightness: -5%) !important;
   }
 }
 
 .btn-outlined {
-  border: 1px solid $primary !important;
-  color: $primary !important;
+  border: 1px solid $accent-blue !important;
+  color: $accent-blue !important;
   border-radius: 8px !important;
   text-transform: none !important;
   padding: 8px 20px !important;
   font-weight: 600 !important;
 
   &:hover {
-    background-color: rgba($primary, 0.04) !important;
-    border-color: color.adjust($primary, $lightness: -5%) !important;
+    background-color: rgba($accent-blue, 0.04) !important;
+    border-color: color.adjust($accent-blue, $lightness: -5%) !important;
   }
 }
 
@@ -76,9 +76,9 @@
 // Stat Cards
 .stat-card {
   padding: 24px !important;
-  border-radius: $radius !important;
+  border-radius: $radius-md !important;
   border: 1px solid #e2e8f0 !important;
-  background-color: $card !important;
+  background-color: $bg-card !important;
 }
 
 .stat-title {
@@ -95,8 +95,8 @@
 // Cards
 .card-flat {
   border: 1px solid #e2e8f0 !important;
-  border-radius: $radius !important;
-  background-color: $card !important;
+  border-radius: $radius-md !important;
+  background-color: $bg-card !important;
   transition: transform 0.2s, box-shadow 0.2s;
 
   &.hoverable:hover {

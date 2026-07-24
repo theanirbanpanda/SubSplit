@@ -9,7 +9,7 @@ import FeaturedListings from './components/FeaturedListings';
 import MarketplaceCard from './components/MarketplaceCard';
 import EmptyState from './components/EmptyState';
 import LiveActivityWidget from './components/LiveActivityWidget';
-import FinalCTA from '../landing/components/FinalCTA';
+
 import Footer from '../landing/components/Footer';
 import ScrollToTop from '../landing/components/ScrollToTop';
 import { MOCK_LISTINGS } from './data/mockListings';
@@ -143,7 +143,7 @@ function Marketplace() {
       </Box>
 
       <LiveActivityWidget />
-      <FinalCTA />
+
       <Footer />
       <ScrollToTop />
     </Box>

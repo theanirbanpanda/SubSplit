@@ -1,6 +1,48 @@
-$primary: #2563eb;
-$secondary: #14b8a6;
-$background: #f5f7fa;
-$card: #ffffff;
+// ── Color Palette (Dark Theme — Design System) ──
+$bg-primary: #09090B;
+$bg-secondary: #111114;
+$bg-card: #18181C;
+$bg-elevated: #1E1E24;
 
-$radius: 12px;
+$border-default: #2A2A30;
+$border-subtle: rgba(255, 255, 255, 0.08);
+
+$text-primary: #ffffff;
+$text-secondary: #A1A1AA;
+$text-muted: #71717A;
+
+$accent-blue: #2563EB;
+$accent-blue-light: #3B82F6;
+$accent-green: #22C55E;
+$accent-red: #EF4444;
+$accent-amber: #F59E0B;
+$accent-purple: #A855F7;
+$accent-teal: #14B8A6;
+$accent-rose: #F43F5E;
+$accent-cyan: #06B6D4;
+
+// ── Gradients ──
+$gradient-primary: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+$gradient-primary-hover: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+
+// ── Spacing ──
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+$radius-2xl: 24px;
+$radius-3xl: 28px;
+
+// ── Container ──
+$container-width: 92%;
+$container-max: 1440px;
+
+// ── Shadows ──
+$shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+$shadow-card-hover: 0 12px 36px rgba(0, 0, 0, 0.5);
+$shadow-primary: 0 4px 20px rgba(37, 99, 235, 0.4);
+$shadow-primary-hover: 0 6px 28px rgba(37, 99, 235, 0.55);
+
+// ── Transitions ──
+$transition-default: all 0.2s ease;
+$transition-fast: all 0.15s ease;

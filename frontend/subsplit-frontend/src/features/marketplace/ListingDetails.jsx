@@ -20,7 +20,7 @@ import MemberReviews from './components/details/MemberReviews';
 import RelatedListings from './components/details/RelatedListings';
 import JoinModal from './components/details/JoinModal';
 import ListingDetailsSkeleton from './components/details/ListingDetailsSkeleton';
-import FinalCTA from '../landing/components/FinalCTA';
+
 import Footer from '../landing/components/Footer';
 import ScrollToTop from '../landing/components/ScrollToTop';
 
@@ -144,7 +144,7 @@ function ListingDetails() {
         listing={listing}
       />
 
-      <FinalCTA />
+
       <Footer />
       <ScrollToTop />
     </Box>
