@@ -1,10 +1,8 @@
 import React from 'react';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import SubscriptionsIcon from '@mui/icons-material/Subscriptions';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import StarIcon from '@mui/icons-material/Star';
 import { MOCK_LISTINGS } from '../data/mockListings';
 import styles from './ListingTable.module.scss';
 
@@ -27,7 +25,7 @@ const ListingTable = () => {
           Join Type <KeyboardArrowDownIcon />
         </button>
         <button className={styles.filterBtn}>
-          Ratings <KeyboardArrowDownIcon />
+          Status <KeyboardArrowDownIcon />
         </button>
         <button className={styles.filterBtn}>
           More <KeyboardArrowDownIcon />
@@ -64,11 +62,7 @@ const ListingTable = () => {
               </span>
             </div>
 
-            <div className={styles.ratingCol}>
-              <StarIcon /> {listing.rating}
-            </div>
-
-            <div className={styles.seatsCol}>
+            <div className={styles.statusCol}>
               {listing.seatsLeft} left
             </div>
 
@@ -81,11 +75,7 @@ const ListingTable = () => {
               )}
             </div>
 
-            <button className={styles.joinBtn}>Instant Join</button>
-            
-            <button className={styles.bookmarkBtn}>
-              <BookmarkBorderIcon />
-            </button>
+            <button className={styles.joinBtn}>Join</button>
             
           </div>
         ))}

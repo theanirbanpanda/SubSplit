@@ -1,5 +1,3 @@
-import React from 'react';
-import StarIcon from '@mui/icons-material/Star';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SubscriptionsIcon from '@mui/icons-material/Subscriptions';
 
@@ -13,7 +11,6 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
     originalPrice,
     savingsPercent,
     hostName,
-    rating,
     seatsLeft,
     totalSeats,
     isAiVerified,
@@ -59,9 +56,6 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
       <div className={styles.hostRow}>
         <span className={styles.hostLabel}>Host:</span>
         <span className={styles.hostName}>{hostName}</span>
-        <div className={styles.rating}>
-          <StarIcon /> {rating}
-        </div>
       </div>
 
       <div className={styles.bottomRow}>

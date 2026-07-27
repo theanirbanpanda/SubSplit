@@ -10,12 +10,11 @@ import {
   LinearProgress,
   Chip,
 } from '@mui/material';
-import { ShieldCheck, Users, Star, Heart, Clock } from 'lucide-react';
+import { ShieldCheck, Users, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 function MarketplaceCard({ listing }) {
   const navigate = useNavigate();
-  const [wishlisted, setWishlisted] = useState(false);
 
   const {
     id,
@@ -75,20 +74,6 @@ function MarketplaceCard({ listing }) {
               borderRadius: '6px',
             }}
           />
-
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              setWishlisted(!wishlisted);
-            }}
-            sx={{
-              color: wishlisted ? '#ef4444' : '#71717A',
-              '&:hover': { color: '#ef4444', background: 'rgba(239,68,68,0.1)' },
-            }}
-          >
-            <Heart size={18} fill={wishlisted ? '#ef4444' : 'none'} />
-          </IconButton>
         </Stack>
 
         {/* Title */}
@@ -166,7 +151,7 @@ function MarketplaceCard({ listing }) {
           />
         </Box>
 
-        {/* Host info & Rating */}
+        {/* Host info */}
         <Stack
           direction="row"
           alignItems="center"
@@ -203,13 +188,6 @@ function MarketplaceCard({ listing }) {
                 </Typography>
               </Stack>
             </Box>
-          </Stack>
-
-          <Stack direction="row" alignItems="center" spacing={0.3}>
-            <Star size={13} fill="#f59e0b" color="#f59e0b" />
-            <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#ffffff' }}>
-              {rating}
-            </Typography>
           </Stack>
         </Stack>
 

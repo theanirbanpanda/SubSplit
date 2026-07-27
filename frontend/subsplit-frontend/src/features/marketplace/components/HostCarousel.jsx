@@ -1,6 +1,5 @@
 import React from 'react';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import StarIcon from '@mui/icons-material/Star';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import styles from './HostCarousel.module.scss';
 import { MOCK_LISTINGS } from '../data/mockListings';
@@ -49,14 +48,14 @@ const HostCarousel = () => {
             
             <div className={styles.hostName}>{host.name}</div>
             
-            <div className={styles.topHostBadge}>
-              <StarIcon /> Top Host
-            </div>
+            {host.rating > 4.8 && (
+              <div className={styles.topHostBadge}>
+                Top Host
+              </div>
+            )}
             
             <div className={styles.statsList}>
               <div className={styles.statItem}>
-                <StarIcon className={styles.rating} /> 
-                <span style={{color: '#fff', fontWeight: 700}}>{host.rating}</span> 
                 ({host.reviews > 999 ? (host.reviews/1000).toFixed(1) + 'k' : host.reviews} reviews)
               </div>
               <div className={styles.statItem}>

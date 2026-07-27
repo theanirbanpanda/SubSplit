@@ -148,7 +148,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
                   navigate(path);
                   if (mobileOpen) {
                     handleDrawerToggle();
-                  } else if (!sidebarCollapsed) {
+                  } else {
                     toggleSidebar();
                   }
                 }}
