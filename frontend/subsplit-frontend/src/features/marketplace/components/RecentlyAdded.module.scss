@@ -1,0 +1,159 @@
+@import '../styles/marketplaceVariables.scss';
+
+.section {
+  margin-bottom: $spacing-2;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-3;
+
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0;
+  }
+
+  .viewAll {
+    font-size: 0.85rem;
+    color: $text-secondary;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      color: $text-primary;
+    }
+  }
+}
+
+.carousel {
+  display: flex;
+  gap: $spacing-2;
+  overflow-x: auto;
+  padding-bottom: $spacing-2;
+  
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.compactCard {
+  min-width: 180px;
+  background: $marketplace-card-bg;
+  border: 1px solid $marketplace-border;
+  border-radius: $radius-lg;
+  padding: $spacing-2;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: $marketplace-border-subtle;
+    background: lighten($marketplace-card-bg, 2%);
+  }
+}
+
+.logoRow {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-1;
+  margin-bottom: $spacing-1;
+  
+  .logo {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+      color: white;
+    }
+  }
+}
+
+.title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.category {
+  font-size: 0.75rem;
+  color: $text-secondary;
+  margin-bottom: $spacing-1;
+}
+
+.price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: $spacing-2;
+
+  span {
+    font-size: 0.75rem;
+    color: $text-secondary;
+    font-weight: 400;
+  }
+}
+
+.divider {
+  height: 1px;
+  background: $marketplace-border;
+  margin-bottom: $spacing-1;
+}
+
+.hostRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: $spacing-1;
+
+  .hostInfo {
+    display: flex;
+    flex-direction: column;
+
+    .hostName {
+      font-size: 0.75rem;
+      color: $text-secondary;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      
+      svg {
+        width: 12px;
+        height: 12px;
+        color: $accent-green;
+      }
+    }
+
+    .seats {
+      font-size: 0.7rem;
+      color: $text-muted;
+    }
+  }
+
+  .newBadge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: $accent-green;
+    border: 1px solid $accent-green-border;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+}

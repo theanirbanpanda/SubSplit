@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser } from '../../features/auth/authSlice';
 import {
   AppBar,
   Toolbar,
   Box,
   IconButton,
-  Avatar,
-  Menu,
-  MenuItem,
   TextField,
   InputAdornment,
   Button,
-  Chip,
   Stack,
+  Badge,
+  Typography,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
-import { Menu as MenuIcon, Bell, Search, Plus, Wallet } from 'lucide-react';
+import { Menu as MenuIcon, Bell, Search, Wallet } from 'lucide-react';
 
-function Header({ handleDrawerToggle }) {
+function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const theme = useTheme();
   const { user } = useSelector((state) => state.auth);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
 
   const initials = user?.firstName
@@ -49,35 +48,25 @@ function Header({ handleDrawerToggle }) {
       position="fixed"
       elevation={0}
       sx={{
-        width: { md: `calc(100% - 240px)` },
-        ml: { md: `240px` },
-        background: 'rgba(13, 14, 17, 0.85)',
+        width: { md: `calc(100% - ${sidebarWidth}px)` },
+        ml: { md: `${sidebarWidth}px` },
+        background: 'rgba(9, 9, 11, 0.85)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         color: '#f3f4f6',
+        transition: 'width 0.2s ease, margin 0.2s ease',
       }}
     >
       <Toolbar sx={{ height: 76, px: { xs: 2, md: 4 }, gap: 2 }}>
-        {/* Mobile Hamburger */}
-        <IconButton
-          color="inherit"
-          aria-label="open drawer"
-          edge="start"
-          onClick={handleDrawerToggle}
-          sx={{ display: { md: 'none' }, color: '#9ca3af' }}
-        >
-          <MenuIcon size={22} />
-        </IconButton>
-
         {/* Global Search Input */}
-        <Box sx={{ flexGrow: 1, maxWidth: 420 }}>
+        <Box sx={{ flexGrow: 1, maxWidth: 420, mx: 'auto' }}>
           <TextField
             fullWidth
             size="small"
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
             onKeyDown={handleSearchSubmit}
-            placeholder="Search subscriptions, hosts, groups..."
+            placeholder="Search subscriptions, hosts or categories..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -85,55 +74,46 @@ function Header({ handleDrawerToggle }) {
                 </InputAdornment>
               ),
               sx: {
-                borderRadius: '12px',
-                background: '#14161a',
+                borderRadius: '8px',
+                background: '#111114',
                 color: '#f3f4f6',
                 fontSize: '0.85rem',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 '& fieldset': { border: 'none' },
-                '&:hover': { borderColor: '#2563eb' },
-                '&.Mui-focused': { borderColor: '#2563eb' },
+                '&:hover': { borderColor: '#22c55e' },
+                '&.Mui-focused': { borderColor: '#22c55e' },
               },
             }}
           />
         </Box>
 
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ ml: 'auto' }}>
-          {/* Wallet Balance Chip */}
-          <Chip
-            icon={<Wallet size={14} color="#22c55e" />}
-            label="₹1,250 Wallet"
-            onClick={() => navigate('/app/settlements')}
-            clickable
-            sx={{
-              background: '#14161a',
-              color: '#22c55e',
-              border: '1px solid rgba(34,197,94,0.3)',
-              fontWeight: 800,
-              fontSize: '0.78rem',
-              height: 34,
-              borderRadius: '10px',
-              display: { xs: 'none', sm: 'inline-flex' },
-            }}
-          />
-
-          {/* Quick Add / Browse Button */}
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ ml: 'auto' }}>
+          {/* Wallet Button */}
           <Button
-            variant="contained"
-            size="small"
-            startIcon={<Plus size={16} />}
-            onClick={() => navigate('/app/marketplace')}
+            variant="outlined"
+            onClick={() => navigate('/app/settlements')}
             sx={{
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              borderRadius: '10px',
-              py: 0.7,
-              px: 2,
-              display: { xs: 'none', sm: 'inline-flex' },
-              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+              display: { xs: 'none', sm: 'flex' },
+              alignItems: 'center',
+              gap: 1.5,
+              borderColor: 'rgba(34,197,94,0.3)',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              textTransform: 'none',
+              background: '#111114',
+              '&:hover': {
+                borderColor: '#22c55e',
+                background: 'rgba(34,197,94,0.05)',
+              }
             }}
           >
-            Browse
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34,197,94,0.15)', borderRadius: '6px', p: '4px' }}>
+              <Wallet size={16} color="#22c55e" />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Typography sx={{ fontSize: '0.65rem', color: '#9ca3af', lineHeight: 1 }}>Wallet balance</Typography>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>₹560.00</Typography>
+            </Box>
           </Button>
 
           {/* Notifications */}
@@ -141,51 +121,12 @@ function Header({ handleDrawerToggle }) {
             onClick={() => navigate('/app/notifications')}
             sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6', background: 'rgba(255, 255, 255, 0.05)' } }}
           >
-            <Bell size={20} />
+            <Badge badgeContent={2} sx={{ '& .MuiBadge-badge': { backgroundColor: '#22c55e', color: '#fff', fontWeight: 'bold' } }}>
+              <Bell size={20} />
+            </Badge>
           </IconButton>
 
-          {/* Avatar Menu */}
-          <IconButton onClick={handleMenu} sx={{ p: 0.5 }}>
-            <Avatar
-              src={user?.profileImage || undefined}
-              sx={{
-                width: 36,
-                height: 36,
-                bgcolor: '#2563eb',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                border: '1.5px solid #3b82f6',
-              }}
-            >
-              {initials}
-            </Avatar>
-          </IconButton>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-            PaperProps={{
-              sx: {
-                mt: 1.5,
-                background: '#14161a',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                color: '#f3f4f6',
-                borderRadius: '14px',
-                minWidth: 160,
-              },
-            }}
-          >
-            <MenuItem onClick={() => { handleClose(); navigate('/app/profile'); }} sx={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Profile
-            </MenuItem>
-            <MenuItem onClick={() => { handleClose(); navigate('/app/settlements'); }} sx={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Wallet & Escrow
-            </MenuItem>
-            <MenuItem onClick={handleLogout} sx={{ fontSize: '0.88rem', fontWeight: 700, color: '#ef4444' }}>
-              Logout
-            </MenuItem>
-          </Menu>
         </Stack>
       </Toolbar>
     </AppBar>

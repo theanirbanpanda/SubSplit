@@ -12,6 +12,7 @@ import Marketplace from "../features/marketplace/Marketplace";
 import ListingDetails from "../features/marketplace/ListingDetails";
 import HostCenter from "../features/host/HostCenter";
 import NotificationsCenter from "../features/notifications/NotificationsCenter";
+import Messages from "../features/messages/Messages";
 import PrivateRoute from "../components/routes/PrivateRoute";
 import PublicRoute from "../components/routes/PublicRoute";
 
@@ -30,7 +31,7 @@ export default function AppRoutes() {
         {/* Protected Private Routes */}
         <Route element={<PrivateRoute />}>
           <Route path="/app" element={<MainLayout />}>
-            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route index element={<Navigate to="/app/marketplace" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="marketplace/:id" element={<ListingDetails />} />
@@ -39,6 +40,7 @@ export default function AppRoutes() {
             <Route path="settlements" element={<Settlements />} />
             <Route path="host" element={<HostCenter />} />
             <Route path="notifications" element={<NotificationsCenter />} />
+            <Route path="messages" element={<Messages />} />
             <Route path="profile" element={<Profile />} />
           </Route>
         </Route>

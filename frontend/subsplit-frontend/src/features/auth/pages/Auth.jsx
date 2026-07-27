@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Snackbar, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import AuthLayout from '../components/AuthLayout';
 import LoginForm from '../components/LoginForm';
@@ -12,11 +12,18 @@ import { registerUser, loginUser, clearAuthError } from '../authSlice';
 
 function Auth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
 
   // Mode: 'login' | 'signup' | 'onboarding' | 'forgot_password'
-  const [mode, setMode] = useState('login');
+  const [mode, setMode] = useState(location.state?.mode || 'login');
+
+  useEffect(() => {
+    if (location.state?.mode) {
+      setMode(location.state.mode);
+    }
+  }, [location.state?.mode]);
   const [successMsg, setSuccessMsg] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 

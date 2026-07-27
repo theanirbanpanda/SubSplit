@@ -1,0 +1,73 @@
+@import '../../marketplace/styles/marketplaceVariables.scss';
+
+.card {
+  background: #111114;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-xl;
+  padding: $spacing-3 $spacing-2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 100%;
+  text-decoration: none;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.15);
+    background: lighten(#111114, 2%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.iconWrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $spacing-2;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.title {
+  font-size: 0.8rem;
+  color: $text-secondary;
+  font-weight: 500;
+  margin-bottom: $spacing-1;
+}
+
+.value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: $text-primary;
+}
+
+// Accent classes for icons
+.green {
+  background: rgba(34, 197, 94, 0.1);
+  color: $accent-green;
+}
+
+.purple {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+}
+
+.yellow {
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+}
+
+.blue {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}

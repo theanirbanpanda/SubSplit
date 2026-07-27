@@ -1,0 +1,19 @@
+@import './styles/marketplaceVariables.scss';
+
+.marketplacePage {
+  min-height: 100vh;
+  background: $marketplace-bg;
+  color: $text-primary;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.container {
+  width: 92%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-bottom: $spacing-8;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-6; // gap between main sections
+}
