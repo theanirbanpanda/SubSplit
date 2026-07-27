@@ -1,8 +1,11 @@
-import React from 'react';
-import { ShieldCheck, Zap, Headphones } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, Zap, Headphones, PlusCircle } from 'lucide-react';
+import CreateListingModal from './CreateListingModal';
 import styles from './MarketplaceHero.module.scss';
 
 const MarketplaceHero = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className={styles.hero}>
       <div className={styles.content}>
@@ -19,6 +22,30 @@ const MarketplaceHero = () => {
         <p className={styles.subtitle}>
           Join verified subscription groups and save up to 80% every month. Safe. Affordable. Instant.
         </p>
+
+        <div style={{ marginTop: '20px', marginBottom: '24px' }}>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: '800',
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 14px rgba(37,99,235,0.4)',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <PlusCircle size={18} />
+            + List Your Subscription
+          </button>
+        </div>
 
         <div className={styles.features}>
           <div className={styles.feature}>
@@ -47,7 +74,6 @@ const MarketplaceHero = () => {
           </div>
           
           <div className={styles.chartContainer}>
-            {/* Simple mock chart using SVG path matching the design's green line */}
             <svg viewBox="0 0 300 80" preserveAspectRatio="none">
               <path d="M0,60 C40,55 60,65 100,50 C140,35 160,45 200,30 C240,15 280,10 300,5" />
             </svg>
@@ -65,6 +91,8 @@ const MarketplaceHero = () => {
           </div>
         </div>
       </div>
+
+      <CreateListingModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
