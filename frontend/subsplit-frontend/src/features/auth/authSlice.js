@@ -1,14 +1,69 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { registerApi, loginApi, logoutApi } from './api/authApi';
+import { registerApi, loginApi, logoutApi, getCurrentUserApi, uploadProfileImageApi, updateUserProfileApi } from './api/authApi';
 
 // Async Thunks for API integration
+export const fetchCurrentUser = createAsyncThunk(
+  'auth/fetchCurrentUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getCurrentUserApi();
+      return response;
+    } catch (err) {
+      let errorMessage = 'Failed to fetch user profile.';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const uploadProfilePicture = createAsyncThunk(
+  'auth/uploadProfilePicture',
+  async (fileOrDataUrl, { rejectWithValue }) => {
+    try {
+      const response = await uploadProfileImageApi(fileOrDataUrl);
+      return response;
+    } catch (err) {
+      let errorMessage = 'Failed to upload profile picture.';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const updateUserProfile = createAsyncThunk(
+  'auth/updateUserProfile',
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const response = await updateUserProfileApi(profileData);
+      return response;
+    } catch (err) {
+      let errorMessage = 'Failed to update profile.';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
-  async (userData, { rejectWithValue }) => {
+  async (userData, { dispatch, rejectWithValue }) => {
     try {
       const response = await registerApi(userData);
       if (response?.data?.accessToken) {
         localStorage.setItem('token', response.data.accessToken);
+        dispatch(fetchCurrentUser());
       }
       return response;
     } catch (err) {
@@ -30,11 +85,12 @@ export const registerUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
-  async (credentials, { rejectWithValue }) => {
+  async (credentials, { dispatch, rejectWithValue }) => {
     try {
       const response = await loginApi(credentials);
       if (response?.data?.accessToken) {
         localStorage.setItem('token', response.data.accessToken);
+        dispatch(fetchCurrentUser());
       }
       return response;
     } catch (err) {
@@ -87,6 +143,20 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch Current User
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload?.data || null;
+        state.isAuthenticated = true;
+      })
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Register
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
@@ -94,7 +164,6 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload?.data?.user || null;
         state.token = action.payload?.data?.accessToken || null;
         state.isAuthenticated = !!action.payload?.data?.accessToken;
       })
@@ -109,12 +178,39 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload?.data?.user || null;
         state.token = action.payload?.data?.accessToken || null;
         state.isAuthenticated = true;
       })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
+      // Upload Profile Picture
+      .addCase(uploadProfilePicture.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(uploadProfilePicture.fulfilled, (state, action) => {
+        const userObj = action.payload?.data || action.payload;
+        if (state.user && userObj) {
+          state.user = {
+            ...state.user,
+            ...(typeof userObj === 'object' ? userObj : {}),
+          };
+        }
+      })
+      .addCase(uploadProfilePicture.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      // Update Profile Details
+      .addCase(updateUserProfile.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        const userObj = action.payload?.data || action.payload;
+        if (state.user && userObj) {
+          state.user = {
+            ...state.user,
+            ...(typeof userObj === 'object' ? userObj : {}),
+          };
+        }
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.error = action.payload;
       });
   },

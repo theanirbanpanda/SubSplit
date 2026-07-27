@@ -3,7 +3,7 @@ import api from './api';
 export const setupInterceptors = (store) => {
   api.interceptors.request.use(
     (config) => {
-      const token = store.getState().auth.token;
+      const token = store.getState().auth.token || localStorage.getItem('token');
       if (token && token !== 'undefined' && token !== 'null') {
         config.headers.Authorization = `Bearer ${token}`;
       }

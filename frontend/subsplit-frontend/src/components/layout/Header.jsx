@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../features/auth/authSlice';
 import {
   AppBar,
@@ -21,8 +21,13 @@ import { Menu as MenuIcon, Bell, Search, Plus, Wallet } from 'lucide-react';
 function Header({ handleDrawerToggle }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchVal, setSearchVal] = useState('');
+
+  const initials = user?.firstName
+    ? `${user.firstName[0]}${user.lastName ? user.lastName[0] : ''}`.toUpperCase()
+    : 'U';
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -142,6 +147,7 @@ function Header({ handleDrawerToggle }) {
           {/* Avatar Menu */}
           <IconButton onClick={handleMenu} sx={{ p: 0.5 }}>
             <Avatar
+              src={user?.profileImage || undefined}
               sx={{
                 width: 36,
                 height: 36,
@@ -151,7 +157,7 @@ function Header({ handleDrawerToggle }) {
                 border: '1.5px solid #3b82f6',
               }}
             >
-              AP
+              {initials}
             </Avatar>
           </IconButton>
 

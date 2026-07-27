@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -17,17 +17,46 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLogoClick from '../../../hooks/useLogoClick';
 
-function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
+function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading, serverError }) {
   const navigate = useNavigate();
   const handleLogoClick = useLogoClick();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (serverError) {
+      const lower = serverError.toLowerCase();
+      if (lower.includes('email') || lower.includes('user') || lower.includes('credential')) {
+        setErrors((prev) => ({ ...prev, email: serverError }));
+      } else if (lower.includes('password')) {
+        setErrors((prev) => ({ ...prev, password: serverError }));
+      } else {
+        setErrors((prev) => ({ ...prev, form: serverError }));
+      }
+    }
+  }, [serverError]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!email || !password) return;
+    const newErrors = {};
+    if (!email.trim()) {
+      newErrors.email = 'Email Address is required.';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Please enter a valid email address.';
+    }
+    if (!password) {
+      newErrors.password = 'Password is required.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     onLogin({ email, password, rememberMe });
   };
 
@@ -73,7 +102,15 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
         </Typography>
       </Box>
 
-      <Box component="form" onSubmit={handleSubmit}>
+      {errors.form && (
+        <Box sx={{ mb: 2, p: 1.5, borderRadius: '10px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}>
+          <Typography sx={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 600 }}>
+            {errors.form}
+          </Typography>
+        </Box>
+      )}
+
+      <Box component="form" onSubmit={handleSubmit} noValidate>
         {/* Email Field */}
         <Box mb={2.5}>
           <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#f3f4f6', mb: 0.75 }}>
@@ -85,11 +122,15 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
             type="email"
             placeholder="you@example.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+            }}
+            error={Boolean(errors.email)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Mail size={18} color="#9ca3af" />
+                  <Mail size={18} color={errors.email ? '#ef4444' : '#9ca3af'} />
                 </InputAdornment>
               ),
               sx: {
@@ -97,13 +138,18 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
                 background: '#1c1e24',
                 color: '#f3f4f6',
                 fontSize: '0.92rem',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: errors.email ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.08)',
                 '& fieldset': { border: 'none' },
-                '&:hover': { borderColor: '#2563eb' },
-                '&.Mui-focused': { borderColor: '#2563eb', boxShadow: '0 0 0 3px rgba(37,99,235,0.2)' },
+                '&:hover': { borderColor: errors.email ? '#ef4444' : '#2563eb' },
+                '&.Mui-focused': { borderColor: errors.email ? '#ef4444' : '#2563eb', boxShadow: errors.email ? '0 0 0 3px rgba(239,68,68,0.2)' : '0 0 0 3px rgba(37,99,235,0.2)' },
               },
             }}
           />
+          {errors.email && (
+            <Typography sx={{ color: '#ef4444', fontSize: '0.78rem', mt: 0.5, fontWeight: 600 }}>
+              {errors.email}
+            </Typography>
+          )}
         </Box>
 
         {/* Password Field */}
@@ -117,11 +163,15 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
+            }}
+            error={Boolean(errors.password)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Lock size={18} color="#9ca3af" />
+                  <Lock size={18} color={errors.password ? '#ef4444' : '#9ca3af'} />
                 </InputAdornment>
               ),
               endAdornment: (
@@ -136,13 +186,18 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
                 background: '#1c1e24',
                 color: '#f3f4f6',
                 fontSize: '0.92rem',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: errors.password ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.08)',
                 '& fieldset': { border: 'none' },
-                '&:hover': { borderColor: '#2563eb' },
-                '&.Mui-focused': { borderColor: '#2563eb', boxShadow: '0 0 0 3px rgba(37,99,235,0.2)' },
+                '&:hover': { borderColor: errors.password ? '#ef4444' : '#2563eb' },
+                '&.Mui-focused': { borderColor: errors.password ? '#ef4444' : '#2563eb', boxShadow: errors.password ? '0 0 0 3px rgba(239,68,68,0.2)' : '0 0 0 3px rgba(37,99,235,0.2)' },
               },
             }}
           />
+          {errors.password && (
+            <Typography sx={{ color: '#ef4444', fontSize: '0.78rem', mt: 0.5, fontWeight: 600 }}>
+              {errors.password}
+            </Typography>
+          )}
         </Box>
 
         {/* Remember me & Forgot Password */}
