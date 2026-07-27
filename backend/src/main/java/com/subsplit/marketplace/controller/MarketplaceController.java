@@ -6,9 +6,7 @@ import com.subsplit.common.entity.User;
 import com.subsplit.common.enums.BillingCycle;
 import com.subsplit.common.enums.ListingStatus;
 import com.subsplit.common.exception.UnauthorizedException;
-import com.subsplit.marketplace.dto.CreateListingRequest;
-import com.subsplit.marketplace.dto.ListingResponse;
-import com.subsplit.marketplace.dto.UpdateListingRequest;
+import com.subsplit.marketplace.dto.*;
 import com.subsplit.marketplace.service.MarketplaceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,13 +38,24 @@ public class MarketplaceController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
-    ) {
+            @RequestParam(defaultValue = "desc") String sortDir) {
         PagedResponse<ListingResponse> pagedResponse = marketplaceService.getPagedListings(
-                search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly, page, size, sortBy, sortDir
-        );
+                search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly, page, size,
+                sortBy, sortDir);
 
         return ResponseEntity.ok(ApiResponse.success("Marketplace listings fetched successfully", pagedResponse));
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategories() {
+        List<CategoryResponse> categories = marketplaceService.getCategories();
+        return ResponseEntity.ok(ApiResponse.success("Marketplace categories fetched successfully", categories));
+    }
+
+    @GetMapping("/hosts")
+    public ResponseEntity<ApiResponse<List<HostSummaryDto>>> getTopHosts() {
+        List<HostSummaryDto> hosts = marketplaceService.getTopHosts();
+        return ResponseEntity.ok(ApiResponse.success("Top marketplace hosts fetched successfully", hosts));
     }
 
     @GetMapping("/listings/{id}")
@@ -65,8 +74,7 @@ public class MarketplaceController {
     @PostMapping("/listings")
     public ResponseEntity<ApiResponse<ListingResponse>> createListing(
             Authentication authentication,
-            @Valid @RequestBody CreateListingRequest request
-    ) {
+            @Valid @RequestBody CreateListingRequest request) {
         User currentUser = getAuthenticatedUser(authentication);
         ListingResponse response = marketplaceService.createListing(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -77,8 +85,7 @@ public class MarketplaceController {
     public ResponseEntity<ApiResponse<ListingResponse>> updateListing(
             Authentication authentication,
             @PathVariable Long id,
-            @Valid @RequestBody UpdateListingRequest request
-    ) {
+            @Valid @RequestBody UpdateListingRequest request) {
         User currentUser = getAuthenticatedUser(authentication);
         ListingResponse response = marketplaceService.updateListing(currentUser, id, request);
         return ResponseEntity.ok(ApiResponse.success("Listing updated successfully", response));
@@ -87,8 +94,7 @@ public class MarketplaceController {
     @DeleteMapping("/listings/{id}")
     public ResponseEntity<ApiResponse<String>> deleteListing(
             Authentication authentication,
-            @PathVariable Long id
-    ) {
+            @PathVariable Long id) {
         User currentUser = getAuthenticatedUser(authentication);
         marketplaceService.deleteListing(currentUser, id);
         return ResponseEntity.ok(ApiResponse.success("Listing cancelled successfully", "Listing has been cancelled"));

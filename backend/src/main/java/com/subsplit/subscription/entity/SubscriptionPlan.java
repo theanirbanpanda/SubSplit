@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SubscriptionPlan extends BaseEntity{
+public class SubscriptionPlan extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,20 +27,60 @@ public class SubscriptionPlan extends BaseEntity{
     private String planName;
 
     @Column(name="max_members")
-    private Integer maxMembers;
+    @Builder.Default
+    private Integer maxMembers = 4;
 
     @Column(name="monthly_price")
-    private BigDecimal monthlyPrice;
+    @Builder.Default
+    private BigDecimal monthlyPrice = BigDecimal.ZERO;
 
     @Column(name="yearly_price")
-    private BigDecimal yearlyPrice;
+    @Builder.Default
+    private BigDecimal yearlyPrice = BigDecimal.ZERO;
 
     @Builder.Default
     @Column(name="sharing_allowed")
-    private Boolean sharingAllowed=true;
+    private Boolean sharingAllowed = true;
 
     @Builder.Default
     @Column(name="is_active")
-    private Boolean active=true;
+    private Boolean active = true;
 
+    @PrePersist
+    public void prePersist() {
+        if (monthlyPrice == null) {
+            monthlyPrice = BigDecimal.ZERO;
+        }
+        if (yearlyPrice == null) {
+            yearlyPrice = monthlyPrice.multiply(BigDecimal.valueOf(10));
+        }
+        if (maxMembers == null) {
+            maxMembers = 4;
+        }
+        if (sharingAllowed == null) {
+            sharingAllowed = true;
+        }
+        if (active == null) {
+            active = true;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        if (monthlyPrice == null) {
+            monthlyPrice = BigDecimal.ZERO;
+        }
+        if (yearlyPrice == null) {
+            yearlyPrice = monthlyPrice.multiply(BigDecimal.valueOf(10));
+        }
+        if (maxMembers == null) {
+            maxMembers = 4;
+        }
+        if (sharingAllowed == null) {
+            sharingAllowed = true;
+        }
+        if (active == null) {
+            active = true;
+        }
+    }
 }

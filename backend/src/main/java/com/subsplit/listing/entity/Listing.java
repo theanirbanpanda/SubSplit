@@ -45,6 +45,10 @@ public class Listing extends BaseEntity {
     @Column(name = "seat_price", nullable = false)
     private BigDecimal seatPrice;
 
+    @Column(name = "monthly_price")
+    @Builder.Default
+    private BigDecimal monthlyPrice = BigDecimal.ZERO;
+
     @Column(name = "total_seats", nullable = false)
     private Integer totalSeats;
 
@@ -71,4 +75,18 @@ public class Listing extends BaseEntity {
     @OneToMany(mappedBy = "listing")
     @Builder.Default
     private List<JoinRequest> joinRequests = new ArrayList<>();
+
+    @PrePersist
+    public void prePersist() {
+        if (monthlyPrice == null) {
+            monthlyPrice = seatPrice != null ? seatPrice : BigDecimal.ZERO;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        if (monthlyPrice == null) {
+            monthlyPrice = seatPrice != null ? seatPrice : BigDecimal.ZERO;
+        }
+    }
 }

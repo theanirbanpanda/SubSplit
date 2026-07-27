@@ -33,11 +33,14 @@ public class ListingSpecification {
                 root.fetch("plan", JoinType.LEFT);
             }
 
-            // Default status filter to ACTIVE if status is null
+            // Status filter (only filter if status parameter is passed, otherwise include all non-cancelled listings)
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
             } else {
-                predicates.add(cb.equal(root.get("status"), ListingStatus.ACTIVE));
+                predicates.add(cb.or(
+                        cb.isNull(root.get("status")),
+                        cb.equal(root.get("status"), ListingStatus.ACTIVE)
+                ));
             }
 
             // Search query across listing title, description, or subscription provider name

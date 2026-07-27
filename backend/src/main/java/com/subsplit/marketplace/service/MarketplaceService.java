@@ -4,9 +4,7 @@ import com.subsplit.common.dto.PagedResponse;
 import com.subsplit.common.entity.User;
 import com.subsplit.common.enums.BillingCycle;
 import com.subsplit.common.enums.ListingStatus;
-import com.subsplit.marketplace.dto.CreateListingRequest;
-import com.subsplit.marketplace.dto.ListingResponse;
-import com.subsplit.marketplace.dto.UpdateListingRequest;
+import com.subsplit.marketplace.dto.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,8 +23,7 @@ public interface MarketplaceService {
             int page,
             int size,
             String sortBy,
-            String sortDir
-    );
+            String sortDir);
 
     List<ListingResponse> getAllListings();
 
@@ -39,4 +36,8 @@ public interface MarketplaceService {
     void deleteListing(User host, Long id);
 
     List<ListingResponse> getMyListings(User host);
+
+    List<CategoryResponse> getCategories();
+
+    List<HostSummaryDto> getTopHosts();
 }

@@ -1,11 +1,11 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import SubscriptionCard from './SubscriptionCard';
-import { MOCK_LISTINGS } from '../data/mockListings';
 import styles from './RecommendationSection.module.scss';
 
 const RecommendationSection = () => {
-  // Use first 3 listings for recommended
-  const recommendedListings = MOCK_LISTINGS.slice(0, 3);
+  const { listings } = useSelector((state) => state.marketplace);
+  const recommendedListings = listings.slice(0, 3);
 
   return (
     <div className={styles.section}>
@@ -14,7 +14,7 @@ const RecommendationSection = () => {
         <span className={styles.viewAll}>View all</span>
       </div>
       <div className={styles.grid}>
-        {recommendedListings.map(listing => (
+        {recommendedListings.map((listing) => (
           <SubscriptionCard key={listing.id} listing={listing} variant="large" />
         ))}
       </div>

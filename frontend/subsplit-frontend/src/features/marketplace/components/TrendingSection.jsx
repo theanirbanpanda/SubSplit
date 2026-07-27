@@ -1,11 +1,11 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import SubscriptionCard from './SubscriptionCard';
-import { MOCK_LISTINGS } from '../data/mockListings';
 import styles from './TrendingSection.module.scss';
 
 const TrendingSection = () => {
-  // Use listings 4 to 8 for trending
-  const trendingListings = MOCK_LISTINGS.slice(4, 8);
+  const { listings } = useSelector((state) => state.marketplace);
+  const trendingListings = listings.slice(3, 7);
 
   return (
     <div className={styles.section}>
@@ -16,7 +16,7 @@ const TrendingSection = () => {
         <span className={styles.viewAll}>View all</span>
       </div>
       <div className={styles.grid}>
-        {trendingListings.map(listing => (
+        {trendingListings.map((listing) => (
           <SubscriptionCard key={listing.id} listing={listing} variant="small" />
         ))}
       </div>

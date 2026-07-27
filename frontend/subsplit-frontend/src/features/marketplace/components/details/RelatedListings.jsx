@@ -1,11 +1,13 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box, Typography, Grid } from '@mui/material';
-import { MOCK_LISTINGS } from '../../data/mockListings';
 import MarketplaceCard from '../MarketplaceCard';
 
 function RelatedListings({ currentId, category }) {
-  const related = MOCK_LISTINGS.filter(
-    (item) => item.id !== currentId
+  const { listings } = useSelector((state) => state.marketplace);
+
+  const related = listings.filter(
+    (item) => String(item.id) !== String(currentId)
   ).slice(0, 3);
 
   if (related.length === 0) return null;

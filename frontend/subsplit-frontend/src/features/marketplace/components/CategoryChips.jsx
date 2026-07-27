@@ -1,46 +1,75 @@
 import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setFilter, fetchMarketplaceListings } from '../marketplaceSlice';
 import GridViewIcon from '@mui/icons-material/GridView';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import TheatersIcon from '@mui/icons-material/Theaters';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import ColorLensIcon from '@mui/icons-material/ColorLens';
-import CodeIcon from '@mui/icons-material/Code';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
 import CloudIcon from '@mui/icons-material/Cloud';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import GamesIcon from '@mui/icons-material/Games';
 import styles from './CategoryChips.module.scss';
 
-const categories = [
-  { name: 'All', icon: <GridViewIcon /> },
-  { name: 'AI Tools', icon: <AutoAwesomeIcon /> },
-  { name: 'Entertainment', icon: <TheatersIcon /> },
-  { name: 'Music', icon: <MusicNoteIcon /> },
-  { name: 'Productivity', icon: <AssignmentIcon /> },
-  { name: 'Design', icon: <ColorLensIcon /> },
-  { name: 'Development', icon: <CodeIcon /> },
-  { name: 'Learning', icon: <MenuBookIcon /> },
-  { name: 'Cloud Storage', icon: <CloudIcon /> },
-  { name: 'More', icon: <MoreHorizIcon /> },
-];
+const getIconForCategory = (name) => {
+  switch (name?.toLowerCase()) {
+    case 'ott':
+    case 'entertainment':
+      return <TheatersIcon />;
+    case 'music':
+      return <MusicNoteIcon />;
+    case 'ai tools':
+      return <AutoAwesomeIcon />;
+    case 'productivity':
+      return <AssignmentIcon />;
+    case 'cloud storage':
+      return <CloudIcon />;
+    case 'gaming':
+      return <GamesIcon />;
+    case 'learning':
+      return <MenuBookIcon />;
+    default:
+      return <GridViewIcon />;
+  }
+};
 
 const CategoryChips = () => {
+  const dispatch = useDispatch();
+  const { categories: apiCategories, filters } = useSelector((state) => state.marketplace);
+
+  const activeCategory = filters?.category || 'All';
+
+  const allCategories = [
+    { id: 'all', name: 'All' },
+    ...apiCategories.map((c) => ({ id: c.id, name: c.name, listingCount: c.listingCount })),
+  ];
+
+  const handleCategoryClick = (categoryName) => {
+    dispatch(setFilter({ category: categoryName }));
+    dispatch(fetchMarketplaceListings({ category: categoryName === 'All' ? null : categoryName }));
+  };
+
   return (
     <div className={styles.section}>
       <h3 className={styles.title}>Quick Categories</h3>
       <div className={styles.chipsContainer}>
-        {categories.map((category, index) => (
-          <div 
-            key={category.name} 
-            className={`${styles.chip} ${index === 0 ? styles.active : ''}`}
-          >
-            <div className={styles.iconWrapper}>
-              {category.icon}
+        {allCategories.map((cat) => {
+          const isActive = activeCategory.toLowerCase() === cat.name.toLowerCase();
+
+          return (
+            <div
+              key={cat.id}
+              className={`${styles.chip} ${isActive ? styles.active : ''}`}
+              onClick={() => handleCategoryClick(cat.name)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className={styles.iconWrapper}>
+                {getIconForCategory(cat.name)}
+              </div>
+              <span>{cat.name}</span>
             </div>
-            <span>{category.name}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
