@@ -1,6 +1,4 @@
 import React from 'react';
-import PublicNavbar from '../landing/components/PublicNavbar';
-import Footer from '../landing/components/Footer';
 import ScrollToTop from '../landing/components/ScrollToTop';
 
 import MarketplaceHero from './components/MarketplaceHero';
@@ -17,8 +15,6 @@ import styles from './Marketplace.module.scss';
 function Marketplace() {
   return (
     <div className={styles.marketplacePage}>
-      <PublicNavbar />
-
       <div className={styles.container}>
         <MarketplaceHero />
         <CategoryChips />
@@ -30,7 +26,6 @@ function Marketplace() {
         <ProtectionBanner />
       </div>
 
-      <Footer />
       <ScrollToTop />
     </div>
   );

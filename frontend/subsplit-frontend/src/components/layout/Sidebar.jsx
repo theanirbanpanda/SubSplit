@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import useLogoClick from '../../hooks/useLogoClick';
-import { logoutUser } from '../../features/auth/authSlice';
+import { logoutUser, logout } from '../../features/auth/authSlice';
 import {
   Box,
   Drawer,
@@ -32,24 +32,24 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from 'lucide-react';
 
 const MENU_ITEMS = [
-  { text: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
   { text: 'Marketplace', icon: Store, path: '/app/marketplace' },
+  { text: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
   { text: 'My Subscriptions', icon: CreditCard, path: '/app/groups' },
   { text: 'Host Center', icon: Shield, path: '/app/host' },
   { text: 'Wallet', icon: Wallet, path: '/app/settlements' },
-  { text: 'Transactions', icon: ArrowRightLeft, path: '/app/expenses' },
   { text: 'Messages', icon: MessageSquare, path: '/app/messages' },
   { text: 'Notifications', icon: Bell, path: '/app/notifications' },
   { text: 'Profile', icon: User, path: '/app/profile' },
-  { text: 'Settings', icon: Settings, path: '/app/settings' },
 ];
 
 function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const handleLogoClick = useLogoClick();
 
   const drawerContent = (
@@ -68,12 +68,14 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
       {/* Brand Header */}
       <Toolbar
         sx={{
-          px: sidebarCollapsed ? 2 : 2.5,
+          px: sidebarCollapsed ? 1 : 2.5,
           py: 2,
           minHeight: '76px !important',
           display: 'flex',
+          flexDirection: 'row',
           alignItems: 'center',
           justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+          gap: sidebarCollapsed ? 1 : 0,
         }}
       >
         <Box 
@@ -93,7 +95,8 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
-            color: '#09090b'
+            color: '#09090b',
+            flexShrink: 0
           }}>
             <Shield size={16} fill="currentColor" />
           </Box>
@@ -111,6 +114,26 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
             </Typography>
           )}
         </Box>
+
+        {/* Sidebar Toggle */}
+        <IconButton
+          onClick={() => {
+            if (mobileOpen) {
+              handleDrawerToggle();
+            } else {
+              toggleSidebar();
+            }
+          }}
+          sx={{
+            color: '#9ca3af',
+            background: 'transparent',
+            borderRadius: '6px',
+            p: '4px',
+            '&:hover': { background: 'rgba(255,255,255,0.06)', color: '#f3f4f6' },
+          }}
+        >
+          {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </IconButton>
       </Toolbar>
 
       {/* Main Nav Links */}
@@ -123,7 +146,11 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
               <ListItemButton
                 onClick={() => {
                   navigate(path);
-                  if (mobileOpen) handleDrawerToggle();
+                  if (mobileOpen) {
+                    handleDrawerToggle();
+                  } else if (!sidebarCollapsed) {
+                    toggleSidebar();
+                  }
                 }}
                 sx={{
                   borderRadius: '8px',
@@ -175,43 +202,49 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
         </List>
       </Box>
 
-      {/* Bottom Actions (Collapse & Theme) */}
+      {/* Bottom Actions (Logout) */}
       <Box sx={{ px: sidebarCollapsed ? 1 : 2, py: 2, mt: 'auto', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-        
-        {/* Dark Mode Toggle (Decorative/Static for now as requested) */}
-        {!sidebarCollapsed && (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, px: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: '#9ca3af' }}>
-              <Moon size={18} />
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 500 }}>Dark mode</Typography>
-            </Box>
-            <Switch 
-              checked={true}
-              disabled
-              size="small"
-              sx={{
-                '& .MuiSwitch-switchBase.Mui-checked': { color: '#22c55e' },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#22c55e' },
+        <ListItem disablePadding>
+          <Tooltip title="Logout" placement="right" arrow disableHoverListener={!sidebarCollapsed}>
+            <ListItemButton
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(logout()); // Synchronously clear state and token
+                dispatch(logoutUser()); // Attempt API logout in background
+                window.location.href = '/'; // Hard reload to clear all React state
               }}
-            />
-          </Box>
-        )}
-
-        {/* Collapse Button */}
-        <Box sx={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'flex-end' }}>
-          <IconButton 
-            onClick={toggleSidebar}
-            sx={{ 
-              color: '#9ca3af',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '8px',
-              '&:hover': { background: 'rgba(255,255,255,0.08)' }
-            }}
-          >
-            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </IconButton>
-        </Box>
+              sx={{
+                borderRadius: '8px',
+                py: 1,
+                px: sidebarCollapsed ? 0 : 1.5,
+                justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                color: '#ef4444',
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  background: 'rgba(239, 68, 68, 0.1)',
+                },
+              }}
+              aria-label="Logout"
+            >
+              <ListItemIcon sx={{ 
+                minWidth: sidebarCollapsed ? 'auto' : 36, 
+                color: 'inherit',
+                justifyContent: 'center'
+              }}>
+                <LogOut size={18} /> 
+              </ListItemIcon>
+              {!sidebarCollapsed && (
+                <ListItemText
+                  primary="Logout"
+                  primaryTypographyProps={{
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                  }}
+                />
+              )}
+            </ListItemButton>
+          </Tooltip>
+        </ListItem>
       </Box>
     </Box>
   );

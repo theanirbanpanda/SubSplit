@@ -1,38 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { logoutUser } from '../../features/auth/authSlice';
 import {
   AppBar,
   Toolbar,
   Box,
   IconButton,
-  Avatar,
-  Menu,
-  MenuItem,
   TextField,
   InputAdornment,
   Button,
   Stack,
   Badge,
   Typography,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
-import { Menu as MenuIcon, Bell, Search, Wallet, ChevronDown } from 'lucide-react';
+import { Menu as MenuIcon, Bell, Search, Wallet } from 'lucide-react';
 
-function Header({ handleDrawerToggle, sidebarWidth }) {
+function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
-
-  const handleMenu = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-
-  const handleLogout = () => {
-    handleClose();
-    dispatch(logoutUser());
-    navigate('/auth');
-  };
 
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter' && searchVal.trim()) {
@@ -55,19 +44,8 @@ function Header({ handleDrawerToggle, sidebarWidth }) {
       }}
     >
       <Toolbar sx={{ height: 76, px: { xs: 2, md: 4 }, gap: 2 }}>
-        {/* Mobile Hamburger */}
-        <IconButton
-          color="inherit"
-          aria-label="open drawer"
-          edge="start"
-          onClick={handleDrawerToggle}
-          sx={{ display: { md: 'none' }, color: '#9ca3af' }}
-        >
-          <MenuIcon size={22} />
-        </IconButton>
-
         {/* Global Search Input */}
-        <Box sx={{ flexGrow: 1, maxWidth: 420 }}>
+        <Box sx={{ flexGrow: 1, maxWidth: 420, mx: 'auto' }}>
           <TextField
             fullWidth
             size="small"
@@ -134,61 +112,7 @@ function Header({ handleDrawerToggle, sidebarWidth }) {
             </Badge>
           </IconButton>
 
-          {/* Avatar Menu */}
-          <Button 
-            onClick={handleMenu} 
-            sx={{ 
-              p: 0, 
-              minWidth: 'auto', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.5,
-              color: '#9ca3af',
-              '&:hover': { color: '#f3f4f6' }
-            }}
-          >
-            <Avatar
-              src="https://i.pravatar.cc/150?img=11" // mock avatar matching image
-              sx={{
-                width: 36,
-                height: 36,
-                border: '2px solid transparent',
-              }}
-            >
-              AN
-            </Avatar>
-            <ChevronDown size={16} />
-          </Button>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-            PaperProps={{
-              sx: {
-                mt: 1.5,
-                background: '#111114',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                color: '#f3f4f6',
-                borderRadius: '12px',
-                minWidth: 160,
-                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
-              },
-            }}
-          >
-            <MenuItem onClick={() => { handleClose(); navigate('/app/profile'); }} sx={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Profile
-            </MenuItem>
-            <MenuItem onClick={() => { handleClose(); navigate('/app/settings'); }} sx={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Settings
-            </MenuItem>
-            <MenuItem onClick={() => { handleClose(); navigate('/app/settlements'); }} sx={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Wallet
-            </MenuItem>
-            <MenuItem onClick={handleLogout} sx={{ fontSize: '0.88rem', fontWeight: 700, color: '#ef4444' }}>
-              Logout
-            </MenuItem>
-          </Menu>
         </Stack>
       </Toolbar>
     </AppBar>

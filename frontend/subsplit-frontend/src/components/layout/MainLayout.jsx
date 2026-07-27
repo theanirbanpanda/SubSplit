@@ -21,7 +21,7 @@ function MainLayout() {
   };
 
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    setSidebarCollapsed((prev) => !prev);
   };
 
   const sidebarWidth = sidebarCollapsed ? 80 : 240;
@@ -30,6 +30,7 @@ function MainLayout() {
     <Box sx={{ display: 'flex', minHeight: '100vh', background: '#09090b', color: '#f3f4f6' }}>
       <Header 
         handleDrawerToggle={handleDrawerToggle} 
+        toggleSidebar={toggleSidebar}
         sidebarWidth={sidebarWidth} 
       />
       <Sidebar 

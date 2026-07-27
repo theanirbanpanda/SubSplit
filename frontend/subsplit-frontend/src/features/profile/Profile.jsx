@@ -33,10 +33,10 @@ function Profile() {
           <VerificationCard onViewDetails={() => setVerificationOpen(true)} />
         </Grid>
         <Grid item xs={12} md={7}>
-          <AboutCard 
-            bio={profileData.bio} 
-            tags={profileData.tags} 
-            onEdit={() => setEditProfileOpen(true)} 
+          <AboutCard
+            bio={profileData.bio}
+            tags={profileData.tags}
+            onEdit={() => setEditProfileOpen(true)}
           />
         </Grid>
       </Grid>
@@ -55,16 +55,16 @@ function Profile() {
       </Grid>
 
       {/* ─── Dialogs ─── */}
-      <EditProfileDialog 
-        open={editProfileOpen} 
-        onClose={() => setEditProfileOpen(false)} 
+      <EditProfileDialog
+        open={editProfileOpen}
+        onClose={() => setEditProfileOpen(false)}
         data={profileData}
         onSave={handleSaveProfile}
       />
 
-      <VerificationDialog 
-        open={verificationOpen} 
-        onClose={() => setVerificationOpen(false)} 
+      <VerificationDialog
+        open={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
       />
     </Box>
   );

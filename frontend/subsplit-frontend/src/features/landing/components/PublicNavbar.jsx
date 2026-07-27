@@ -102,7 +102,7 @@ function PublicNavbar() {
               </button>
               <button
                 className={styles.signupBtn}
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/auth', { state: { mode: 'signup' } })}
                 type="button"
               >
                 Sign Up

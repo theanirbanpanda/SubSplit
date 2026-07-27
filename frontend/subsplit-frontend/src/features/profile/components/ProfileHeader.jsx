@@ -7,23 +7,23 @@ const ProfileHeader = ({ onEditProfile }) => {
     <div className={styles.headerCard}>
       <div className={styles.leftSection}>
         <div className={styles.avatarWrapper}>
-          <img 
-            src="https://i.pravatar.cc/300?img=11" 
-            alt="Anirban Das" 
-            className={styles.avatar} 
+          <img
+            src="https://i.pravatar.cc/300?img=11"
+            alt="Anirban Das"
+            className={styles.avatar}
           />
           <button className={styles.cameraBtn} aria-label="Change photo">
             <Camera />
           </button>
         </div>
-        
+
         <div className={styles.userInfo}>
           <div className={styles.nameRow}>
             <h1>Anirban Das</h1>
             <CheckCircle className={styles.verifiedIcon} fill="currentColor" color="#111114" />
           </div>
           <div className={styles.email}>anirban.das@example.com</div>
-          
+
           <div className={styles.metaInfo}>
             <div className={styles.metaItem}>
               <MapPin />
@@ -34,7 +34,7 @@ const ProfileHeader = ({ onEditProfile }) => {
               <span>Joined April 2024</span>
             </div>
           </div>
-          
+
           <button className={styles.editBtn} onClick={onEditProfile}>
             <Edit2 /> Edit Profile
           </button>

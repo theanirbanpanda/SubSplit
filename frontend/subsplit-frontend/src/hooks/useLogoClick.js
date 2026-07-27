@@ -8,7 +8,7 @@ export const useLogoClick = () => {
   return () => {
     const isAuth = isAuthenticated || !!token || !!localStorage.getItem('token');
     if (isAuth) {
-      navigate('/app/dashboard');
+      navigate('/app/marketplace');
     } else {
       navigate('/');
     }
