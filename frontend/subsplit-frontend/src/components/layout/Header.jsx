@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   AppBar,
   Toolbar,
@@ -20,8 +20,22 @@ import { Menu as MenuIcon, Bell, Search, Wallet } from 'lucide-react';
 function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { user } = useSelector((state) => state.auth);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
+
+  const initials = user?.firstName
+    ? `${user.firstName[0]}${user.lastName ? user.lastName[0] : ''}`.toUpperCase()
+    : 'U';
+
+  const handleMenu = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+
+  const handleLogout = () => {
+    handleClose();
+    dispatch(logoutUser());
+    navigate('/auth');
+  };
 
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter' && searchVal.trim()) {

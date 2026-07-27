@@ -62,15 +62,6 @@ function Auth() {
 
   return (
     <AuthLayout>
-      <ValidationAlert
-        error={error}
-        success={successMsg && !snackbarOpen ? successMsg : null}
-        onClose={() => {
-          dispatch(clearAuthError());
-          setSuccessMsg(null);
-        }}
-      />
-
       {mode === 'login' && (
         <LoginForm
           onLogin={handleLoginSubmit}
@@ -83,6 +74,7 @@ function Auth() {
             setMode('forgot_password');
           }}
           loading={loading}
+          serverError={error}
         />
       )}
 
@@ -94,6 +86,7 @@ function Auth() {
             setMode('login');
           }}
           loading={loading}
+          serverError={error}
         />
       )}
 

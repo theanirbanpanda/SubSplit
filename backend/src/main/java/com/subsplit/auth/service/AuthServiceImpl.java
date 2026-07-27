@@ -38,15 +38,20 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("Default role not found"));
 
         User user = User.builder()
-                .fullName(request.getFullName())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
                 .email(request.getEmail())
-                .phone(request.getPhone())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(role)
                 .isActive(true)
                 .emailVerified(false)
                 .build();
 
+        com.subsplit.common.entity.UserProfile profile = com.subsplit.common.entity.UserProfile.builder()
+                .user(user)
+                .build();
+
+        user.setProfile(profile);
         userRepository.save(user);
 
         String accessToken = jwtService.generateAccessToken(user);
