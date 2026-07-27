@@ -41,6 +41,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CreateListingModal from '../marketplace/components/CreateListingModal';
 
 const LISTINGS_DATA = [
   {
@@ -475,86 +476,7 @@ function HostCenter() {
       </Box>
 
       {/* ─── Multi-step Create Listing Dialog ─── */}
-      <Dialog
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '24px',
-            background: '#14161a',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: '#f3f4f6',
-            p: 1,
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          Create New Subscription Group
-          <IconButton size="small" onClick={() => setCreateModalOpen(false)} sx={{ color: '#9ca3af' }}>
-            ✕
-          </IconButton>
-        </DialogTitle>
-
-        <DialogContent>
-          <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4, '& .MuiStepLabel-label': { color: '#9ca3af', fontSize: '0.72rem' } }}>
-            {CREATE_STEPS.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-
-          {activeStep === 0 && (
-            <Box>
-              <Typography sx={{ fontSize: '0.88rem', color: '#9ca3af', mb: 2 }}>
-                Select the platform you want to share with members:
-              </Typography>
-              <Grid container spacing={1.5} mb={3}>
-                {['Netflix 4K', 'Spotify Family', 'ChatGPT Plus', 'YouTube Premium', 'Disney+ Hotstar', 'Microsoft 365'].map((name) => (
-                  <Grid item xs={6} key={name}>
-                    <Paper elevation={0} sx={{ p: 2, borderRadius: '12px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center', cursor: 'pointer', '&:hover': { borderColor: '#2563eb' } }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#f3f4f6' }}>{name}</Typography>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-
-          {activeStep > 0 && (
-            <Box sx={{ py: 3, textAlign: 'center' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#22c55e', mb: 1 }}>
-                Step {activeStep + 1}: {CREATE_STEPS[activeStep]}
-              </Typography>
-              <Typography sx={{ fontSize: '0.85rem', color: '#9ca3af' }}>
-                Fill details for {CREATE_STEPS[activeStep]} configuration.
-              </Typography>
-            </Box>
-          )}
-
-          <Stack direction="row" spacing={2} justifyContent="space-between" mt={3}>
-            <Button
-              disabled={activeStep === 0}
-              onClick={() => setActiveStep((prev) => prev - 1)}
-              sx={{ color: '#9ca3af', fontWeight: 700 }}
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => {
-                if (activeStep < CREATE_STEPS.length - 1) setActiveStep((prev) => prev + 1);
-                else setCreateModalOpen(false);
-              }}
-              sx={{ borderRadius: '10px', fontWeight: 800, px: 3, textTransform: 'none', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' }}
-            >
-              {activeStep === CREATE_STEPS.length - 1 ? 'Publish Group' : 'Next Step'}
-            </Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
+      <CreateListingModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
     </Box>
   );
 }

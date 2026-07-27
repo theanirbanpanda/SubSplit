@@ -19,8 +19,13 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class CreateListingRequest {
 
-    @NotNull(message = "Subscription plan ID is required")
     private Long planId;
+
+    private String providerName;
+
+    private String planName;
+
+    private String categoryName;
 
     @NotBlank(message = "Title is required")
     private String title;
@@ -35,7 +40,8 @@ public class CreateListingRequest {
     @Min(value = 1, message = "Total seats must be at least 1")
     private Integer totalSeats;
 
-    @NotNull(message = "Billing cycle is required")
+    private Integer availableSeats;
+
     private BillingCycle billingCycle;
 
     private LocalDate startDate;

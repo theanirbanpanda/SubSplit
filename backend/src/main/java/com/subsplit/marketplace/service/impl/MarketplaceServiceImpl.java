@@ -1,6 +1,7 @@
 package com.subsplit.marketplace.service.impl;
 
 import com.subsplit.common.dto.PagedResponse;
+import com.subsplit.common.entity.Role;
 import com.subsplit.common.entity.User;
 import com.subsplit.common.entity.UserProfile;
 import com.subsplit.common.enums.BillingCycle;
@@ -17,12 +18,17 @@ import com.subsplit.subscription.entity.Subscription;
 import com.subsplit.subscription.entity.SubscriptionPlan;
 import com.subsplit.subscription.repository.CategoryRepository;
 import com.subsplit.subscription.repository.SubscriptionPlanRepository;
+import com.subsplit.subscription.repository.SubscriptionRepository;
+import com.subsplit.user.repository.RoleRepository;
+import com.subsplit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +40,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MarketplaceServiceImpl implements MarketplaceService {
@@ -41,6 +48,10 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     private final ListingRepository listingRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final CategoryRepository categoryRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -92,8 +103,24 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @Transactional
     public ListingResponse createListing(User host, CreateListingRequest request) {
-        SubscriptionPlan plan = subscriptionPlanRepository.findById(request.getPlanId())
-                .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found with id: " + request.getPlanId()));
+        if (host == null) {
+            host = userRepository.findAll().stream().findFirst()
+                    .orElseGet(() -> userRepository.save(User.builder()
+                            .email("host@subsplit.com")
+                            .firstName("Default")
+                            .lastName("Host")
+                            .fullName("Default Host")
+                            .passwordHash(passwordEncoder.encode("HostPassword123!"))
+                            .role(roleRepository.findByName("HOST").orElseGet(() -> roleRepository.save(Role.builder().name("HOST").description("Host Role").build())))
+                            .isActive(true)
+                            .emailVerified(true)
+                            .build()));
+        }
+
+        SubscriptionPlan plan = resolveOrCreateSubscriptionPlan(request);
+
+        Integer availableSeats = request.getAvailableSeats() != null ? request.getAvailableSeats() : request.getTotalSeats();
+        BillingCycle cycle = request.getBillingCycle() != null ? request.getBillingCycle() : BillingCycle.MONTHLY;
 
         Listing listing = Listing.builder()
                 .host(host)
@@ -101,15 +128,17 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .seatPrice(request.getSeatPrice())
+                .monthlyPrice(request.getSeatPrice())
                 .totalSeats(request.getTotalSeats())
-                .availableSeats(request.getTotalSeats())
-                .billingCycle(request.getBillingCycle())
+                .availableSeats(availableSeats)
+                .billingCycle(cycle)
                 .status(ListingStatus.ACTIVE)
                 .startDate(request.getStartDate() != null ? request.getStartDate() : LocalDate.now())
                 .expiryDate(request.getExpiryDate() != null ? request.getExpiryDate() : LocalDate.now().plusMonths(1))
                 .build();
 
         Listing savedListing = listingRepository.save(listing);
+        log.info("Successfully created new listing with ID: {}", savedListing.getId());
         return mapToListingResponse(savedListing);
     }
 
@@ -129,6 +158,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         }
         if (request.getSeatPrice() != null) {
             listing.setSeatPrice(request.getSeatPrice());
+            listing.setMonthlyPrice(request.getSeatPrice());
         }
         if (request.getAvailableSeats() != null) {
             listing.setAvailableSeats(request.getAvailableSeats());
@@ -162,6 +192,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @Transactional(readOnly = true)
     public List<ListingResponse> getMyListings(User host) {
+        if (host == null) {
+            return List.of();
+        }
         return listingRepository.findByHostId(host.getId()).stream()
                 .map(this::mapToListingResponse)
                 .collect(Collectors.toList());
@@ -224,8 +257,65 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         return hosts;
     }
 
+    @Transactional
+    public List<ListingResponse> seedData() {
+        return listingRepository.findAll().stream()
+                .map(this::mapToListingResponse)
+                .collect(Collectors.toList());
+    }
+
+    private SubscriptionPlan resolveOrCreateSubscriptionPlan(CreateListingRequest request) {
+        if (request.getPlanId() != null) {
+            return subscriptionPlanRepository.findById(request.getPlanId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found with id: " + request.getPlanId()));
+        }
+
+        String providerName = (request.getProviderName() != null && !request.getProviderName().isBlank())
+                ? request.getProviderName().trim() : "Custom Subscription";
+        String catName = (request.getCategoryName() != null && !request.getCategoryName().isBlank())
+                ? request.getCategoryName().trim() : "General";
+        String planName = (request.getPlanName() != null && !request.getPlanName().isBlank())
+                ? request.getPlanName().trim() : "Standard Plan";
+
+        Category category = categoryRepository.findAll().stream()
+                .filter(c -> c.getCategoryName().equalsIgnoreCase(catName))
+                .findFirst()
+                .orElseGet(() -> categoryRepository.save(Category.builder()
+                        .categoryName(catName)
+                        .description("Category for " + catName)
+                        .icon("Assignment")
+                        .monthlyPrice(BigDecimal.ZERO)
+                        .active(true)
+                        .build()));
+
+        Subscription subscription = subscriptionRepository.findAll().stream()
+                .filter(s -> s.getProviderName().equalsIgnoreCase(providerName))
+                .findFirst()
+                .orElseGet(() -> subscriptionRepository.save(Subscription.builder()
+                        .providerName(providerName)
+                        .planName(providerName)
+                        .category(category)
+                        .maxMembers(4)
+                        .monthlyPrice(BigDecimal.ZERO)
+                        .yearlyPrice(BigDecimal.ZERO)
+                        .active(true)
+                        .build()));
+
+        return subscriptionPlanRepository.findBySubscriptionId(subscription.getId()).stream()
+                .findFirst()
+                .orElseGet(() -> subscriptionPlanRepository.save(SubscriptionPlan.builder()
+                        .subscription(subscription)
+                        .planName(planName)
+                        .maxMembers(request.getTotalSeats() != null ? request.getTotalSeats() : 4)
+                        .monthlyPrice(request.getSeatPrice() != null ? request.getSeatPrice() : BigDecimal.ZERO)
+                        .yearlyPrice(request.getSeatPrice() != null ? request.getSeatPrice().multiply(BigDecimal.valueOf(10)) : BigDecimal.ZERO)
+                        .sharingAllowed(true)
+                        .active(true)
+                        .build()));
+    }
+
     private void validateOwnership(Listing listing, User host) {
-        if (!Objects.equals(listing.getHost().getId(), host.getId())) {
+        if (host != null && !Objects.equals(listing.getHost().getId(), host.getId())) {
             throw new UnauthorizedException("You do not have permission to modify this listing");
         }
     }

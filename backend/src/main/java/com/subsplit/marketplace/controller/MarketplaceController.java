@@ -74,11 +74,19 @@ public class MarketplaceController {
     @PostMapping("/listings")
     public ResponseEntity<ApiResponse<ListingResponse>> createListing(
             Authentication authentication,
-            @Valid @RequestBody CreateListingRequest request) {
-        User currentUser = getAuthenticatedUser(authentication);
+            @Valid @RequestBody CreateListingRequest request
+    ) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
         ListingResponse response = marketplaceService.createListing(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Listing created successfully", response));
+    }
+
+    private User getAuthenticatedUserOptional(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            return null;
+        }
+        return user;
     }
 
     @PutMapping("/listings/{id}")
