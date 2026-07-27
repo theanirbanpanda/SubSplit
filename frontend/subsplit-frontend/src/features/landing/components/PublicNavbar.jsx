@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
 import {
   AppBar,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Divider,
   useScrollTrigger,
+  Box,
+  Typography,
 } from '@mui/material';
-import { Menu as MenuIcon, X } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLogoClick from '../../../hooks/useLogoClick';
 import { NAV_LINKS } from '../data/navigation';
@@ -19,7 +14,6 @@ import styles from './PublicNavbar.module.scss';
 function PublicNavbar() {
   const navigate = useNavigate();
   const handleLogoClick = useLogoClick();
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const scrolled = useScrollTrigger({
     disableHysteresis: true,
@@ -27,7 +21,6 @@ function PublicNavbar() {
   });
 
   const handleNavClick = (href) => {
-    setDrawerOpen(false);
     const el = document.querySelector(href);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
@@ -45,18 +38,44 @@ function PublicNavbar() {
         <div className={styles.container}>
           <div className={styles.toolbar}>
             {/* ── Logo ── */}
-            <div
-              className={styles.logo}
+            <Box 
               onClick={handleLogoClick}
               role="link"
               tabIndex={0}
               aria-label="SubSplit home"
               onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()}
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer',
+                gap: 1,
+                mr: 'auto', // Pushes everything else to the right
+              }}
             >
-              <span className={styles.logoText}>
-                Sub<span className={styles.logoAccent}>Split</span>
-              </span>
-            </div>
+              <Box sx={{ 
+                width: 28, 
+                height: 28, 
+                background: '#22c55e', 
+                borderRadius: '6px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                color: '#09090b'
+              }}>
+                <Shield size={16} fill="currentColor" />
+              </Box>
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  fontSize: '1.35rem',
+                  color: '#ffffff',
+                  letterSpacing: '-0.04em',
+                  fontFamily: '"Inter", sans-serif',
+                }}
+              >
+                Sub<Box component="span" sx={{ color: '#22c55e' }}>Split</Box>
+              </Typography>
+            </Box>
 
             {/* ── Desktop Nav Links ── */}
             <nav className={styles.navLinks} aria-label="Primary navigation">
@@ -90,82 +109,9 @@ function PublicNavbar() {
               </button>
             </div>
 
-            {/* ── Mobile Hamburger ── */}
-            <IconButton
-              aria-label="Open navigation menu"
-              onClick={() => setDrawerOpen(true)}
-              className={styles.hamburger}
-            >
-              <MenuIcon size={24} />
-            </IconButton>
           </div>
         </div>
       </AppBar>
-
-      {/* ── Mobile Drawer ── */}
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{ className: styles.drawerPaper }}
-      >
-        <div className={styles.drawerHeader}>
-          <span className={styles.logoText}>
-            Sub<span className={styles.logoAccent}>Split</span>
-          </span>
-          <IconButton
-            aria-label="Close navigation menu"
-            onClick={() => setDrawerOpen(false)}
-            size="small"
-            sx={{ color: '#A1A1AA' }}
-          >
-            <X size={20} />
-          </IconButton>
-        </div>
-
-        <Divider sx={{ mb: 1, borderColor: '#2A2A30' }} />
-
-        <List sx={{ px: 1.5 }}>
-          {NAV_LINKS.map(({ label, href }) => (
-            <ListItem key={label} disablePadding>
-              <ListItemButton
-                onClick={() => handleNavClick(href)}
-                className={styles.drawerLink}
-              >
-                <ListItemText
-                  primary={label}
-                  primaryTypographyProps={{
-                    fontWeight: 600,
-                    fontSize: '0.92rem',
-                    color: '#A1A1AA',
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-
-        <Divider sx={{ my: 2, borderColor: '#2A2A30' }} />
-
-        <div className={styles.drawerActions}>
-          <button
-            className={styles.ctaSecondary}
-            onClick={() => { setDrawerOpen(false); navigate('/auth'); }}
-            type="button"
-            style={{ width: '100%', justifyContent: 'center' }}
-          >
-            Login
-          </button>
-          <button
-            className={styles.signupBtn}
-            onClick={() => { setDrawerOpen(false); navigate('/auth'); }}
-            type="button"
-            style={{ width: '100%', justifyContent: 'center' }}
-          >
-            Sign Up
-          </button>
-        </div>
-      </Drawer>
     </>
   );
 }

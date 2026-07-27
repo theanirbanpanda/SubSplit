@@ -13,7 +13,7 @@ import {
   InputAdornment,
   IconButton,
 } from '@mui/material';
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLogoClick from '../../../hooks/useLogoClick';
 
@@ -44,10 +44,28 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
       }}
     >
       {/* SubSplit Typographic Wordmark Header */}
-      <Box
-        sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', mb: 2 }}
+      <Box 
         onClick={handleLogoClick}
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          cursor: 'pointer',
+          gap: 1,
+          mb: 2
+        }}
       >
+        <Box sx={{ 
+          width: 28, 
+          height: 28, 
+          background: '#22c55e', 
+          borderRadius: '6px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          color: '#09090b'
+        }}>
+          <Shield size={16} fill="currentColor" />
+        </Box>
         <Typography
           sx={{
             fontWeight: 900,
@@ -57,7 +75,7 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading }) {
             fontFamily: '"Inter", sans-serif',
           }}
         >
-          Sub<Box component="span" sx={{ color: '#2563eb' }}>Split</Box>
+          Sub<Box component="span" sx={{ color: '#22c55e' }}>Split</Box>
         </Typography>
       </Box>
 

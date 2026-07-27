@@ -204,7 +204,7 @@
 .bottomBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
 
   @media (max-width: 599px) {
     flex-direction: column;
@@ -216,21 +216,4 @@
 .copyright {
   font-size: 0.8rem;
   color: $text-muted;
-}
-
-.paymentRow {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.paymentBadge {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: $text-secondary;
-  padding: 4px 12px;
-  border-radius: 6px;
-  background: $bg-card;
-  border: 1px solid $border-default;
-  letter-spacing: 0.02em;
 }

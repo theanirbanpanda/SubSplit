@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Shield } from 'lucide-react';
+import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useLogoClick from '../../../hooks/useLogoClick';
 import { FOOTER_COLUMNS, SOCIAL_LINKS, PAYMENT_METHODS } from '../data/footer';
@@ -97,18 +98,43 @@ function Footer() {
         <div className={styles.topGrid}>
           {/* Brand Column */}
           <div className={styles.brandCol}>
-            <div
-              className={styles.logo}
+            <Box 
               onClick={handleLogoClick}
               role="link"
               tabIndex={0}
               aria-label="SubSplit home"
               onKeyDown={(e) => e.key === 'Enter' && handleLogoClick()}
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer',
+                gap: 1
+              }}
             >
-              <span className={styles.logoText}>
-                Sub<span className={styles.logoAccent}>Split</span>
-              </span>
-            </div>
+              <Box sx={{ 
+                width: 28, 
+                height: 28, 
+                background: '#22c55e', 
+                borderRadius: '6px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                color: '#09090b'
+              }}>
+                <Shield size={16} fill="currentColor" />
+              </Box>
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  fontSize: '1.35rem',
+                  color: '#ffffff',
+                  letterSpacing: '-0.04em',
+                  fontFamily: '"Inter", sans-serif',
+                }}
+              >
+                Sub<Box component="span" sx={{ color: '#22c55e' }}>Split</Box>
+              </Typography>
+            </Box>
             <p className={styles.brandTagline}>
               The smartest way to share subscriptions and save more every month.
             </p>
@@ -183,15 +209,8 @@ function Footer() {
         {/* ── Bottom Bar ── */}
         <div className={styles.bottomBar}>
           <span className={styles.copyright}>
-            © {new Date().getFullYear()} SubSplit. All rights reserved.
+            © 2026 SubSplit. All rights reserved.
           </span>
-          <div className={styles.paymentRow}>
-            {PAYMENT_METHODS.map((method) => (
-              <span key={method} className={styles.paymentBadge}>
-                {method}
-              </span>
-            ))}
-          </div>
         </div>
       </div>
     </footer>

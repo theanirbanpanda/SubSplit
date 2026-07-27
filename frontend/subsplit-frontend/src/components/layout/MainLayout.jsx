@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import Footer from '../../features/landing/components/Footer';
 
 function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,15 +46,16 @@ function MainLayout() {
         sx={{
           flexGrow: 1,
           pt: 11,
-          pb: 8,
-          px: { xs: 2.5, md: 4 },
           width: { xs: '100%', md: `calc(100% - ${sidebarWidth}px)` },
           transition: 'width 0.2s ease, margin 0.2s ease',
-          maxWidth: '1500px',
-          mx: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <Outlet />
+        <Box sx={{ flexGrow: 1, px: { xs: 2.5, md: 4 }, pb: 8, maxWidth: '1500px', mx: 'auto', width: '100%' }}>
+          <Outlet />
+        </Box>
+        <Footer />
       </Box>
     </Box>
   );

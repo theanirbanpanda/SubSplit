@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Stack, Paper, Chip } from '@mui/material';
-import { ShieldCheck, TrendingDown, Users, Sparkles, Tv2, Music, Bot, Video } from 'lucide-react';
+import { ShieldCheck, TrendingDown, Users, Sparkles, Tv2, Music, Bot, Video, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLogoClick from '../../../hooks/useLogoClick';
 
@@ -79,10 +79,27 @@ function AuthIllustrationPanel() {
       />
 
       {/* Top Bar: Wordmark */}
-      <Box
-        sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+      <Box 
         onClick={handleLogoClick}
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          cursor: 'pointer',
+          gap: 1
+        }}
       >
+        <Box sx={{ 
+          width: 28, 
+          height: 28, 
+          background: '#22c55e', 
+          borderRadius: '6px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          color: '#09090b'
+        }}>
+          <Shield size={16} fill="currentColor" />
+        </Box>
         <Typography
           sx={{
             fontWeight: 900,
@@ -92,7 +109,7 @@ function AuthIllustrationPanel() {
             fontFamily: '"Inter", sans-serif',
           }}
         >
-          Sub<Box component="span" sx={{ color: '#3b82f6' }}>Split</Box>
+          Sub<Box component="span" sx={{ color: '#22c55e' }}>Split</Box>
         </Typography>
       </Box>
 
