@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchListingDetails } from './marketplaceSlice';
 import {
   Box,
   Grid,
@@ -8,7 +10,6 @@ import {
   Paper,
 } from '@mui/material';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
-import { getListingById } from './data/mockListings';
 import PublicNavbar from '../landing/components/PublicNavbar';
 import SubscriptionHero from './components/details/SubscriptionHero';
 import StickyJoinCard from './components/details/StickyJoinCard';
@@ -27,21 +28,16 @@ import ScrollToTop from '../landing/components/ScrollToTop';
 function ListingDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [loading, setLoading] = useState(true);
-  const [listing, setListing] = useState(null);
+  const { selectedListing: listing, detailsLoading: loading } = useSelector((state) => state.marketplace);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const found = getListingById(id);
-      setListing(found || null);
-      setLoading(false);
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [id]);
+    if (id) {
+      dispatch(fetchListingDetails(id));
+    }
+  }, [id, dispatch]);
 
   if (loading) {
     return <ListingDetailsSkeleton />;
@@ -143,7 +139,6 @@ function ListingDetails() {
         onClose={() => setJoinModalOpen(false)}
         listing={listing}
       />
-
 
       <Footer />
       <ScrollToTop />

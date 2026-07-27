@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Paper, Stack, Chip, Button, Avatar } from '@mui/material';
+import { Box, Grid, Typography, Paper, Stack, Chip, Button, Avatar } from '@mui/material';
 import { ShieldCheck, Star, Clock, Award, Calendar, CheckCircle2 } from 'lucide-react';
 
 function HostProfileCard({ host = {} }) {

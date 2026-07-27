@@ -15,6 +15,7 @@ import com.subsplit.marketplace.service.MarketplaceService;
 import com.subsplit.subscription.entity.Category;
 import com.subsplit.subscription.entity.Subscription;
 import com.subsplit.subscription.entity.SubscriptionPlan;
+import com.subsplit.subscription.repository.CategoryRepository;
 import com.subsplit.subscription.repository.SubscriptionPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     private final ListingRepository listingRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -164,6 +167,63 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> getCategories() {
+        List<Category> categories = categoryRepository.findAll();
+        List<Listing> allListings = listingRepository.findAll();
+
+        return categories.stream().map(cat -> {
+            long count = allListings.stream()
+                    .filter(l -> l.getPlan() != null
+                            && l.getPlan().getSubscription() != null
+                            && l.getPlan().getSubscription().getCategory() != null
+                            && Objects.equals(l.getPlan().getSubscription().getCategory().getId(), cat.getId()))
+                    .count();
+
+            return CategoryResponse.builder()
+                    .id(cat.getId())
+                    .name(cat.getCategoryName())
+                    .description(cat.getDescription())
+                    .icon(cat.getIcon())
+                    .listingCount(count)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HostSummaryDto> getTopHosts() {
+        List<Listing> listings = listingRepository.findAll();
+        List<HostSummaryDto> hosts = new ArrayList<>();
+
+        for (Listing l : listings) {
+            User host = l.getHost();
+            if (host != null && hosts.stream().noneMatch(h -> Objects.equals(h.getId(), host.getId()))) {
+                UserProfile profile = host.getProfile();
+                String hostName = ((host.getFirstName() != null ? host.getFirstName() : "") +
+                        " " + (host.getLastName() != null ? host.getLastName() : "")).trim();
+                if (hostName.isEmpty()) hostName = host.getEmail();
+
+                long hostActiveListings = listings.stream()
+                        .filter(item -> item.getHost() != null && Objects.equals(item.getHost().getId(), host.getId()))
+                        .count();
+
+                hosts.add(HostSummaryDto.builder()
+                        .id(host.getId())
+                        .name(hostName)
+                        .email(host.getEmail())
+                        .profileImage(host.getProfileImage())
+                        .bio(profile != null ? profile.getBio() : "Verified SubSplit Host")
+                        .rating(4.9)
+                        .isKycVerified(Boolean.TRUE.equals(host.getEmailVerified()))
+                        .successfulGroups((int) (hostActiveListings * 3 + 5))
+                        .build());
+            }
+        }
+        return hosts;
+    }
+
     private void validateOwnership(Listing listing, User host) {
         if (!Objects.equals(listing.getHost().getId(), host.getId())) {
             throw new UnauthorizedException("You do not have permission to modify this listing");
@@ -186,7 +246,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         Subscription subscription = plan != null ? plan.getSubscription() : null;
         Category category = subscription != null ? subscription.getCategory() : null;
 
-        // Calculate host details
         UserProfile profile = host != null ? host.getProfile() : null;
         String hostName = host != null ?
                 ((host.getFirstName() != null ? host.getFirstName() : "") +
@@ -208,7 +267,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .successfulGroups(10)
                 .build();
 
-        // Calculate subscription details
         SubscriptionSummaryDto subscriptionSummary = SubscriptionSummaryDto.builder()
                 .id(subscription != null ? subscription.getId() : null)
                 .providerName(subscription != null ? subscription.getProviderName() : "Subscription")
@@ -218,7 +276,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .categoryName(category != null ? category.getCategoryName() : "General")
                 .build();
 
-        // Calculate plan details
         SubscriptionPlanSummaryDto planSummary = SubscriptionPlanSummaryDto.builder()
                 .id(plan != null ? plan.getId() : null)
                 .planName(plan != null ? plan.getPlanName() : null)
@@ -228,7 +285,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .sharingAllowed(plan != null ? plan.getSharingAllowed() : true)
                 .build();
 
-        // Calculate savings percent compared to full monthly price
         int savingsPercent = 0;
         if (plan != null && plan.getMonthlyPrice() != null && plan.getMonthlyPrice().compareTo(BigDecimal.ZERO) > 0 && listing.getSeatPrice() != null) {
             BigDecimal original = plan.getMonthlyPrice();

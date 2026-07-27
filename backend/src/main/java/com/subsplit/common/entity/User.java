@@ -33,6 +33,9 @@ public class User implements UserDetails {
     @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "full_name")
+    private String fullName;
+
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -67,11 +70,25 @@ public class User implements UserDetails {
 
         if (emailVerified == null)
             emailVerified = false;
+
+        if (fullName == null || fullName.isBlank()) {
+            fullName = ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();
+            if (fullName.isEmpty()) {
+                fullName = email;
+            }
+        }
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+
+        if (fullName == null || fullName.isBlank()) {
+            fullName = ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();
+            if (fullName.isEmpty()) {
+                fullName = email;
+            }
+        }
     }
 
     // -----------------------------
@@ -82,8 +99,7 @@ public class User implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String roleName = (role != null && role.getName() != null) ? role.getName() : "USER";
         return List.of(
-                new SimpleGrantedAuthority("ROLE_" + roleName)
-        );
+                new SimpleGrantedAuthority("ROLE_" + roleName));
     }
 
     @Override

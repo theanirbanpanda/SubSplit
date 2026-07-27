@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { fetchMarketplaceListings, fetchCategories, fetchTopHosts } from './marketplaceSlice';
 import ScrollToTop from '../landing/components/ScrollToTop';
 
 import MarketplaceHero from './components/MarketplaceHero';
@@ -13,6 +15,14 @@ import ProtectionBanner from './components/ProtectionBanner';
 import styles from './Marketplace.module.scss';
 
 function Marketplace() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchMarketplaceListings());
+    dispatch(fetchCategories());
+    dispatch(fetchTopHosts());
+  }, [dispatch]);
+
   return (
     <div className={styles.marketplacePage}>
       <div className={styles.container}>
