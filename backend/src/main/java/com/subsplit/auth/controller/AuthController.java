@@ -76,15 +76,7 @@ public class AuthController {
             throw new UnauthorizedException("User is not authenticated");
         }
 
-        String roleName = (user.getRole() != null) ? user.getRole().getName() : "USER";
-
-        UserResponse userResponse = new UserResponse(
-                user.getId(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getProfileImage(),
-                roleName);
+        UserResponse userResponse = UserResponse.fromUser(user);
 
         return ResponseEntity.ok(
                 ApiResponse.<UserResponse>builder()
