@@ -8,20 +8,25 @@ function SubscriptionDetails({ listing }) {
     quality = '4K Ultra HD + HDR',
     devices = '4 Screens (TV, Phone, Laptop)',
     billingCycle = 'Monthly',
-    renewalDate = 'August 15, 2026',
-  } = listing;
+    renewalDate = 'Next Month',
+    region = 'India (en-IN)',
+    accessMethod = 'Instant Email Invite / PIN',
+    accountType = 'Legitimate Family Shared',
+    supportAvailability = '24/7 Priority Resolution',
+  } = listing || {};
 
   const SPECS = [
     { label: 'Platform', value: platform, icon: Sparkles, color: '#3b82f6' },
     { label: 'Plan Type', value: `${billingCycle} Family Tier`, icon: Calendar, color: '#a855f7' },
     { label: 'Screen Quality', value: quality, icon: Tv, color: '#ef4444' },
     { label: 'Supported Devices', value: devices, icon: Monitor, color: '#22c55e' },
-    { label: 'Region', value: 'India (en-IN)', icon: Globe, color: '#06b6d4' },
+    { label: 'Region', value: region, icon: Globe, color: '#06b6d4' },
     { label: 'Next Renewal Date', value: renewalDate, icon: Calendar, color: '#f59e0b' },
-    { label: 'Access Method', value: 'Instant Email Invite / PIN', icon: Key, color: '#10b981' },
-    { label: 'Account Type', value: 'Legitimate Family Shared', icon: UserCheck, color: '#3b82f6' },
-    { label: 'Support Availability', value: '24/7 Priority Resolution', icon: HelpCircle, color: '#ec4899' },
+    { label: 'Access Method', value: accessMethod, icon: Key, color: '#10b981' },
+    { label: 'Account Type', value: accountType, icon: UserCheck, color: '#3b82f6' },
+    { label: 'Support Availability', value: supportAvailability, icon: HelpCircle, color: '#ec4899' },
   ];
+
 
   return (
     <Box sx={{ mb: 4 }}>

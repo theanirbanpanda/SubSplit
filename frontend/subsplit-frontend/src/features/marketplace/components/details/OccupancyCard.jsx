@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Paper, Grid, LinearProgress, Stack, Chip } from '@mui/material';
+import { Box, Typography, Paper, Grid, LinearProgress, Stack, Chip, Avatar } from '@mui/material';
 import { Users, Clock, Calendar, CheckCircle2 } from 'lucide-react';
 
 function OccupancyCard({ listing }) {
@@ -56,13 +56,47 @@ function OccupancyCard({ listing }) {
             height: 9,
             borderRadius: 5,
             backgroundColor: '#2A2A30',
-            mb: 3,
+            mb: 2.5,
             '& .MuiLinearProgress-bar': {
               borderRadius: 5,
               background: 'linear-gradient(90deg, #3b82f6 0%, #22c55e 100%)',
             },
           }}
         />
+
+        {listing.occupants && listing.occupants.length > 0 && (
+          <Box sx={{ mb: 2.5, p: 1.5, borderRadius: '12px', background: '#18181C', border: '1px solid #2A2A30' }}>
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#A1A1AA', mb: 1 }}>
+              Active Group Occupants:
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {listing.occupants.map((occ) => (
+                <Chip
+                  key={occ.id}
+                  avatar={
+                    occ.memberAvatar ? (
+                      <Avatar src={occ.memberAvatar} />
+                    ) : (
+                      <Avatar sx={{ bgcolor: '#2563eb', fontWeight: 800, fontSize: '0.7rem' }}>
+                        {occ.memberInitials || 'M'}
+                      </Avatar>
+                    )
+                  }
+                  label={`Slot #${occ.seatNumber}: ${occ.memberName}`}
+                  size="small"
+                  sx={{
+                    background: 'rgba(255,255,255,0.05)',
+                    color: '#ffffff',
+                    border: '1px solid #2A2A30',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                  }}
+                />
+              ))}
+            </Stack>
+          </Box>
+        )}
+
 
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>

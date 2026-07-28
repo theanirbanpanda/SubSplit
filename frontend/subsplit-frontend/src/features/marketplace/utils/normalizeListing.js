@@ -55,10 +55,26 @@ export const normalizeListing = (backendItem) => {
     createdAt: backendItem.createdAt || new Date().toISOString(),
     iconColor: theme.color,
     iconBg: theme.bg,
-    billingCycle: backendItem.billingCycle ? backendItem.billingCycle.toLowerCase() : 'monthly',
+    billingCycle: backendItem.billingCycle ? String(backendItem.billingCycle).toLowerCase() : 'monthly',
     renewalDate: backendItem.expiryDate || 'Next month',
     description: backendItem.description || `Join a verified ${providerName} subscription group. Dedicated screen profile with full feature access.`,
-    features: ['Instant Access', 'Ad-Free Experience', 'Dedicated Profile', 'Multi-Device Support', 'Escrow Protected'],
+    quality: backendItem.quality || '4K Ultra HD + HDR',
+    devices: backendItem.supportedDevices || '4 Screens (TV, Phone, Laptop)',
+    region: backendItem.region || 'India (en-IN)',
+    accessMethod: backendItem.accessMethod || 'Instant Email Invite / PIN',
+    accountType: backendItem.accountType || 'Legitimate Shared Family Slot',
+    supportAvailability: backendItem.supportAvailability || '24/7 Priority Resolution',
+    features: backendItem.features && backendItem.features.length ? backendItem.features : ['Instant Access', 'Ad-Free Experience', 'Dedicated Profile', 'Multi-Device Support', 'Escrow Protected'],
+    rules: backendItem.rules || [
+      'Do not share account login credentials with external parties.',
+      'Only log in on approved screens/devices.',
+      'Timely monthly renewals to maintain active slot.',
+      'Respect other group profile settings.'
+    ],
+    occupants: backendItem.occupants || [],
+    reviewSummary: backendItem.reviewSummary || null,
+    aiProofType: backendItem.aiProofType || 'Subscription Invoice',
+    aiValidationStatus: backendItem.aiValidationStatus || 'PASSED',
     host: {
       id: backendItem.host?.id,
       name: hostName,
@@ -73,3 +89,4 @@ export const normalizeListing = (backendItem) => {
     },
   };
 };
+

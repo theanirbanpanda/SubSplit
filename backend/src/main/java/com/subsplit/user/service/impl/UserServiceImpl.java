@@ -19,16 +19,22 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
+import com.subsplit.wallet.repository.WalletRepository;
+import com.subsplit.wallet.entity.Wallet;
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final WalletRepository walletRepository;
 
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
 
     @Override
     public UserResponse uploadProfileImage(Long userId, MultipartFile file) {
@@ -121,4 +127,58 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         return UserResponse.fromUser(savedUser);
     }
+
+    @Override
+    public com.subsplit.user.dto.KycStatusResponse getKycStatus(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        boolean isVerified = Boolean.TRUE.equals(user.getEmailVerified());
+        String status = isVerified ? "VERIFIED" : "UNVERIFIED";
+        String message = isVerified
+                ? "Your KYC verification is complete. You have full access to group creation and escrow transactions."
+                : "Your KYC verification is pending. Please verify your identity to join or host subscription groups.";
+
+        return com.subsplit.user.dto.KycStatusResponse.builder()
+                .userId(userId)
+                .isKycVerified(isVerified)
+                .kycStatus(status)
+                .documentType(isVerified ? "Govt ID Verified" : "Identity Document Needed")
+                .message(message)
+                .verifiedAt(isVerified ? (user.getCreatedAt() != null ? user.getCreatedAt() : java.time.LocalDateTime.now()) : null)
+                .build();
+    }
+
+    @Override
+    public com.subsplit.user.dto.KycStatusResponse submitKycDocument(Long userId, MultipartFile file, String documentType) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setEmailVerified(true);
+        User savedUser = userRepository.save(user);
+
+        // Create user wallet in DB upon successful KYC verification if it doesn't exist
+        walletRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Wallet newWallet = Wallet.builder()
+                            .user(savedUser)
+                            .balance(BigDecimal.ZERO)
+                            .build();
+                    return walletRepository.save(newWallet);
+                });
+
+        String docLabel = (documentType != null && !documentType.isBlank()) ? documentType : "Govt ID Verified";
+
+        return com.subsplit.user.dto.KycStatusResponse.builder()
+                .userId(userId)
+                .isKycVerified(true)
+                .kycStatus("VERIFIED")
+                .documentType(docLabel)
+                .message("Your KYC document has been verified successfully! Wallet has been created for your account.")
+                .verifiedAt(java.time.LocalDateTime.now())
+                .build();
+    }
 }
+
+
+

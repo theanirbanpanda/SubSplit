@@ -6,8 +6,27 @@ import {
   fetchListingByIdApi,
   createListingApi,
   fetchMyListingsApi,
+  fetchSimilarListingsApi,
+  fetchListingReviewsApi,
+  submitJoinRequestApi,
+  checkJoinStatusApi,
+  fetchMyJoinRequestsApi,
 } from './api/marketplaceApi';
 import { normalizeListing } from './utils/normalizeListing';
+
+export const fetchMyJoinRequests = createAsyncThunk(
+  'marketplace/fetchMyJoinRequests',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetchMyJoinRequestsApi();
+      return response.data || [];
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch join requests');
+    }
+  }
+);
+
+
 
 export const fetchMarketplaceListings = createAsyncThunk(
   'marketplace/fetchListings',
@@ -97,12 +116,66 @@ export const fetchMyListings = createAsyncThunk(
   }
 );
 
+export const fetchSimilarListings = createAsyncThunk(
+  'marketplace/fetchSimilarListings',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await fetchSimilarListingsApi(id);
+      const raw = response.data || [];
+      return raw.map(normalizeListing).filter(Boolean);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch similar listings');
+    }
+  }
+);
+
+export const fetchListingReviews = createAsyncThunk(
+  'marketplace/fetchListingReviews',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await fetchListingReviewsApi(id);
+      return response.data || null;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch reviews');
+    }
+  }
+);
+
+export const submitJoinRequest = createAsyncThunk(
+  'marketplace/submitJoinRequest',
+  async ({ listingId, message }, { rejectWithValue }) => {
+    try {
+      const response = await submitJoinRequestApi(listingId, { message });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to submit join request');
+    }
+  }
+);
+
+export const checkJoinStatus = createAsyncThunk(
+  'marketplace/checkJoinStatus',
+  async (listingId, { rejectWithValue }) => {
+    try {
+      const response = await checkJoinStatusApi(listingId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to check join status');
+    }
+  }
+);
+
 const initialState = {
   listings: [],
   categories: [],
   topHosts: [],
   myListings: [],
+  myJoinRequests: [],
   selectedListing: null,
+  similarListings: [],
+
+  currentReviews: null,
+  joinRequestStatus: null,
   loading: false,
   detailsLoading: false,
   error: null,
@@ -182,9 +255,31 @@ const marketplaceSlice = createSlice({
       // fetchMyListings
       .addCase(fetchMyListings.fulfilled, (state, action) => {
         state.myListings = action.payload;
+      })
+      // fetchSimilarListings
+      .addCase(fetchSimilarListings.fulfilled, (state, action) => {
+        state.similarListings = action.payload;
+      })
+      // fetchListingReviews
+      .addCase(fetchListingReviews.fulfilled, (state, action) => {
+        state.currentReviews = action.payload;
+      })
+      // submitJoinRequest
+      .addCase(submitJoinRequest.fulfilled, (state, action) => {
+        state.joinRequestStatus = action.payload;
+      })
+      // checkJoinStatus
+      .addCase(checkJoinStatus.fulfilled, (state, action) => {
+        state.joinRequestStatus = action.payload;
+      })
+      // fetchMyJoinRequests
+      .addCase(fetchMyJoinRequests.fulfilled, (state, action) => {
+        state.myJoinRequests = action.payload;
       });
   },
 });
 
+
 export const { setFilter, resetFilters, setSelectedListing } = marketplaceSlice.actions;
 export default marketplaceSlice.reducer;
+

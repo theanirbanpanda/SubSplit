@@ -40,4 +40,20 @@ public interface MarketplaceService {
     List<CategoryResponse> getCategories();
 
     List<HostSummaryDto> getTopHosts();
+
+    ListingDetailResponse getListingDetailById(Long id);
+
+    List<ListingResponse> getSimilarListings(Long listingId);
+
+    ListingReviewResponse getListingReviews(Long listingId);
+
+    ReviewDto createListingReview(User reviewer, Long listingId, CreateReviewRequest request);
+
+    JoinRequestResponse submitJoinRequest(User member, Long listingId, JoinRequestCreateDto request);
+
+    JoinRequestResponse getJoinRequestStatus(User member, Long listingId);
+
+    List<JoinRequestResponse> getMyJoinRequests(User member);
 }
+
+

@@ -17,8 +17,14 @@ public class SubsplitApplication {
     }
 
     @Bean
-    public CommandLineRunner commandLineRunner() {
+    public CommandLineRunner commandLineRunner(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
         return args -> {
+            try {
+                jdbcTemplate.execute("ALTER TABLE users MODIFY COLUMN profile_image LONGTEXT");
+                System.out.println("   [DB Migration] Altered users.profile_image to LONGTEXT successfully");
+            } catch (Exception e) {
+                // Ignore if already LONGTEXT
+            }
             System.out.println("\n==================================================");
             System.out.println("   SubSplit Backend Started Successfully!");
             System.out.println("   Server is running at: http://localhost:8080");
@@ -26,5 +32,6 @@ public class SubsplitApplication {
             System.out.println("==================================================\n");
         };
     }
+
 
 }
