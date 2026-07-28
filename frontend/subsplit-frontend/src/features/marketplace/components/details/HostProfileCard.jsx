@@ -34,6 +34,8 @@ function HostProfileCard({ host = {} }) {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="flex-start" justifyContent="space-between">
           <Stack direction="row" spacing={2.5} alignItems="center">
             <Avatar
+              src={host?.profileImage || host?.avatarUrl || ''}
+              alt={name}
               sx={{
                 width: 64,
                 height: 64,
@@ -46,6 +48,7 @@ function HostProfileCard({ host = {} }) {
             >
               {initials}
             </Avatar>
+
 
             <Box>
               <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>

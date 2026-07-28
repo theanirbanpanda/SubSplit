@@ -1,5 +1,8 @@
 import React, { lazy, Suspense } from 'react';
 import { Box } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
+import { isTokenValid } from '../../../utils/tokenUtils';
 
 import PublicNavbar from '../components/PublicNavbar';
 import HeroSection from '../components/HeroSection';
@@ -12,6 +15,14 @@ const FAQSection = lazy(() => import('../components/FAQSection'));
 const Footer = lazy(() => import('../components/Footer'));
 
 function LandingPage() {
+  const { isAuthenticated, token } = useSelector((state) => state.auth);
+  const currentToken = token || localStorage.getItem('token');
+  const isAuth = isAuthenticated && !!currentToken && isTokenValid(currentToken);
+
+  if (isAuth) {
+    return <Navigate to="/app/marketplace" replace />;
+  }
+
   return (
     <Box
       sx={{

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -12,34 +13,35 @@ import {
   Stack,
   Badge,
   Typography,
+  Avatar,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { Menu as MenuIcon, Bell, Search, Wallet } from 'lucide-react';
+import { Menu as MenuIcon, Bell, Search, Wallet, User as UserIcon } from 'lucide-react';
 import { logoutUser } from '../../features/auth/authSlice'; // Ensure this is imported if used
 import { setFilter } from '../../features/marketplace/marketplaceSlice';
+
+import { fetchMyWallet } from '../../features/settlements/walletSlice';
 
 function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme();
   const { user } = useSelector((state) => state.auth);
+  const { wallet } = useSelector((state) => state.wallet);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
 
+  useEffect(() => {
+    dispatch(fetchMyWallet());
+  }, [dispatch]);
+
+  const balanceDisplay = wallet?.balance != null ? `₹${wallet.balance.toFixed(2)}` : '₹0.00';
+
   const initials = user?.firstName
     ? `${user.firstName[0]}${user.lastName ? user.lastName[0] : ''}`.toUpperCase()
-    : 'U';
-
-  const handleMenu = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-
-  const handleLogout = () => {
-    handleClose();
-    dispatch(logoutUser());
-    navigate('/auth');
-  };
+    : (user?.email ? user.email[0].toUpperCase() : 'U');
 
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter' && searchVal.trim()) {
@@ -130,9 +132,10 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <Typography sx={{ fontSize: '0.65rem', color: '#9ca3af', lineHeight: 1 }}>Wallet balance</Typography>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>₹560.00</Typography>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>{balanceDisplay}</Typography>
             </Box>
           </Button>
+
 
           {/* Notifications */}
           <IconButton
@@ -144,7 +147,19 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
             </Badge>
           </IconButton>
 
-
+          {/* User Profile Avatar */}
+          <IconButton
+            onClick={() => navigate('/app/profile')}
+            sx={{ p: 0.5, border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', '&:hover': { borderColor: '#2563eb' } }}
+          >
+            <Avatar
+              src={user?.profileImage || ''}
+              alt={user?.firstName || 'User'}
+              sx={{ width: 36, height: 36, bgcolor: '#2563eb', fontWeight: 800, fontSize: '0.85rem' }}
+            >
+              {initials}
+            </Avatar>
+          </IconButton>
         </Stack>
       </Toolbar>
     </AppBar>
@@ -152,3 +167,4 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
 }
 
 export default Header;
+

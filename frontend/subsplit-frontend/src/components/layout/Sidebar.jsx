@@ -38,13 +38,13 @@ import {
 const MENU_ITEMS = [
   { text: 'Marketplace', icon: Store, path: '/app/marketplace' },
   { text: 'Dashboard', icon: LayoutDashboard, path: '/app/dashboard' },
-  { text: 'My Subscriptions', icon: CreditCard, path: '/app/groups' },
   { text: 'Host Center', icon: Shield, path: '/app/host' },
   { text: 'Wallet', icon: Wallet, path: '/app/settlements' },
   { text: 'Messages', icon: MessageSquare, path: '/app/messages' },
   { text: 'Notifications', icon: Bell, path: '/app/notifications' },
   { text: 'Profile', icon: User, path: '/app/profile' },
 ];
+
 
 function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();

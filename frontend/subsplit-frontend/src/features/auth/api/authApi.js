@@ -36,3 +36,15 @@ export const updateUserProfileApi = async (profileData) => {
   const response = await api.put('/users/profile', profileData);
   return response.data;
 };
+
+export const fetchKycStatusApi = async () => {
+  const response = await api.get('/users/kyc-status');
+  return response.data;
+};
+
+export const submitKycDocumentApi = async (formDataOrParams) => {
+  const response = await api.post('/users/kyc/submit', formDataOrParams);
+  return response.data;
+};
+
+

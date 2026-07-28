@@ -35,7 +35,7 @@ function Auth() {
       setSuccessMsg(action.payload?.message || 'Login successful! Welcome back to SubSplit.');
       setSnackbarOpen(true);
       setTimeout(() => {
-        navigate('/app/dashboard');
+        navigate('/app/marketplace');
       }, 500);
     }
   };
@@ -56,7 +56,7 @@ function Auth() {
     setSuccessMsg('Profile setup complete! Launching SubSplit...');
     setSnackbarOpen(true);
     setTimeout(() => {
-      navigate('/app/dashboard');
+      navigate('/app/marketplace');
     }, 500);
   };
 

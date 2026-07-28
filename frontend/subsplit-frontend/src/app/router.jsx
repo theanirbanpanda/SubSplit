@@ -35,7 +35,8 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="marketplace/:id" element={<ListingDetails />} />
-            <Route path="groups" element={<Groups />} />
+            <Route path="groups" element={<Navigate to="/app/dashboard" replace />} />
+
             <Route path="expenses" element={<Expenses />} />
             <Route path="settlements" element={<Settlements />} />
             <Route path="host" element={<HostCenter />} />

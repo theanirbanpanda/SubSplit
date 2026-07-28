@@ -1,5 +1,32 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { registerApi, loginApi, logoutApi, getCurrentUserApi, uploadProfileImageApi, updateUserProfileApi } from './api/authApi';
+import { registerApi, loginApi, logoutApi, getCurrentUserApi, uploadProfileImageApi, updateUserProfileApi, fetchKycStatusApi, submitKycDocumentApi } from './api/authApi';
+import { isTokenValid } from '../../utils/tokenUtils';
+
+export const fetchKycStatus = createAsyncThunk(
+  'auth/fetchKycStatus',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetchKycStatusApi();
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to fetch KYC status');
+    }
+  }
+);
+
+export const submitKycDocument = createAsyncThunk(
+  'auth/submitKycDocument',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await submitKycDocumentApi(params);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'KYC submission failed');
+    }
+  }
+);
+
+
 
 // Async Thunks for API integration
 export const fetchCurrentUser = createAsyncThunk(
@@ -118,12 +145,20 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+const rawToken = localStorage.getItem('token');
+const validToken = isTokenValid(rawToken) ? rawToken : null;
+if (rawToken && !validToken) {
+  localStorage.removeItem('token');
+}
+
 const initialState = {
   user: null,
-  token: localStorage.getItem('token') || null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: validToken,
+  isAuthenticated: !!validToken,
+  isInitialized: !validToken,
   loading: false,
   error: null,
+  kycStatus: null,
 };
 
 const authSlice = createSlice({
@@ -138,13 +173,28 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.isInitialized = true;
       state.error = null;
+      state.kycStatus = null;
     },
   },
   extraReducers: (builder) => {
     builder
+      // Fetch KYC Status
+      .addCase(fetchKycStatus.fulfilled, (state, action) => {
+        state.kycStatus = action.payload;
+      })
+      // Submit KYC Document
+      .addCase(submitKycDocument.fulfilled, (state, action) => {
+        state.kycStatus = action.payload;
+        if (state.user) {
+          state.user.emailVerified = true;
+        }
+      })
+
       // Fetch Current User
       .addCase(fetchCurrentUser.pending, (state) => {
+
         state.loading = true;
         state.error = null;
       })
@@ -152,10 +202,16 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload?.data || null;
         state.isAuthenticated = true;
+        state.isInitialized = true;
       })
       .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.loading = false;
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.isInitialized = true;
         state.error = action.payload;
+        localStorage.removeItem('token');
       })
       // Register
       .addCase(registerUser.pending, (state) => {
@@ -166,6 +222,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload?.data?.accessToken || null;
         state.isAuthenticated = !!action.payload?.data?.accessToken;
+        state.isInitialized = true;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -180,6 +237,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload?.data?.accessToken || null;
         state.isAuthenticated = true;
+        state.isInitialized = true;
       })
       // Upload Profile Picture
       .addCase(uploadProfilePicture.pending, (state) => {
@@ -187,16 +245,18 @@ const authSlice = createSlice({
       })
       .addCase(uploadProfilePicture.fulfilled, (state, action) => {
         const userObj = action.payload?.data || action.payload;
-        if (state.user && userObj) {
+        if (state.user) {
           state.user = {
             ...state.user,
             ...(typeof userObj === 'object' ? userObj : {}),
+            profileImage: (typeof userObj === 'object' && userObj?.profileImage) ? userObj.profileImage : state.user.profileImage,
           };
         }
       })
       .addCase(uploadProfilePicture.rejected, (state, action) => {
         state.error = action.payload;
       })
+
       // Update Profile Details
       .addCase(updateUserProfile.pending, (state) => {
         state.error = null;

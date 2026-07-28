@@ -72,4 +72,41 @@ public class UserController {
                         .data(response)
                         .build());
     }
+
+    @GetMapping("/kyc-status")
+    public ResponseEntity<ApiResponse<com.subsplit.user.dto.KycStatusResponse>> getKycStatus(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new UnauthorizedException("User is not authenticated");
+        }
+
+        com.subsplit.user.dto.KycStatusResponse response = userService.getKycStatus(user.getId());
+        return ResponseEntity.ok(
+                ApiResponse.<com.subsplit.user.dto.KycStatusResponse>builder()
+                        .success(true)
+                        .message("KYC status retrieved successfully")
+                        .data(response)
+                        .build());
+    }
+
+    @PostMapping("/kyc/submit")
+    public ResponseEntity<ApiResponse<com.subsplit.user.dto.KycStatusResponse>> submitKycDocument(
+            Authentication authentication,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "documentType", required = false) String documentType) {
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            throw new UnauthorizedException("User is not authenticated");
+        }
+
+        com.subsplit.user.dto.KycStatusResponse response = userService.submitKycDocument(user.getId(), file, documentType);
+
+        return ResponseEntity.ok(
+                ApiResponse.<com.subsplit.user.dto.KycStatusResponse>builder()
+                        .success(true)
+                        .message("KYC document submitted and verified successfully")
+                        .data(response)
+                        .build());
+    }
 }
+
+

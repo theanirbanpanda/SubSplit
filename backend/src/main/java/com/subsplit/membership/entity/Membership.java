@@ -58,6 +58,9 @@ public class Membership extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MembershipStatus status;
 
+    @Builder.Default
+    private Boolean autoRenew = true;
+
     @OneToOne(mappedBy = "membership", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private SubscriptionCredential credential;
 
