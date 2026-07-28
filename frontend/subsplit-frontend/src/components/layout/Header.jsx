@@ -16,13 +16,17 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { Menu as MenuIcon, Bell, Search, Wallet } from 'lucide-react';
+import { logoutUser } from '../../features/auth/authSlice'; // Ensure this is imported if used
+import { setFilter } from '../../features/marketplace/marketplaceSlice';
 
 function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const theme = useTheme();
   const { user } = useSelector((state) => state.auth);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const initials = user?.firstName
     ? `${user.firstName[0]}${user.lastName ? user.lastName[0] : ''}`.toUpperCase()
@@ -43,6 +47,12 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
     }
   };
 
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchVal(val);
+    dispatch(setFilter({ search: val, trendingOnly: false }));
+  };
+
   return (
     <AppBar
       position="fixed"
@@ -57,14 +67,22 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
         transition: 'width 0.2s ease, margin 0.2s ease',
       }}
     >
-      <Toolbar sx={{ height: 76, px: { xs: 2, md: 4 }, gap: 2 }}>
+      <Toolbar sx={{ height: 76, px: { xs: 2, md: 4 }, position: 'relative' }}>
         {/* Global Search Input */}
-        <Box sx={{ flexGrow: 1, maxWidth: 420, mx: 'auto' }}>
+        <Box sx={{ 
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: 420,
+          zIndex: 10,
+          display: { xs: 'none', sm: 'block' } // Hide on very small screens to prevent overlap
+        }}>
           <TextField
             fullWidth
             size="small"
             value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
+            onChange={handleSearchChange}
             onKeyDown={handleSearchSubmit}
             placeholder="Search subscriptions, hosts or categories..."
             InputProps={{

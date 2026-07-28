@@ -1,189 +1,148 @@
 @import '../styles/marketplaceVariables.scss';
 
-.hero {
+.heroBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: $spacing-6 0 $spacing-3;
-  gap: $spacing-6;
+  padding: $spacing-3 $spacing-4;
+  background: linear-gradient(145deg, #111318 0%, #1a1d24 100%);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: $radius-xl;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  gap: $spacing-3;
 
   @media (max-width: 900px) {
     flex-direction: column;
     align-items: flex-start;
+    padding: $spacing-3;
   }
 }
 
-.content {
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   flex: 1;
-  max-width: 600px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  margin-bottom: 2px;
 }
 
 .trustBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: $marketplace-card-bg;
-  border: 1px solid $marketplace-border;
-  padding: 4px 12px;
-  border-radius: 20px;
-  margin-bottom: $spacing-3;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
 
   .dot {
     width: 6px;
     height: 6px;
     background-color: $accent-green;
     border-radius: 50%;
+    box-shadow: 0 0 8px $accent-green;
   }
 
   span {
-    font-size: 0.75rem;
-    color: $text-secondary;
-    font-weight: 500;
+    font-size: 0.65rem;
+    color: $accent-green;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 }
 
 .title {
-  font-size: 3.5rem;
+  font-size: 2rem;
   font-weight: 800;
   line-height: 1.1;
-  margin-bottom: $spacing-3;
   color: $text-primary;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+  white-space: nowrap;
 
   .highlight {
     color: $accent-green;
+    text-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
   }
 
   @media (max-width: 900px) {
-    font-size: 2.5rem;
+    font-size: 1.6rem;
+    white-space: normal;
   }
 }
 
 .subtitle {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: $text-secondary;
-  line-height: 1.6;
-  margin-bottom: $spacing-4;
-  max-width: 480px;
+  line-height: 1.4;
 }
 
 .features {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-2;
+  gap: $spacing-3;
+  margin-top: 4px;
 
   .feature {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    color: $text-secondary;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: #9ca3af;
     font-weight: 600;
     
     svg {
       color: $accent-green;
-      width: 14px;
-      height: 14px;
+      opacity: 0.8;
     }
   }
 }
 
-.savingsCardWrapper {
-  flex: 0 0 400px;
-
-  @media (max-width: 900px) {
-    width: 100%;
-    flex: auto;
-  }
-}
-
-.savingsCard {
-  background: $marketplace-card-bg;
-  border: 1px solid $marketplace-border;
-  border-radius: $radius-xl;
-  padding: $spacing-4;
-  box-shadow: $shadow-card;
-  position: relative;
-  overflow: hidden;
-
-  // Subtle gradient glow behind the card content
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, rgba(0,0,0,0) 70%);
-    border-radius: 50%;
-    transform: translate(30%, -30%);
-  }
-}
-
-.cardHeader {
-  margin-bottom: $spacing-3;
-
-  .label {
-    color: $text-secondary;
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-
-  .amount {
-    color: $accent-green;
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1.1;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-
-    .period {
-      font-size: 0.8rem;
-      color: $text-secondary;
-      font-weight: 500;
-    }
-  }
-}
-
-.chartContainer {
-  height: 80px;
-  margin-bottom: $spacing-4;
-  position: relative;
-
-  svg {
-    width: 100%;
-    height: 100%;
-    stroke: $accent-green;
-    stroke-width: 3;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    filter: drop-shadow(0 4px 6px rgba(34, 197, 94, 0.3));
-  }
-}
-
-.statsRow {
+.heroRight {
+  flex-shrink: 0;
   display: flex;
-  gap: $spacing-4;
-  border-top: 1px solid $marketplace-border-subtle;
-  padding-top: $spacing-3;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-2;
+}
 
-  .stat {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+.ctaButton {
+  padding: 14px 28px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 25px rgba(37,99,235,0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 
-    .statLabel {
-      font-size: 0.8rem;
-      color: $text-secondary;
-    }
-
-    .statValue {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: $text-primary;
-    }
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(37,99,235,0.6);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.ctaHint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
 }
