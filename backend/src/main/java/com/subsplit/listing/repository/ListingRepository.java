@@ -13,5 +13,10 @@ public interface ListingRepository extends JpaRepository<Listing, Long>, JpaSpec
     List<Listing> findByHostId(Long hostId);
 
     List<Listing> findByHostIdAndStatus(Long hostId, com.subsplit.common.enums.ListingStatus status);
+
+    List<Listing> findTop4ByPlanSubscriptionCategoryIdAndIdNotAndStatus(Long categoryId, Long id, com.subsplit.common.enums.ListingStatus status);
+
+    List<Listing> findTop4ByIdNotAndStatus(Long id, com.subsplit.common.enums.ListingStatus status);
 }
+
 

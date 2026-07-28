@@ -1,4 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchMySubscriptions,
+  fetchSubscriptionSummary,
+  fetchSubscriptionCredentials,
+  cancelSubscription,
+  toggleAutoRenew,
+} from './subscriptionsSlice';
 import {
   Box,
   Grid,
@@ -37,85 +45,85 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const MEMBERSHIPS_DATA = [
-  {
-    id: 'mem-1',
-    title: 'Netflix Premium 4K UHD',
-    category: 'OTT Streaming',
-    price: 129,
-    originalPrice: 649,
-    savings: 80,
-    renewalDate: 'Aug 15, 2026',
-    daysLeft: 5,
-    status: 'Active',
-    statusColor: '#22c55e',
-    statusBg: 'rgba(34,197,94,0.15)',
-    statusBorder: 'rgba(34,197,94,0.3)',
-    filledSeats: 3,
-    totalSeats: 4,
-    credentials: { type: 'Email Invite', link: 'https://netflix.com/activate/subsplit-pass-9482' },
-    host: { name: 'Vikram S.', initials: 'VS', rating: 4.9, responseTime: '< 15m', isVerified: true, avatarBg: '#2563eb' },
-    Icon: Tv2,
-    color: '#ef4444',
-    bg: 'rgba(239,68,68,0.12)',
-    border: 'rgba(239,68,68,0.3)',
-  },
-  {
-    id: 'mem-2',
-    title: 'Spotify Premium Family',
-    category: 'Music',
-    price: 59,
-    originalPrice: 179,
-    savings: 67,
-    renewalDate: 'Aug 18, 2026',
-    daysLeft: 8,
-    status: 'Renewing Soon',
-    statusColor: '#f59e0b',
-    statusBg: 'rgba(245,158,11,0.15)',
-    statusBorder: 'rgba(245,158,11,0.3)',
-    filledSeats: 5,
-    totalSeats: 6,
-    credentials: { type: 'Family Invite Link', link: 'https://spotify.com/family/join/invite/subsplit-8291' },
-    host: { name: 'Ananya R.', initials: 'AR', rating: 5.0, responseTime: '< 10m', isVerified: true, avatarBg: '#10b981' },
-    Icon: Music,
-    color: '#22c55e',
-    bg: 'rgba(34,197,94,0.12)',
-    border: 'rgba(34,197,94,0.3)',
-  },
-  {
-    id: 'mem-3',
-    title: 'ChatGPT Plus Team',
-    category: 'AI & Productivity',
-    price: 399,
-    originalPrice: 1999,
-    savings: 80,
-    renewalDate: 'Aug 22, 2026',
-    daysLeft: 12,
-    status: 'Active',
-    statusColor: '#22c55e',
-    statusBg: 'rgba(34,197,94,0.15)',
-    statusBorder: 'rgba(34,197,94,0.3)',
-    filledSeats: 4,
-    totalSeats: 5,
-    credentials: { type: 'Workspace Invite', link: 'https://chatgpt.com/workspace/invite/subsplit-7412' },
-    host: { name: 'Rohan K.', initials: 'RK', rating: 4.8, responseTime: '< 20m', isVerified: true, avatarBg: '#7c3aed' },
-    Icon: Bot,
-    color: '#14b8a6',
-    bg: 'rgba(20,184,166,0.12)',
-    border: 'rgba(20,184,166,0.3)',
-  },
-];
+const PROVIDER_ICONS = {
+  netflix: { Icon: Tv2, color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' },
+  spotify: { Icon: Music, color: '#22c55e', bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)' },
+  chatgpt: { Icon: Bot, color: '#14b8a6', bg: 'rgba(20,184,166,0.12)', border: 'rgba(20,184,166,0.3)' },
+};
+
+const DEFAULT_THEME = { Icon: Zap, color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)' };
 
 function Groups() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { subscriptions, summaryStats, activeCredentials } = useSelector((state) => state.subscriptions);
+
   const [copiedId, setCopiedId] = useState(null);
   const [chatHost, setChatHost] = useState(null);
+  const [credModalSub, setCredModalSub] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchMySubscriptions());
+    dispatch(fetchSubscriptionSummary());
+  }, [dispatch]);
 
   const handleCopy = (id, link) => {
     navigator.clipboard.writeText(link);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  const handleToggleAutoRenew = (id, currentVal) => {
+    dispatch(toggleAutoRenew({ id, autoRenew: !currentVal }));
+  };
+
+  const handleCancelPass = (id) => {
+    if (window.confirm('Are you sure you want to cancel your slot membership? You will retain access until the end of your billing period.')) {
+      dispatch(cancelSubscription(id));
+    }
+  };
+
+  const handleOpenCredentials = (sub) => {
+    setCredModalSub(sub);
+    dispatch(fetchSubscriptionCredentials(sub.id));
+  };
+
+  // Map subscriptions to UI theme
+  const activeMemberships = subscriptions.map((item) => {
+    const prov = (item.providerName || item.title || '').toLowerCase();
+    const theme = Object.keys(PROVIDER_ICONS).find(k => prov.includes(k))
+      ? PROVIDER_ICONS[Object.keys(PROVIDER_ICONS).find(k => prov.includes(k))]
+      : DEFAULT_THEME;
+
+    let statusColor = '#22c55e';
+    let statusBg = 'rgba(34,197,94,0.15)';
+    let statusBorder = 'rgba(34,197,94,0.3)';
+
+    if (item.statusDisplay === 'Renewing Soon' || (item.daysLeft != null && item.daysLeft <= 7 && item.daysLeft > 0)) {
+      statusColor = '#f59e0b';
+      statusBg = 'rgba(245,158,11,0.15)';
+      statusBorder = 'rgba(245,158,11,0.3)';
+    } else if (item.statusDisplay === 'Expired' || item.statusDisplay === 'Cancelled') {
+      statusColor = '#ef4444';
+      statusBg = 'rgba(239,68,68,0.15)';
+      statusBorder = 'rgba(239,68,68,0.3)';
+    }
+
+    return {
+      ...item,
+      ...theme,
+      statusColor,
+      statusBg,
+      statusBorder,
+      statusText: item.statusDisplay || 'Active',
+      host: item.host || { name: 'Verified Host', initials: 'VH', rating: 4.9, responseTime: '< 15m', isVerified: true, avatarBg: '#2563eb' },
+      credentials: {
+        type: item.credentialType || 'Invite Link',
+        link: item.credentialLink || 'https://subsplit.com/invite',
+      },
+    };
+  });
+
 
   return (
     <Box sx={{ color: '#f3f4f6' }}>
@@ -170,7 +178,7 @@ function Groups() {
                 Active Memberships
               </Typography>
               <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#f3f4f6', mt: 0.5, lineHeight: 1 }}>
-                3 Subscription Passes
+                {summaryStats?.totalActiveSubscriptions ?? activeMemberships.length} Subscription Passes
               </Typography>
               <Typography sx={{ fontSize: '0.72rem', color: '#22c55e', mt: 0.8, fontWeight: 700 }}>
                 100% Escrow Protected
@@ -184,10 +192,10 @@ function Groups() {
                 Total Monthly Savings
               </Typography>
               <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#22c55e', mt: 0.5, lineHeight: 1 }}>
-                ₹1,240 / month
+                ₹{summaryStats?.totalSavings ?? 1240} / month
               </Typography>
               <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', mt: 0.8 }}>
-                Saving ₹14,880 annually
+                Saving ₹{((summaryStats?.totalSavings ?? 1240) * 12).toLocaleString()} annually
               </Typography>
             </Paper>
           </Grid>
@@ -198,10 +206,10 @@ function Groups() {
                 Upcoming Renewals
               </Typography>
               <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#f59e0b', mt: 0.5, lineHeight: 1 }}>
-                2 Due in 30 Days
+                Next: {summaryStats?.nextRenewalDate ?? 'Aug 15'}
               </Typography>
               <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', mt: 0.8 }}>
-                Next charge on Aug 15 (₹129)
+                Monthly Spend: ₹{summaryStats?.monthlySpend ?? 587}
               </Typography>
             </Paper>
           </Grid>
@@ -222,7 +230,7 @@ function Groups() {
         </Stack>
 
         <Grid container spacing={2}>
-          {MEMBERSHIPS_DATA.map(({ id, title, price, renewalDate, daysLeft, Icon, color, bg, border }) => (
+          {activeMemberships.map(({ id, title, price, renewalDate, daysLeft, Icon, color, bg, border }) => (
             <Grid item xs={12} sm={4} key={id}>
               <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
@@ -231,11 +239,11 @@ function Groups() {
                       <Icon size={14} color={color} />
                     </Box>
                     <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#f3f4f6' }}>
-                      {title.split(' ')[0]}
+                      {(title || '').split(' ')[0]}
                     </Typography>
                   </Stack>
 
-                  <Chip label={`In ${daysLeft} days`} size="small" sx={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontWeight: 800, fontSize: '0.64rem', height: 18 }} />
+                  <Chip label={`In ${daysLeft ?? 10} days`} size="small" sx={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontWeight: 800, fontSize: '0.64rem', height: 18 }} />
                 </Stack>
 
                 <Stack direction="row" alignItems="baseline" justifyContent="space-between">
@@ -252,35 +260,37 @@ function Groups() {
         </Grid>
       </Paper>
 
-      {/* ─── Digital Pass Membership Cards Grid (2 Cards per Row Desktop) ─── */}
+      {/* ─── Digital Pass Membership Cards Grid ─── */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', mb: 2.5, fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
           Active Digital Passes
         </Typography>
 
         <Grid container spacing={3}>
-          {MEMBERSHIPS_DATA.map((mem) => {
+          {activeMemberships.map((mem) => {
             const {
               id,
+              listingId,
               title,
               category,
               price,
               originalPrice,
-              savings,
+              savingsPercent,
               renewalDate,
               daysLeft,
-              status,
+              statusText,
               statusColor,
               statusBg,
               statusBorder,
-              filledSeats,
-              totalSeats,
+              filledSeats = 3,
+              totalSeats = 4,
               credentials,
               host,
               Icon,
               color,
               bg,
               border,
+              autoRenew,
             } = mem;
 
             const progress = (filledSeats / totalSeats) * 100;
@@ -336,7 +346,7 @@ function Groups() {
                       </Stack>
 
                       <Chip
-                        label={status}
+                        label={statusText}
                         size="small"
                         sx={{
                           background: statusBg,
@@ -368,7 +378,7 @@ function Groups() {
 
                         <Grid item xs={6} sx={{ textAlign: 'right' }}>
                           <Chip
-                            label={`Saved ${savings}%`}
+                            label={`Saved ${savingsPercent}%`}
                             sx={{
                               background: 'rgba(34,197,94,0.15)',
                               color: '#22c55e',
@@ -388,7 +398,7 @@ function Groups() {
                           Renewal Countdown
                         </Typography>
                         <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#f59e0b' }}>
-                          {daysLeft} Days ({renewalDate})
+                          {daysLeft ?? 10} Days ({renewalDate})
                         </Typography>
                       </Grid>
 
@@ -414,18 +424,18 @@ function Groups() {
                     {/* Host Profile Info */}
                     <Stack direction="row" alignItems="center" justifyContent="space-between" p={1.5} sx={{ borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.08)', mb: 2 }}>
                       <Stack direction="row" alignItems="center" spacing={1.25}>
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: host.avatarBg, fontWeight: 900, fontSize: '0.78rem' }}>
-                          {host.initials}
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: host.avatarBg || '#2563eb', fontWeight: 900, fontSize: '0.78rem' }}>
+                          {host.initials || 'H'}
                         </Avatar>
                         <Box>
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#f3f4f6' }}>
                               {host.name}
                             </Typography>
-                            {host.isVerified && <ShieldCheck size={12} color="#22c55e" />}
+                            {host.isKycVerified && <ShieldCheck size={12} color="#22c55e" />}
                           </Stack>
                           <Typography sx={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-                            {host.rating}★ • Responds {host.responseTime}
+                            {host.rating}★ • Responds {host.responseTime || '< 15m'}
                           </Typography>
                         </Box>
                       </Stack>
@@ -475,7 +485,7 @@ function Groups() {
                       fullWidth
                       variant="contained"
                       size="small"
-                      onClick={() => navigate(`/app/marketplace/${id}`)}
+                      onClick={() => navigate(`/app/marketplace/${listingId || id}`)}
                       sx={{
                         borderRadius: '10px',
                         fontSize: '0.8rem',
@@ -491,6 +501,7 @@ function Groups() {
                     <Button
                       variant="outlined"
                       size="small"
+                      onClick={() => handleCancelPass(id)}
                       sx={{
                         borderRadius: '10px',
                         fontSize: '0.8rem',
@@ -512,6 +523,7 @@ function Groups() {
           })}
         </Grid>
       </Box>
+
 
       {/* Host Communication Dialog */}
       <Dialog

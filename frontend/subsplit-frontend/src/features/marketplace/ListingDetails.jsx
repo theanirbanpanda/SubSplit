@@ -117,8 +117,9 @@ function ListingDetails() {
             <HostProfileCard host={listing.host} />
             <OccupancyCard listing={listing} />
             <TrustSection />
-            <MemberReviews />
+            <MemberReviews listingId={listing.rawId || listing.id} reviewSummary={listing.reviewSummary} />
           </Grid>
+
 
           {/* Right Column — 35% (4 Cols) Sticky Join Sidebar */}
           <Grid item xs={12} md={4.2}>

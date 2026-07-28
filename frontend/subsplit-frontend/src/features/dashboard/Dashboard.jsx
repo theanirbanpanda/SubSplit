@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Box, Grid } from '@mui/material';
 import { Layers, Wallet, Clock, CreditCard } from 'lucide-react';
+import { fetchSubscriptionSummary } from '../groups/subscriptionsSlice';
 import DashboardHero from './components/DashboardHero';
 import StatCard from './components/StatCard';
 import SubscriptionCarousel from './components/SubscriptionCarousel';
@@ -10,6 +12,16 @@ import QuickActions from './components/QuickActions';
 import ProtectionBanner from '../marketplace/components/ProtectionBanner';
 
 function Dashboard() {
+  const dispatch = useDispatch();
+  const { summaryStats, subscriptions } = useSelector((state) => state.subscriptions);
+
+  useEffect(() => {
+    dispatch(fetchSubscriptionSummary());
+  }, [dispatch]);
+
+  const activeCount = summaryStats?.totalActiveSubscriptions ?? (subscriptions.length > 0 ? subscriptions.length : 3);
+  const monthlySavings = summaryStats?.totalSavings != null ? `₹${summaryStats.totalSavings}` : '₹1,240';
+
   return (
     <Box sx={{ color: '#f3f4f6', pb: 4 }}>
       {/* ─── Hero Section ─── */}
@@ -22,7 +34,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard 
             title="Active Subscriptions" 
-            value="8" 
+            value={String(activeCount)} 
             icon={Layers} 
             colorClass="green" 
             linkTo="/app/groups" 
@@ -31,7 +43,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard 
             title="Monthly Savings" 
-            value="₹1,240" 
+            value={monthlySavings} 
             icon={Wallet} 
             colorClass="purple" 
             linkTo="/app/expenses" 
@@ -40,7 +52,7 @@ function Dashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard 
             title="Upcoming Renewals" 
-            value="3" 
+            value={String(activeCount)} 
             icon={Clock} 
             colorClass="yellow" 
             linkTo="/app/notifications" 
@@ -56,6 +68,7 @@ function Dashboard() {
           />
         </Grid>
       </Grid>
+
 
       {/* ─── Subscription Carousel ─── */}
       <Box sx={{ mb: 4 }}>

@@ -39,3 +39,29 @@ export const fetchMyListingsApi = async () => {
   const response = await api.get('/marketplace/listings/my-listings');
   return response.data;
 };
+
+export const fetchSimilarListingsApi = async (id) => {
+  const response = await api.get(`/marketplace/listings/${id}/similar`);
+  return response.data;
+};
+
+export const fetchListingReviewsApi = async (id) => {
+  const response = await api.get(`/marketplace/listings/${id}/reviews`);
+  return response.data;
+};
+
+export const submitListingReviewApi = async (id, reviewData) => {
+  const response = await api.post(`/marketplace/listings/${id}/reviews`, reviewData);
+  return response.data;
+};
+
+export const submitJoinRequestApi = async (id, requestData = {}) => {
+  const response = await api.post(`/marketplace/listings/${id}/join-requests`, requestData);
+  return response.data;
+};
+
+export const checkJoinStatusApi = async (id) => {
+  const response = await api.get(`/marketplace/listings/${id}/join-requests/status`);
+  return response.data;
+};
+

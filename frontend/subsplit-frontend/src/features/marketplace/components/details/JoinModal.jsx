@@ -15,8 +15,12 @@ import {
 import { X, ShieldCheck, Lock, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { useDispatch } from 'react-redux';
+import { submitJoinRequest } from '../../marketplaceSlice';
+
 function JoinModal({ open, onClose, listing }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [step, setStep] = useState('confirm'); // 'confirm' or 'success'
 
   if (!listing) return null;
@@ -24,13 +28,15 @@ function JoinModal({ open, onClose, listing }) {
   const { title, price, hostName = 'Vikram S.' } = listing;
 
   const handlePay = () => {
+    dispatch(submitJoinRequest({ listingId: listing.rawId || listing.id }));
     setStep('success');
   };
+
 
   const handleFinish = () => {
     setStep('confirm');
     onClose();
-    navigate('/app/dashboard');
+    navigate('/app/groups');
   };
 
   return (

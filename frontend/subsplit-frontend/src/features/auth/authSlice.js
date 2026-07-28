@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { registerApi, loginApi, logoutApi, getCurrentUserApi, uploadProfileImageApi, updateUserProfileApi } from './api/authApi';
+import { isTokenValid } from '../../utils/tokenUtils';
 
 // Async Thunks for API integration
 export const fetchCurrentUser = createAsyncThunk(
@@ -118,10 +119,17 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+const rawToken = localStorage.getItem('token');
+const validToken = isTokenValid(rawToken) ? rawToken : null;
+if (rawToken && !validToken) {
+  localStorage.removeItem('token');
+}
+
 const initialState = {
   user: null,
-  token: localStorage.getItem('token') || null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: validToken,
+  isAuthenticated: !!validToken,
+  isInitialized: !validToken,
   loading: false,
   error: null,
 };
@@ -138,6 +146,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.isInitialized = true;
       state.error = null;
     },
   },
@@ -152,10 +161,16 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload?.data || null;
         state.isAuthenticated = true;
+        state.isInitialized = true;
       })
       .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.loading = false;
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.isInitialized = true;
         state.error = action.payload;
+        localStorage.removeItem('token');
       })
       // Register
       .addCase(registerUser.pending, (state) => {
@@ -166,6 +181,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload?.data?.accessToken || null;
         state.isAuthenticated = !!action.payload?.data?.accessToken;
+        state.isInitialized = true;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -180,6 +196,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload?.data?.accessToken || null;
         state.isAuthenticated = true;
+        state.isInitialized = true;
       })
       // Upload Profile Picture
       .addCase(uploadProfilePicture.pending, (state) => {

@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, ChevronRight, Tv2, Music, Bot } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMySubscriptions } from '../../groups/subscriptionsSlice';
+import { MoreVertical, ChevronRight, Tv2, Music, Bot, Zap } from 'lucide-react';
 import styles from './SubscriptionCarousel.module.scss';
 
-// Mock data matching the design image for My Subscriptions
+const PROVIDER_ICONS = {
+  netflix: { Icon: Tv2, color: '#e50914', bg: '#6b0005' },
+  spotify: { Icon: Music, color: '#1db954', bg: '#0c5c27' },
+  chatgpt: { Icon: Bot, color: '#10a37f', bg: '#0b5b47' },
+  youtube: { Icon: Tv2, color: '#ff0000', bg: '#6b0000' },
+};
+
+const DEFAULT_THEME = { Icon: Zap, color: '#3b82f6', bg: '#1e3a8a' };
+
 const MOCK_MY_SUBS = [
   { id: 'gpt-1', title: 'ChatGPT Plus', expiry: 'Expires in 18 days', color: '#10a37f', bg: '#0b5b47', action: 'Open', Icon: Bot },
   { id: 'nflx-1', title: 'Netflix Premium', expiry: 'Expires in 24 days', color: '#e50914', bg: '#6b0005', action: 'Manage', Icon: Tv2 },
@@ -13,6 +23,31 @@ const MOCK_MY_SUBS = [
 
 const SubscriptionCarousel = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { subscriptions } = useSelector((state) => state.subscriptions);
+
+  useEffect(() => {
+    if (!subscriptions || subscriptions.length === 0) {
+      dispatch(fetchMySubscriptions());
+    }
+  }, [dispatch, subscriptions]);
+
+  const displaySubs = subscriptions.length > 0
+    ? subscriptions.map((sub) => {
+        const prov = (sub.providerName || sub.title || '').toLowerCase();
+        const theme = Object.keys(PROVIDER_ICONS).find(k => prov.includes(k))
+          ? PROVIDER_ICONS[Object.keys(PROVIDER_ICONS).find(k => prov.includes(k))]
+          : DEFAULT_THEME;
+
+        return {
+          id: sub.id,
+          title: sub.title,
+          expiry: sub.daysLeft != null ? `Expires in ${sub.daysLeft} days` : `Renews ${sub.renewalDate || 'soon'}`,
+          action: 'Manage',
+          ...theme,
+        };
+      })
+    : MOCK_MY_SUBS;
 
   return (
     <div className={styles.carouselSection}>
@@ -24,7 +59,7 @@ const SubscriptionCarousel = () => {
       </div>
 
       <div className={styles.carousel}>
-        {MOCK_MY_SUBS.map(sub => (
+        {displaySubs.map(sub => (
           <div key={sub.id} className={styles.card}>
             <div className={styles.cardHeader}>
               <div className={styles.logoRow}>
@@ -48,13 +83,15 @@ const SubscriptionCarousel = () => {
           </div>
         ))}
         
-        {/* The right arrow indicator at the end of the carousel in the image */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.08)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-            background: 'rgba(255,255,255,0.02)'
-          }}>
+          <div 
+            onClick={() => navigate('/app/groups')}
+            style={{
+              width: 40, height: 40, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              background: 'rgba(255,255,255,0.02)'
+            }}
+          >
             <ChevronRight size={20} color="#9ca3af" />
           </div>
         </div>
@@ -64,3 +101,4 @@ const SubscriptionCarousel = () => {
 };
 
 export default SubscriptionCarousel;
+

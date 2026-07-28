@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AppRoutes from "./app/router";
-import { fetchCurrentUser } from "./features/auth/authSlice";
+import { fetchCurrentUser, logout } from "./features/auth/authSlice";
+import { isTokenValid } from "./utils/tokenUtils";
 
 function App() {
   const dispatch = useDispatch();
@@ -9,7 +10,11 @@ function App() {
 
   useEffect(() => {
     if (token) {
-      dispatch(fetchCurrentUser());
+      if (isTokenValid(token)) {
+        dispatch(fetchCurrentUser());
+      } else {
+        dispatch(logout());
+      }
     }
   }, [dispatch, token]);
 

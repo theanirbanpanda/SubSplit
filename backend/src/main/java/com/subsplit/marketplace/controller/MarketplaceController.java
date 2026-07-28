@@ -59,10 +59,60 @@ public class MarketplaceController {
     }
 
     @GetMapping("/listings/{id}")
-    public ResponseEntity<ApiResponse<ListingResponse>> getListingById(@PathVariable Long id) {
-        ListingResponse response = marketplaceService.getListingById(id);
+    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingById(@PathVariable Long id) {
+        ListingDetailResponse response = marketplaceService.getListingDetailById(id);
         return ResponseEntity.ok(ApiResponse.success("Listing details retrieved successfully", response));
     }
+
+    @GetMapping("/listings/{id}/detail")
+    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingDetailById(@PathVariable Long id) {
+        ListingDetailResponse response = marketplaceService.getListingDetailById(id);
+        return ResponseEntity.ok(ApiResponse.success("Listing full details retrieved successfully", response));
+    }
+
+    @GetMapping("/listings/{id}/similar")
+    public ResponseEntity<ApiResponse<List<ListingResponse>>> getSimilarListings(@PathVariable Long id) {
+        List<ListingResponse> response = marketplaceService.getSimilarListings(id);
+        return ResponseEntity.ok(ApiResponse.success("Similar listings retrieved successfully", response));
+    }
+
+    @GetMapping("/listings/{id}/reviews")
+    public ResponseEntity<ApiResponse<ListingReviewResponse>> getListingReviews(@PathVariable Long id) {
+        ListingReviewResponse response = marketplaceService.getListingReviews(id);
+        return ResponseEntity.ok(ApiResponse.success("Listing reviews retrieved successfully", response));
+    }
+
+    @PostMapping("/listings/{id}/reviews")
+    public ResponseEntity<ApiResponse<ReviewDto>> createListingReview(
+            Authentication authentication,
+            @PathVariable Long id,
+            @Valid @RequestBody CreateReviewRequest request) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        ReviewDto response = marketplaceService.createListingReview(currentUser, id, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Review created successfully", response));
+    }
+
+    @PostMapping("/listings/{id}/join-requests")
+    public ResponseEntity<ApiResponse<JoinRequestResponse>> submitJoinRequest(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody(required = false) JoinRequestCreateDto request) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        JoinRequestResponse response = marketplaceService.submitJoinRequest(currentUser, id, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Join request submitted successfully", response));
+    }
+
+    @GetMapping("/listings/{id}/join-requests/status")
+    public ResponseEntity<ApiResponse<JoinRequestResponse>> getJoinRequestStatus(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        JoinRequestResponse response = marketplaceService.getJoinRequestStatus(currentUser, id);
+        return ResponseEntity.ok(ApiResponse.success("Join request status retrieved successfully", response));
+    }
+
 
     @GetMapping("/listings/my-listings")
     public ResponseEntity<ApiResponse<List<ListingResponse>>> getMyListings(Authentication authentication) {
