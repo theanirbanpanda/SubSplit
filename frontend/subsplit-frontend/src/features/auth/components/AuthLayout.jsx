@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import AuthFloatingElements from './AuthFloatingElements';
 
 function AuthLayout({ children }) {
   return (
@@ -45,9 +44,6 @@ function AuthLayout({ children }) {
           pointerEvents: 'none',
         }}
       />
-
-      {/* Organic Surrounding Floating Marketplace Composition */}
-      <AuthFloatingElements />
 
       {/* ── CENTERED AUTHENTICATION CARD (Focal Point — Max 500px) ── */}
       <Box

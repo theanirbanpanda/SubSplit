@@ -120,18 +120,16 @@ function HeroSection() {
               {/* Tab Switcher */}
               <div className={styles.widgetTabs}>
                 <button
-                  className={`${styles.widgetTab} ${styles.widgetTabCurrent} ${
-                    activeTab === 'current' ? styles.widgetTabActive : ''
-                  }`}
+                  className={`${styles.widgetTab} ${styles.widgetTabCurrent} ${activeTab === 'current' ? styles.widgetTabActive : ''
+                    }`}
                   onClick={() => setActiveTab('current')}
                   type="button"
                 >
                   CURRENT
                 </button>
                 <button
-                  className={`${styles.widgetTab} ${styles.widgetTabSubsplit} ${
-                    activeTab === 'subsplit' ? styles.widgetTabActive : ''
-                  }`}
+                  className={`${styles.widgetTab} ${styles.widgetTabSubsplit} ${activeTab === 'subsplit' ? styles.widgetTabActive : ''
+                    }`}
                   onClick={() => setActiveTab('subsplit')}
                   type="button"
                 >
@@ -155,11 +153,10 @@ function HeroSection() {
                         <span className={styles.pricingServiceName}>{service}</span>
                       </div>
                       <span
-                        className={`${styles.pricingAmount} ${
-                          activeTab === 'current'
-                            ? styles.pricingAmountStrike
-                            : styles.pricingAmountGreen
-                        }`}
+                        className={`${styles.pricingAmount} ${activeTab === 'current'
+                          ? styles.pricingAmountStrike
+                          : styles.pricingAmountGreen
+                          }`}
                       >
                         ₹{price}
                       </span>
@@ -172,11 +169,10 @@ function HeroSection() {
               <div className={styles.totalRow}>
                 <span className={styles.totalLabel}>Total</span>
                 <span
-                  className={`${styles.totalAmount} ${
-                    activeTab === 'current'
-                      ? styles.totalAmountRed
-                      : styles.totalAmountGreen
-                  }`}
+                  className={`${styles.totalAmount} ${activeTab === 'current'
+                    ? styles.totalAmountRed
+                    : styles.totalAmountGreen
+                    }`}
                 >
                   ₹{activeTotal}
                 </span>
