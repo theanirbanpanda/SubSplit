@@ -27,6 +27,7 @@ public class MarketplaceController {
 
     @GetMapping("/listings")
     public ResponseEntity<ApiResponse<PagedResponse<ListingResponse>>> getListings(
+            Authentication authentication,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Long subscriptionId,
@@ -39,12 +40,16 @@ public class MarketplaceController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        Long currentUserId = currentUser != null ? currentUser.getId() : null;
+
         PagedResponse<ListingResponse> pagedResponse = marketplaceService.getPagedListings(
-                search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly, page, size,
+                currentUserId, search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly, page, size,
                 sortBy, sortDir);
 
         return ResponseEntity.ok(ApiResponse.success("Marketplace listings fetched successfully", pagedResponse));
     }
+
 
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategories() {
