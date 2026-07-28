@@ -12,6 +12,7 @@ import java.util.List;
 public interface MarketplaceService {
 
     PagedResponse<ListingResponse> getPagedListings(
+            Long excludeHostId,
             String search,
             String category,
             Long subscriptionId,
@@ -24,6 +25,7 @@ public interface MarketplaceService {
             int size,
             String sortBy,
             String sortDir);
+
 
     List<ListingResponse> getAllListings();
 

@@ -100,9 +100,56 @@ function CreateListingModal({ open, onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateStep = (step) => {
+    setErrorMsg(null);
+    if (step === 0) {
+      if (!formData.providerName?.trim()) {
+        setErrorMsg('Please select or enter a platform provider name.');
+        return false;
+      }
+    }
+    if (step === 1) {
+      if (!formData.providerName?.trim()) {
+        setErrorMsg('Provider/Platform name is required.');
+        return false;
+      }
+      if (!formData.title?.trim() || formData.title.trim().length < 3) {
+        setErrorMsg('Listing title must be at least 3 characters long.');
+        return false;
+      }
+    }
+    if (step === 2) {
+      const price = parseFloat(formData.seatPrice);
+      if (isNaN(price) || price < 1) {
+        setErrorMsg('Seat price must be a valid amount of at least ₹1.');
+        return false;
+      }
+      if (price > 50000) {
+        setErrorMsg('Seat price cannot exceed ₹50,000.');
+        return false;
+      }
+      const total = parseInt(formData.totalSeats, 10);
+      if (isNaN(total) || total < 1 || total > 50) {
+        setErrorMsg('Total seats must be a number between 1 and 50.');
+        return false;
+      }
+      const avail = parseInt(formData.availableSeats || formData.totalSeats, 10);
+      if (isNaN(avail) || avail < 1 || avail > total) {
+        setErrorMsg(`Available seats (${avail}) cannot be greater than total seats (${total}).`);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (validateStep(activeStep)) {
+      setActiveStep((prev) => prev + 1);
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!formData.title || !formData.seatPrice || !formData.totalSeats) {
-      setErrorMsg('Please fill in all required fields (Title, Seat Price, Total Seats).');
+    if (!validateStep(1) || !validateStep(2)) {
       return;
     }
 
@@ -140,6 +187,7 @@ function CreateListingModal({ open, onClose }) {
       setLoading(false);
     }
   };
+
 
   return (
     <Dialog
@@ -516,8 +564,9 @@ function CreateListingModal({ open, onClose }) {
           {activeStep < STEPS.length - 1 ? (
             <Button
               variant="contained"
-              onClick={() => setActiveStep((prev) => prev + 1)}
+              onClick={handleNextStep}
               sx={{
+
                 borderRadius: '12px',
                 fontWeight: 800,
                 px: 4,

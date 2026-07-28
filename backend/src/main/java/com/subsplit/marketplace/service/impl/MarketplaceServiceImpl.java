@@ -81,6 +81,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<ListingResponse> getPagedListings(
+            Long excludeHostId,
             String search,
             String category,
             Long subscriptionId,
@@ -99,8 +100,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, validatedSortBy));
 
         Specification<Listing> spec = ListingSpecification.filterListings(
-                search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly
+                excludeHostId, search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly
         );
+
 
         Page<Listing> listingPage = listingRepository.findAll(spec, pageable);
         Page<ListingResponse> responsePage = listingPage.map(this::mapToListingResponse);
@@ -142,10 +144,27 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                             .build()));
         }
 
-        SubscriptionPlan plan = resolveOrCreateSubscriptionPlan(request);
+        if (request == null) {
+            throw new BadRequestException("Listing creation payload is required");
+        }
+        if (request.getTitle() == null || request.getTitle().trim().length() < 3) {
+            throw new BadRequestException("Listing title must be at least 3 characters long");
+        }
+        if (request.getSeatPrice() == null || request.getSeatPrice().compareTo(BigDecimal.ONE) < 0) {
+            throw new BadRequestException("Seat price must be at least ₹1");
+        }
+        if (request.getTotalSeats() == null || request.getTotalSeats() < 1) {
+            throw new BadRequestException("Total seats must be at least 1");
+        }
 
         Integer availableSeats = request.getAvailableSeats() != null ? request.getAvailableSeats() : request.getTotalSeats();
+        if (availableSeats > request.getTotalSeats()) {
+            throw new BadRequestException("Available seats (" + availableSeats + ") cannot exceed total seats (" + request.getTotalSeats() + ")");
+        }
+
+        SubscriptionPlan plan = resolveOrCreateSubscriptionPlan(request);
         BillingCycle cycle = request.getBillingCycle() != null ? request.getBillingCycle() : BillingCycle.MONTHLY;
+
 
         Listing listing = Listing.builder()
                 .host(host)

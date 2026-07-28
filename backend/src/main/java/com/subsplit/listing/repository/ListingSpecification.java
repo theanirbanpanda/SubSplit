@@ -15,6 +15,7 @@ import java.util.List;
 public class ListingSpecification {
 
     public static Specification<Listing> filterListings(
+            Long excludeHostId,
             String search,
             String category,
             Long subscriptionId,
@@ -26,6 +27,13 @@ public class ListingSpecification {
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // Exclude listings created by the current logged-in user
+            if (excludeHostId != null) {
+                Join<Object, Object> hostJoin = root.join("host", JoinType.LEFT);
+                predicates.add(cb.notEqual(hostJoin.get("id"), excludeHostId));
+            }
+
 
             // Avoid duplicate rows when fetching joins
             if (query != null && Long.class != query.getResultType() && long.class != query.getResultType()) {
