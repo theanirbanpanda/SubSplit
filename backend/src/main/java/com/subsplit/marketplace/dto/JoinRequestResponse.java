@@ -19,7 +19,12 @@ public class JoinRequestResponse {
     private String memberName;
     private JoinRequestStatus status;
     private String message;
+    private String listingTitle;
+    private String platform;
+    private String hostName;
+    private java.math.BigDecimal price;
     private java.math.BigDecimal walletBalance;
     private LocalDateTime createdAt;
 }
+
 

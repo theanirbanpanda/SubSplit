@@ -114,7 +114,15 @@ public class MarketplaceController {
     }
 
 
+    @GetMapping("/join-requests/my-requests")
+    public ResponseEntity<ApiResponse<List<JoinRequestResponse>>> getMyJoinRequests(Authentication authentication) {
+        User currentUser = getAuthenticatedUser(authentication);
+        List<JoinRequestResponse> response = marketplaceService.getMyJoinRequests(currentUser);
+        return ResponseEntity.ok(ApiResponse.success("My join requests retrieved successfully", response));
+    }
+
     @GetMapping("/listings/my-listings")
+
     public ResponseEntity<ApiResponse<List<ListingResponse>>> getMyListings(Authentication authentication) {
         User currentUser = getAuthenticatedUser(authentication);
         List<ListingResponse> response = marketplaceService.getMyListings(currentUser);

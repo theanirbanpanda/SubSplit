@@ -52,5 +52,8 @@ public interface MarketplaceService {
     JoinRequestResponse submitJoinRequest(User member, Long listingId, JoinRequestCreateDto request);
 
     JoinRequestResponse getJoinRequestStatus(User member, Long listingId);
+
+    List<JoinRequestResponse> getMyJoinRequests(User member);
 }
+
 

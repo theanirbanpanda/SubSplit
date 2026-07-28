@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useDispatch } from 'react-redux';
 import { submitJoinRequest } from '../../marketplaceSlice';
+import { fetchMyWallet } from '../../../settlements/walletSlice';
 import KycUploadModal from '../../../profile/components/KycUploadModal';
 
 function JoinModal({ open, onClose, listing }) {
@@ -36,6 +37,7 @@ function JoinModal({ open, onClose, listing }) {
     setErrorMsg('');
     try {
       await dispatch(submitJoinRequest({ listingId: listing.rawId || listing.id })).unwrap();
+      dispatch(fetchMyWallet());
       setLoading(false);
       setStep('success');
     } catch (err) {

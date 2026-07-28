@@ -25,6 +25,8 @@ export const addMoneyToWallet = createAsyncThunk(
   }
 );
 
+import { submitJoinRequest } from '../marketplace/marketplaceSlice';
+
 const walletSlice = createSlice({
   name: 'wallet',
   initialState: {
@@ -48,8 +50,15 @@ const walletSlice = createSlice({
       })
       .addCase(addMoneyToWallet.fulfilled, (state, action) => {
         state.wallet = action.payload;
+      })
+      .addCase(submitJoinRequest.fulfilled, (state, action) => {
+        const payload = action.payload?.data || action.payload;
+        if (payload?.walletBalance != null && state.wallet) {
+          state.wallet.balance = payload.walletBalance;
+        }
       });
   },
 });
+
 
 export default walletSlice.reducer;

@@ -826,5 +826,47 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         }
         return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JoinRequestResponse> getMyJoinRequests(User member) {
+        if (member == null) {
+            return List.of();
+        }
+
+        List<JoinRequest> requests = joinRequestRepository.findByMemberIdOrderByCreatedAtDesc(member.getId());
+        BigDecimal walletBal = walletRepository.findByUserId(member.getId())
+                .map(w -> w.getBalance())
+                .orElse(BigDecimal.ZERO);
+
+        return requests.stream().map(req -> {
+            Listing listing = req.getListing();
+            String listingTitle = (listing != null) ? listing.getTitle() : "Subscription Group";
+            String platform = (listing != null && listing.getPlan() != null && listing.getPlan().getSubscription() != null)
+                    ? listing.getPlan().getSubscription().getProviderName()
+                    : "Pass";
+
+            String hostName = (listing != null && listing.getHost() != null)
+                    ? listing.getHost().getFullName()
+                    : "Verified Host";
+            BigDecimal price = (listing != null) ? listing.getSeatPrice() : BigDecimal.ZERO;
+
+            return JoinRequestResponse.builder()
+                    .id(req.getId())
+                    .listingId(listing != null ? listing.getId() : null)
+                    .memberId(member.getId())
+                    .memberName(member.getFullName())
+                    .status(req.getStatus())
+                    .message(req.getMessage())
+                    .listingTitle(listingTitle)
+                    .platform(platform)
+                    .hostName(hostName)
+                    .price(price)
+                    .walletBalance(walletBal)
+                    .createdAt(req.getCreatedAt())
+                    .build();
+        }).collect(Collectors.toList());
+    }
 }
+
 

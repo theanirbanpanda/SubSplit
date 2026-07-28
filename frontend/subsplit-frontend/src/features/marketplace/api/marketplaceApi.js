@@ -65,3 +65,9 @@ export const checkJoinStatusApi = async (id) => {
   return response.data;
 };
 
+export const fetchMyJoinRequestsApi = async () => {
+  const response = await api.get('/marketplace/join-requests/my-requests');
+  return response.data;
+};
+
+
