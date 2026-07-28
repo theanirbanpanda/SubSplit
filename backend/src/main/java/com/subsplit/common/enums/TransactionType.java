@@ -6,6 +6,9 @@ public enum TransactionType {
     WITHDRAW,
     ESCROW_LOCK,
     ESCROW_RELEASE,
-    REFUND
+    REFUND,
+    DEBIT,
+    CREDIT
 
 }
+

@@ -19,5 +19,7 @@ public class JoinRequestResponse {
     private String memberName;
     private JoinRequestStatus status;
     private String message;
+    private java.math.BigDecimal walletBalance;
     private LocalDateTime createdAt;
 }
+

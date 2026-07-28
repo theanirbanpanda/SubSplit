@@ -2,6 +2,7 @@ package com.subsplit.user.service;
 
 import com.subsplit.auth.dto.UserResponse;
 import com.subsplit.common.entity.User;
+import com.subsplit.user.dto.KycStatusResponse;
 import com.subsplit.user.dto.UpdateProfileRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,4 +17,10 @@ public interface UserService {
     UserResponse updateProfileImageBase64(Long userId, String imageBase64);
 
     UserResponse updateProfile(Long userId, UpdateProfileRequest request);
+
+    KycStatusResponse getKycStatus(Long userId);
+
+    KycStatusResponse submitKycDocument(Long userId, MultipartFile file, String documentType);
 }
+
+

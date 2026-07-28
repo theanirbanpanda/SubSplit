@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCurrentUser, uploadProfilePicture, updateUserProfile } from '../auth/authSlice';
+import { fetchCurrentUser, uploadProfilePicture, updateUserProfile, fetchKycStatus } from '../auth/authSlice';
+import KycUploadModal from './components/KycUploadModal';
 import {
   Box,
   Grid,
@@ -64,10 +65,13 @@ function ZapIcon(props) {
 function Profile() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user, loading } = useSelector((state) => state.auth);
+  const { user, loading, kycStatus } = useSelector((state) => state.auth);
+
   const fileInputRef = useRef(null);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [kycModalOpen, setKycModalOpen] = useState(false);
+
   const [copiedShare, setCopiedShare] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -93,6 +97,7 @@ function Profile() {
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
+    dispatch(fetchKycStatus());
   }, [dispatch]);
 
   useEffect(() => {
@@ -204,25 +209,54 @@ function Profile() {
     }
 
     const reader = new FileReader();
-    reader.onload = async () => {
-      const dataUrl = reader.result;
-      try {
-        setUploadingImage(true);
-        await dispatch(uploadProfilePicture(dataUrl)).unwrap();
-        setToast({ open: true, message: 'Profile picture updated successfully!', severity: 'success' });
-      } catch (err) {
-        console.error('Failed to upload profile picture:', err);
-        const msg = typeof err === 'string' ? err : (err?.message || 'Failed to upload profile picture.');
-        setToast({ open: true, message: msg, severity: 'error' });
-      } finally {
-        setUploadingImage(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+    reader.onload = () => {
+      const rawDataUrl = reader.result;
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 512;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
         }
-      }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        try {
+          setUploadingImage(true);
+          await dispatch(uploadProfilePicture(resizedDataUrl)).unwrap();
+          setToast({ open: true, message: 'Profile picture updated successfully!', severity: 'success' });
+        } catch (err) {
+          console.error('Failed to upload profile picture:', err);
+          const msg = typeof err === 'string' ? err : (err?.message || 'Failed to upload profile picture.');
+          setToast({ open: true, message: msg, severity: 'error' });
+        } finally {
+          setUploadingImage(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }
+      };
+      img.src = rawDataUrl;
     };
     reader.readAsDataURL(file);
   };
+
 
   if (loading && !user) {
     return (
@@ -503,22 +537,55 @@ function Profile() {
             </Stack>
 
             <Stack spacing={2}>
-              <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(34,197,94,0.3)' }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
+import KycUploadModal from './components/KycUploadModal';
+
+              <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: kycStatus?.isKycVerified ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(245,158,11,0.3)' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <ShieldCheck size={20} color="#22c55e" />
+                    <ShieldCheck size={20} color={kycStatus?.isKycVerified ? "#22c55e" : "#f59e0b"} />
                     <Box>
                       <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f3f4f6' }}>
-                        Government KYC Identity
+                        Government KYC Identity Status
                       </Typography>
                       <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af' }}>
-                        Aadhaar / PAN Verified (Unlocks Escrow Hosting)
+                        {kycStatus?.message || (kycStatus?.isKycVerified ? 'Govt ID Verified (Unlocks Escrow Hosting)' : 'Verification Needed')}
                       </Typography>
                     </Box>
                   </Stack>
-                  <Chip label="Verified" size="small" sx={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.68rem' }} />
+
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Chip
+                      label={kycStatus?.kycStatus || (user?.emailVerified ? 'VERIFIED' : 'UNVERIFIED')}
+                      size="small"
+                      sx={{
+                        background: kycStatus?.isKycVerified ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)',
+                        color: kycStatus?.isKycVerified ? '#22c55e' : '#f59e0b',
+                        fontWeight: 800,
+                        fontSize: '0.68rem',
+                      }}
+                    />
+
+                    {!kycStatus?.isKycVerified && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => setKycModalOpen(true)}
+                        sx={{
+                          borderRadius: '8px',
+                          fontWeight: 800,
+                          fontSize: '0.75rem',
+                          textTransform: 'none',
+                          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                        }}
+                      >
+                        Complete KYC Now
+                      </Button>
+                    )}
+                  </Stack>
                 </Stack>
               </Paper>
+
+
 
               <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(34,197,94,0.3)' }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -773,8 +840,19 @@ function Profile() {
           {toast.message}
         </Alert>
       </Snackbar>
+
+      {/* KYC Document Upload & AI Verification Modal */}
+      <KycUploadModal
+        open={kycModalOpen}
+        onClose={() => setKycModalOpen(false)}
+        onSuccess={() => {
+          dispatch(fetchKycStatus());
+          setToast({ open: true, message: 'KYC Verification Successful! Account verified.', severity: 'success' });
+        }}
+      />
     </Box>
   );
 }
+
 
 export default Profile;

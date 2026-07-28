@@ -45,8 +45,9 @@ public class User implements UserDetails {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "profile_image", columnDefinition = "TEXT")
+    @Column(name = "profile_image", columnDefinition = "LONGTEXT")
     private String profileImage;
+
 
     @Column(name = "is_active")
     private Boolean isActive;

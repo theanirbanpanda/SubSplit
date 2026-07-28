@@ -10,7 +10,6 @@ import {
   Paper,
 } from '@mui/material';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
-import PublicNavbar from '../landing/components/PublicNavbar';
 import SubscriptionHero from './components/details/SubscriptionHero';
 import StickyJoinCard from './components/details/StickyJoinCard';
 import SubscriptionDetails from './components/details/SubscriptionDetails';
@@ -21,9 +20,10 @@ import MemberReviews from './components/details/MemberReviews';
 import RelatedListings from './components/details/RelatedListings';
 import JoinModal from './components/details/JoinModal';
 import ListingDetailsSkeleton from './components/details/ListingDetailsSkeleton';
-
-import Footer from '../landing/components/Footer';
 import ScrollToTop from '../landing/components/ScrollToTop';
+
+
+
 
 function ListingDetails() {
   const { id } = useParams();
@@ -46,9 +46,8 @@ function ListingDetails() {
   // Empty State if listing unavailable
   if (!listing) {
     return (
-      <Box sx={{ minHeight: '100vh', background: '#09090B', color: '#ffffff' }}>
-        <PublicNavbar />
-        <Box sx={{ py: 12, textAlign: 'center', maxWidth: 480, mx: 'auto', px: 2 }}>
+      <Box sx={{ color: '#ffffff' }}>
+        <Box sx={{ py: 8, textAlign: 'center', maxWidth: 480, mx: 'auto', px: 2 }}>
           <Paper
             elevation={0}
             sx={{
@@ -99,17 +98,14 @@ function ListingDetails() {
             </Button>
           </Paper>
         </Box>
-        <Footer />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#09090B', color: '#ffffff', overflowX: 'hidden' }}>
-      <PublicNavbar />
-
-      <Box sx={{ width: '92%', maxWidth: '1440px', mx: 'auto', pt: { xs: 10, md: 13 }, pb: 8 }}>
-        <Grid container spacing={{ xs: 3, md: 5 }}>
+    <Box sx={{ color: '#ffffff', overflowX: 'hidden' }}>
+      <Box sx={{ width: '100%', mx: 'auto', pt: 1, pb: 4 }}>
+        <Grid container spacing={{ xs: 3, md: 4 }}>
           {/* Left Column — 65% (8 Cols) */}
           <Grid item xs={12} md={7.8}>
             <SubscriptionHero listing={listing} />
@@ -119,7 +115,6 @@ function ListingDetails() {
             <TrustSection />
             <MemberReviews listingId={listing.rawId || listing.id} reviewSummary={listing.reviewSummary} />
           </Grid>
-
 
           {/* Right Column — 35% (4 Cols) Sticky Join Sidebar */}
           <Grid item xs={12} md={4.2}>
@@ -141,10 +136,10 @@ function ListingDetails() {
         listing={listing}
       />
 
-      <Footer />
       <ScrollToTop />
     </Box>
   );
 }
 
 export default ListingDetails;
+

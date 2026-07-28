@@ -6,8 +6,10 @@ import com.subsplit.common.entity.User;
 import com.subsplit.common.entity.UserProfile;
 import com.subsplit.common.enums.BillingCycle;
 import com.subsplit.common.enums.ListingStatus;
+import com.subsplit.common.exception.BadRequestException;
 import com.subsplit.common.exception.ResourceNotFoundException;
 import com.subsplit.common.exception.UnauthorizedException;
+
 import com.subsplit.listing.entity.Listing;
 import com.subsplit.listing.repository.ListingRepository;
 import com.subsplit.listing.repository.ListingSpecification;
@@ -50,6 +52,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.subsplit.common.enums.TransactionType;
+import com.subsplit.wallet.entity.Wallet;
+import com.subsplit.wallet.entity.WalletTransaction;
+import com.subsplit.wallet.repository.WalletRepository;
+import com.subsplit.wallet.repository.WalletTransactionRepository;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -65,6 +73,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     private final ReviewRepository reviewRepository;
     private final JoinRequestRepository joinRequestRepository;
     private final MembershipRepository membershipRepository;
+    private final WalletRepository walletRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
+
 
 
     @Override
@@ -688,10 +699,48 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         }
 
         if (listing.getHost() != null && Objects.equals(listing.getHost().getId(), member.getId())) {
-            throw new UnauthorizedException("You cannot join your own listing group");
+            throw new BadRequestException("You cannot join your own listing group");
         }
 
+
+
+        // 1. Check if user KYC is completed before checking wallet balance
+        boolean isKycCompleted = Boolean.TRUE.equals(member.getEmailVerified());
+        if (!isKycCompleted) {
+            throw new IllegalArgumentException("KYC_REQUIRED: Please complete your KYC verification before joining a group listing.");
+        }
+
+        BigDecimal requiredAmount = listing.getSeatPrice() != null ? listing.getSeatPrice() : BigDecimal.ZERO;
+
+
+        // Fetch or initialize user wallet
         User finalMember = member;
+        Wallet wallet = walletRepository.findByUserId(member.getId())
+                .orElseGet(() -> walletRepository.save(Wallet.builder()
+                        .user(finalMember)
+                        .balance(BigDecimal.ZERO)
+                        .build()));
+
+        // Check if user has enough amount available in wallet
+        if (wallet.getBalance().compareTo(requiredAmount) < 0) {
+            throw new IllegalArgumentException("Not enough balance in wallet. Available: ₹" + wallet.getBalance() + ", Required: ₹" + requiredAmount);
+        }
+
+        // Deduct amount from user wallet
+        wallet.setBalance(wallet.getBalance().subtract(requiredAmount));
+        walletRepository.save(wallet);
+
+        // Record transaction
+        walletTransactionRepository.save(WalletTransaction.builder()
+                .wallet(wallet)
+                .transactionType(TransactionType.ESCROW_LOCK)
+                .amount(requiredAmount)
+                .referenceId(listingId)
+                .remarks("Escrow deposit reserved for joining group: " + listing.getTitle())
+                .build());
+
+
+        // Send request to host of the listing
         JoinRequest joinReq = joinRequestRepository.findByListingIdAndMemberId(listingId, member.getId())
                 .orElseGet(() -> JoinRequest.builder()
                         .listing(listing)
@@ -716,9 +765,11 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .memberName(memberName)
                 .status(saved.getStatus())
                 .message(saved.getMessage())
+                .walletBalance(wallet.getBalance())
                 .createdAt(saved.getCreatedAt())
                 .build();
     }
+
 
     @Override
     @Transactional(readOnly = true)

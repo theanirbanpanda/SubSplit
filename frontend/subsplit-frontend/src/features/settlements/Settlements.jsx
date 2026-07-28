@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMyWallet, addMoneyToWallet } from './walletSlice';
 import {
   Box,
   Grid,
@@ -36,57 +38,6 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const TRANSACTIONS_DATA = [
-  {
-    id: 'tx-1',
-    title: 'Netflix Premium 4K Group Pass',
-    type: 'Escrow Lock',
-    amount: -129,
-    status: 'Escrow Locked',
-    statusColor: '#3b82f6',
-    statusBg: 'rgba(59,130,246,0.15)',
-    date: 'Today, 2:45 PM',
-    icon: Lock,
-    color: '#3b82f6',
-  },
-  {
-    id: 'tx-2',
-    title: 'Wallet Top-up via GPay UPI',
-    type: 'Wallet Top-up',
-    amount: 1000,
-    status: 'Completed',
-    statusColor: '#22c55e',
-    statusBg: 'rgba(34,197,94,0.15)',
-    date: 'Yesterday, 6:12 PM',
-    icon: ArrowDownLeft,
-    color: '#22c55e',
-  },
-  {
-    id: 'tx-3',
-    title: 'Spotify Family Group Renewal',
-    type: 'Renewal Payment',
-    amount: -59,
-    status: 'Completed',
-    statusColor: '#22c55e',
-    statusBg: 'rgba(34,197,94,0.15)',
-    date: 'Aug 15, 2026',
-    icon: ArrowUpRight,
-    color: '#22c55e',
-  },
-  {
-    id: 'tx-4',
-    title: 'ChatGPT Plus Slot Refund',
-    type: 'Refund Received',
-    amount: 399,
-    status: 'Refunded',
-    statusColor: '#14b8a6',
-    statusBg: 'rgba(20,184,166,0.15)',
-    date: 'Aug 10, 2026',
-    icon: RefreshCw,
-    color: '#14b8a6',
-  },
-];
-
 const PAYMENT_METHODS = [
   { id: 'pm-1', name: 'Google Pay UPI', detail: 'anirban@okaxis', type: 'UPI', isDefault: true, icon: QrCode, color: '#3b82f6' },
   { id: 'pm-2', name: 'HDFC Bank Visa Debit', detail: '•••• •••• •••• 4829', type: 'Debit Card', isDefault: false, icon: CreditCard, color: '#a855f7' },
@@ -95,13 +46,37 @@ const PAYMENT_METHODS = [
 
 function Settlements() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { wallet } = useSelector((state) => state.wallet);
+
   const [addMoneyOpen, setAddMoneyOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('500');
+  const [adding, setAdding] = useState(false);
 
-  const handleAddMoneySubmit = (e) => {
+  useEffect(() => {
+    dispatch(fetchMyWallet());
+  }, [dispatch]);
+
+  const handleAddMoneySubmit = async (e) => {
     e.preventDefault();
-    setAddMoneyOpen(false);
+    const val = parseFloat(topUpAmount);
+    if (!isNaN(val) && val > 0) {
+      try {
+        setAdding(true);
+        await dispatch(addMoneyToWallet(val)).unwrap();
+        setAddMoneyOpen(false);
+      } catch (err) {
+        alert(err || 'Failed to add money to wallet.');
+      } finally {
+        setAdding(false);
+      }
+    }
   };
+
+  const balanceVal = wallet?.balance != null ? wallet.balance : 0;
+  const balanceDisplay = `₹${balanceVal.toFixed(2)}`;
+  const recentTransactions = wallet?.recentTransactions || [];
+
 
   return (
     <Box sx={{ color: '#f3f4f6' }}>
@@ -173,7 +148,7 @@ function Settlements() {
               </Stack>
 
               <Typography sx={{ fontWeight: 900, fontSize: '2.4rem', color: '#f3f4f6', lineHeight: 1, letterSpacing: '-0.03em', mb: 2.5 }}>
-                ₹1,250.00
+                {balanceDisplay}
               </Typography>
 
               <Grid container spacing={1.5} sx={{ pt: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
@@ -182,9 +157,10 @@ function Settlements() {
                     Available Funds
                   </Typography>
                   <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#22c55e' }}>
-                    ₹850.00
+                    {balanceDisplay}
                   </Typography>
                 </Grid>
+
                 <Grid item xs={6}>
                   <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>
                     Locked in Escrow
@@ -275,67 +251,83 @@ function Settlements() {
             </Stack>
 
             <Stack spacing={2}>
-              {TRANSACTIONS_DATA.map(({ id, title, type, amount, status, statusColor, statusBg, date, icon: Icon, color }) => (
-                <Paper
-                  key={id}
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    borderRadius: '16px',
-                    background: '#1c1e24',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    transition: 'transform 0.15s ease',
-                    '&:hover': { transform: 'translateX(3px)' },
-                  }}
-                >
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Box
+              {recentTransactions && recentTransactions.length > 0 ? (
+                recentTransactions.map((tx) => {
+                  const isCredit = tx.type === 'CREDIT';
+                  const isEscrow = tx.type === 'ESCROW_LOCK';
+                  const Icon = isCredit ? ArrowDownLeft : (isEscrow ? Lock : TrendingDown);
+                  const color = isCredit ? '#22c55e' : (isEscrow ? '#3b82f6' : '#ef4444');
+                  const statusBg = isCredit ? 'rgba(34,197,94,0.15)' : (isEscrow ? 'rgba(59,130,246,0.15)' : 'rgba(239,68,68,0.15)');
+                  const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
+
+                  return (
+                    <Paper
+                      key={tx.id}
+                      elevation={0}
                       sx={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: '12px',
-                        background: `${color}15`,
-                        border: `1px solid ${color}33`,
+                        p: 2,
+                        borderRadius: '16px',
+                        background: '#1c1e24',
+                        border: '1px solid rgba(255,255,255,0.08)',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
+                        justifyContent: 'space-between',
+                        transition: 'transform 0.15s ease',
+                        '&:hover': { transform: 'translateX(3px)' },
                       }}
                     >
-                      <Icon size={20} color={color} />
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#f3f4f6', lineHeight: 1.2 }}>
-                        {title}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af', mt: 0.3 }}>
-                        {type} • {date}
-                      </Typography>
-                    </Box>
-                  </Stack>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Box
+                          sx={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: '12px',
+                            background: `${color}15`,
+                            border: `1px solid ${color}33`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Icon size={20} color={color} />
+                        </Box>
+                        <Box>
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#f3f4f6', lineHeight: 1.2 }}>
+                            {tx.remarks || (isCredit ? 'Wallet Top-up' : 'Escrow Seat Reservation')}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af', mt: 0.3 }}>
+                            {tx.type} • {dateStr}
+                          </Typography>
+                        </Box>
+                      </Stack>
 
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: amount > 0 ? '#22c55e' : '#f3f4f6' }}>
-                      {amount > 0 ? `+₹${amount}` : `-₹${Math.abs(amount)}`}
-                    </Typography>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: isCredit ? '#22c55e' : '#f3f4f6' }}>
+                          {isCredit ? `+₹${tx.amount}` : `-₹${tx.amount}`}
+                        </Typography>
 
-                    <Chip
-                      label={status}
-                      size="small"
-                      sx={{
-                        background: statusBg,
-                        color: statusColor,
-                        fontWeight: 800,
-                        fontSize: '0.68rem',
-                        height: 20,
-                      }}
-                    />
-                  </Stack>
-                </Paper>
-              ))}
+                        <Chip
+                          label={tx.type}
+                          size="small"
+                          sx={{
+                            background: statusBg,
+                            color: color,
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            height: 20,
+                          }}
+                        />
+                      </Stack>
+                    </Paper>
+                  );
+                })
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 4, color: '#9ca3af' }}>
+                  <Typography sx={{ fontSize: '0.9rem' }}>No wallet transactions recorded yet.</Typography>
+                </Box>
+              )}
             </Stack>
+
           </Paper>
         </Grid>
 
@@ -432,42 +424,72 @@ function Settlements() {
       {/* Top-up Dialog */}
       <Dialog
         open={addMoneyOpen}
-        onClose={() => setAddMoneyOpen(false)}
+        onClose={() => !adding && setAddMoneyOpen(false)}
         PaperProps={{
           sx: {
-            borderRadius: '20px',
-            background: '#14161a',
-            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '24px',
+            background: '#111114',
+            border: '1px solid #2A2A30',
             color: '#f3f4f6',
             width: '100%',
-            maxWidth: 400,
+            maxWidth: 420,
+            p: 1,
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: '1.1rem' }}>
-          Add Funds to SubSplit Wallet
+        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.2rem', pb: 1 }}>
+          Add Money to Wallet
         </DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleAddMoneySubmit}>
             <Typography sx={{ fontSize: '0.8rem', color: '#9ca3af', mb: 1, fontWeight: 600 }}>
-              Enter Amount (₹)
+              Enter Amount to Add (₹)
             </Typography>
             <TextField
               fullWidth
+              type="number"
               value={topUpAmount}
               onChange={(e) => setTopUpAmount(e.target.value)}
               InputProps={{
-                startAdornment: <InputAdornment position="start" sx={{ color: '#3b82f6', fontWeight: 900 }}>₹</InputAdornment>,
-                sx: { borderRadius: '12px', background: '#1c1e24', color: '#f3f4f6', fontSize: '1.2rem', fontWeight: 900 },
+                startAdornment: <InputAdornment position="start" sx={{ color: '#22c55e', fontWeight: 900, fontSize: '1.2rem' }}>₹</InputAdornment>,
+                sx: { borderRadius: '14px', background: '#18181C', color: '#ffffff', fontSize: '1.3rem', fontWeight: 900 },
               }}
             />
+
+            {/* Quick Select Chips */}
+            <Stack direction="row" spacing={1} mt={2} mb={3}>
+              {['100', '250', '500', '1000'].map((amt) => (
+                <Chip
+                  key={amt}
+                  label={`+₹${amt}`}
+                  onClick={() => setTopUpAmount(amt)}
+                  clickable
+                  sx={{
+                    background: topUpAmount === amt ? 'rgba(34,197,94,0.2)' : '#18181C',
+                    color: topUpAmount === amt ? '#22c55e' : '#A1A1AA',
+                    border: topUpAmount === amt ? '1px solid #22c55e' : '1px solid #2A2A30',
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                  }}
+                />
+              ))}
+            </Stack>
+
             <Button
               fullWidth
               type="submit"
               variant="contained"
-              sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' }}
+              disabled={adding || !topUpAmount || parseFloat(topUpAmount) <= 0}
+              sx={{
+                py: 1.3,
+                borderRadius: '12px',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                textTransform: 'none',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+              }}
             >
-              Pay ₹{topUpAmount} via GPay UPI
+              {adding ? 'Adding Funds...' : `Add ₹${topUpAmount || '0'} to Wallet`}
             </Button>
           </Box>
         </DialogContent>
@@ -475,5 +497,6 @@ function Settlements() {
     </Box>
   );
 }
+
 
 export default Settlements;
