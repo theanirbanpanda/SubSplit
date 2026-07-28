@@ -283,7 +283,7 @@ function CreateListingModal({ open, onClose }) {
                         {plat.name}
                       </Typography>
                       <Typography sx={{ fontSize: '0.72rem', color: '#6b7280' }}>
-                        ₹{plat.price}/mo • {plat.seats} seats
+                        {plat.category}
                       </Typography>
                     </Paper>
                   </Grid>
