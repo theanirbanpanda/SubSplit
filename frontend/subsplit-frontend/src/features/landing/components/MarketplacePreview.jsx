@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Star, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { SUBSCRIPTIONS, CATEGORY_FILTERS } from '../data/subscriptions';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMarketplaceListings, fetchCategories } from '../../marketplace/marketplaceSlice';
 import { ServiceLogo } from './ServiceLogos';
 import styles from './MarketplacePreview.module.scss';
 
@@ -33,9 +34,17 @@ const SubscriptionCard = React.memo(function SubscriptionCard({
 
 function MarketplacePreview() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { listings, categories, loading } = useSelector((state) => state.marketplace);
   const [activeFilter, setActiveFilter] = useState('all');
   const sectionRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Fetch marketplace data for the preview
+    dispatch(fetchMarketplaceListings());
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -51,14 +60,25 @@ function MarketplacePreview() {
     return () => observer.disconnect();
   }, []);
 
-  const handleCardClick = useCallback(() => {
-    navigate('/app/marketplace');
+  const handleCardClick = useCallback((id) => {
+    navigate(`/app/marketplace/${id}`);
   }, [navigate]);
 
+  const categoryOptions = useMemo(() => {
+    const defaultCategories = [{ id: 'all', name: 'All' }];
+    if (!categories || categories.length === 0) return defaultCategories;
+    return [
+      ...defaultCategories,
+      ...categories.map(c => ({ id: c.name.toLowerCase(), name: c.name }))
+    ];
+  }, [categories]);
+
   const filteredSubs = useMemo(() => {
-    if (activeFilter === 'all') return SUBSCRIPTIONS;
-    return SUBSCRIPTIONS.filter((s) => s.category === activeFilter);
-  }, [activeFilter]);
+    if (activeFilter === 'all') return listings.slice(0, 6);
+    return listings
+      .filter((s) => s.category?.toLowerCase() === activeFilter.toLowerCase())
+      .slice(0, 6);
+  }, [activeFilter, listings]);
 
   return (
     <section
@@ -86,31 +106,47 @@ function MarketplacePreview() {
 
         {/* ── Category Filters ── */}
         <div className={styles.filterRow} role="tablist" aria-label="Filter subscriptions">
-          {CATEGORY_FILTERS.map(({ label, value }) => (
+          {categoryOptions.map(({ id, name }) => (
             <button
-              key={value}
+              key={id}
               role="tab"
-              aria-selected={activeFilter === value}
+              aria-selected={activeFilter === id}
               className={`${styles.filterChip} ${
-                activeFilter === value ? styles.filterChipActive : ''
+                activeFilter === id ? styles.filterChipActive : ''
               }`}
-              onClick={() => setActiveFilter(value)}
+              onClick={() => setActiveFilter(id)}
               type="button"
             >
-              {label}
+              {name}
             </button>
           ))}
         </div>
 
         {/* ── Cards Grid ── */}
         <div className={styles.cardsGrid}>
-          {filteredSubs.map((sub) => (
-            <SubscriptionCard
-              key={sub.id}
-              {...sub}
-              onClick={handleCardClick}
-            />
-          ))}
+          {loading ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', width: '100%' }}>
+              Loading listings...
+            </div>
+          ) : filteredSubs.length === 0 ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', width: '100%' }}>
+              No listings found for this category.
+            </div>
+          ) : (
+            filteredSubs.map((sub) => (
+              <SubscriptionCard
+                key={sub.id}
+                title={sub.title}
+                subtitle={sub.description ? (sub.description.length > 40 ? sub.description.substring(0, 40) + '...' : sub.description) : 'Verified Plan'}
+                price={sub.price}
+                original={sub.originalPrice}
+                seatsLeft={sub.seatsLeft}
+                rating={sub.host?.rating || 4.9}
+                logoKey={sub.platform ? sub.platform.toLowerCase() : 'default'}
+                onClick={() => handleCardClick(sub.id)}
+              />
+            ))
+          )}
         </div>
       </div>
     </section>

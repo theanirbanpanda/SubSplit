@@ -46,7 +46,7 @@ const CategoryChips = () => {
 
   const handleCategoryClick = (categoryName) => {
     dispatch(setFilter({ category: categoryName }));
-    dispatch(fetchMarketplaceListings({ category: categoryName === 'All' ? null : categoryName }));
+    dispatch(fetchMarketplaceListings({ ...filters, category: categoryName === 'All' ? null : categoryName }));
   };
 
   return (
