@@ -1,56 +1,58 @@
 import React from 'react';
 import { Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Plus } from 'lucide-react';
+import styles from './Expenses.module.scss';
 
 function Expenses() {
   const expenses = [
-    { id: 1, desc: 'Groceries', group: 'Roommates 2026', amount: '$85.40', date: 'July 20, 2026', paidBy: 'Alex' },
-    { id: 2, desc: 'Gasoline', group: 'Road Trip to LA', amount: '$60.00', date: 'July 19, 2026', paidBy: 'You' },
-    { id: 3, desc: 'Movie Tickets', group: 'Road Trip to LA', amount: '$35.00', date: 'July 18, 2026', paidBy: 'Emma' }
+    { id: 1, desc: 'Groceries', group: 'Roommates 2026', amount: '₹850', date: 'July 20, 2026', paidBy: 'Alex' },
+    { id: 2, desc: 'Gasoline', group: 'Road Trip to LA', amount: '₹600', date: 'July 19, 2026', paidBy: 'You' },
+    { id: 3, desc: 'Movie Tickets', group: 'Road Trip to LA', amount: '₹350', date: 'July 18, 2026', paidBy: 'Emma' }
   ];
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>Expenses</Typography>
-          <Typography variant="body2" sx={{ color: '#64748b' }}>Manage your shared logs.</Typography>
-        </Box>
+    <div className={styles.expensesContainer}>
+      <div className={styles.headerSection}>
+        <div className={styles.headerInfo}>
+          <h1 className={styles.pageTitle}>Expenses & Shared Logs</h1>
+          <p className={styles.subtitle}>Track shared subscription costs and group expense logs.</p>
+        </div>
         <Button 
           variant="contained" 
           startIcon={<Plus size={18} />}
-          sx={{ bgcolor: '#2563eb', borderRadius: '8px', textTransform: 'none', px: 2.5, py: 1, fontWeight: 600 }}
+          sx={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', borderRadius: '0.75rem', textTransform: 'none', px: 2.5, py: 1, fontWeight: 700 }}
         >
           Add Expense
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: '12px' }}>
+      <TableContainer component={Paper} elevation={0} sx={{ background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', width: '100%' }}>
         <Table>
-          <TableHead sx={{ bgcolor: '#f8fafc' }}>
+          <TableHead sx={{ bgcolor: '#1c1e24' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Group</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Paid By</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-              <TableCell sx={{ fontWeight: 600 }} align="right">Amount</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#f3f4f6' }}>Description</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#f3f4f6' }}>Group</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#f3f4f6' }}>Paid By</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#f3f4f6' }}>Date</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#f3f4f6' }} align="right">Amount</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {expenses.map((expense) => (
-              <TableRow key={expense.id} hover>
-                <TableCell sx={{ fontWeight: 600 }}>{expense.desc}</TableCell>
-                <TableCell>{expense.group}</TableCell>
-                <TableCell>{expense.paidBy}</TableCell>
-                <TableCell>{expense.date}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>{expense.amount}</TableCell>
+              <TableRow key={expense.id} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' } }}>
+                <TableCell sx={{ fontWeight: 700, color: '#f3f4f6' }}>{expense.desc}</TableCell>
+                <TableCell sx={{ color: '#9ca3af' }}>{expense.group}</TableCell>
+                <TableCell sx={{ color: '#9ca3af' }}>{expense.paidBy}</TableCell>
+                <TableCell sx={{ color: '#9ca3af' }}>{expense.date}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 800, color: '#22c55e' }}>{expense.amount}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-    </Box>
+    </div>
   );
 }
 
 export default Expenses;
+

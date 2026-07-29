@@ -49,6 +49,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CreateListingModal from '../marketplace/components/CreateListingModal';
+import styles from './HostCenter.module.scss';
+
 
 const LISTINGS_DATA = [
   {
@@ -146,117 +148,80 @@ function HostCenter() {
 
 
   return (
-    <Box sx={{ color: '#f3f4f6' }}>
-      {/* ─── Header & Top Actions ─── */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} alignItems="flex-start" justifyContent="space-between" spacing={2.5} mb={3}>
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1.5} mb={0.5}>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: 900, fontSize: { xs: '1.75rem', md: '2.1rem' }, color: '#f3f4f6', letterSpacing: '-0.03em' }}
-              >
-                Host Center Workspace
-              </Typography>
-              <Chip
-                icon={<ShieldCheck size={13} color="#22c55e" />}
-                label="Super Host Status"
-                size="small"
-                sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
-              />
-            </Stack>
-            <Typography sx={{ color: '#9ca3af', fontSize: '0.95rem' }}>
-              Manage your subscription sharing business, pending member approvals, and monthly earnings.
-            </Typography>
-          </Box>
-
-          <Stack direction="row" spacing={1.5}>
-            <Button
-              variant="outlined"
+    <div className={styles.hostContainer}>
+      {/* Header & Top Actions */}
+      <div className={styles.headerSection}>
+        <div className={styles.headerInfo}>
+          <div className={styles.titleRow}>
+            <h1 className={styles.pageTitle}>Host Center Workspace</h1>
+            <Chip
+              icon={<ShieldCheck size={13} color="#22c55e" />}
+              label="Super Host Status"
               size="small"
-              onClick={() => navigate('/app/settlements')}
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: '0.88rem', py: 1, px: 2.2 }}
-            >
-              Withdraw Payouts (₹8,450)
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Plus size={16} />}
-              onClick={() => setCreateModalOpen(true)}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: '0.88rem',
-                py: 1,
-                px: 2.5,
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                boxShadow: '0 4px 16px rgba(37,99,235,0.35)',
-              }}
-            >
-              Create Listing
-            </Button>
-          </Stack>
-        </Stack>
+              sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
+            />
+          </div>
+          <p className={styles.subtitle}>
+            Manage your subscription sharing business, pending member approvals, and monthly earnings.
+          </p>
+        </div>
 
-        {/* ─── Row 1: 4 Metric Overview Cards ─── */}
-        <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Monthly Host Earnings
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#22c55e', mt: 0.5, lineHeight: 1 }}>
-                ₹8,450 / mo
-              </Typography>
-              <Chip label="+18.4% this month" size="small" sx={{ mt: 1, background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem', height: 18 }} />
-            </Paper>
-          </Grid>
+        <div className={styles.headerActions}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => navigate('/app/settlements')}
+            sx={{ borderRadius: '0.75rem', textTransform: 'none', fontWeight: 700, fontSize: '0.875rem', py: 1, px: 2.2 }}
+          >
+            Withdraw Payouts (₹8,450)
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<Plus size={16} />}
+            onClick={() => setCreateModalOpen(true)}
+            sx={{
+              borderRadius: '0.75rem',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: '0.875rem',
+              py: 1,
+              px: 2.5,
+              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+            }}
+          >
+            List New Pass
+          </Button>
+        </div>
+      </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Active Groups
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#f3f4f6', mt: 0.5, lineHeight: 1 }}>
-                4 Listings
-              </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', mt: 1 }}>
-                Netflix, Spotify, ChatGPT, Disney+
-              </Typography>
-            </Paper>
-          </Grid>
+      {/* Row 1: 4 Metric Overview Cards */}
+      <div className={styles.metricsGrid}>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Monthly Host Earnings</div>
+          <div className={styles.metricValue} style={{ color: '#22c55e' }}>₹8,450 / mo</div>
+          <Chip label="+18.4% this month" size="small" sx={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem', height: 18 }} />
+        </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Occupancy Rate
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#3b82f6', mt: 0.5, lineHeight: 1 }}>
-                91.6%
-              </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', mt: 1 }}>
-                11 of 12 Total Seats Filled
-              </Typography>
-            </Paper>
-          </Grid>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Active Groups</div>
+          <div className={styles.metricValue} style={{ color: '#f3f4f6' }}>4 Listings</div>
+          <div className={styles.metricSubtext} style={{ color: '#9ca3af' }}>Netflix, Spotify, ChatGPT, Disney+</div>
+        </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Pending Requests
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#f59e0b', mt: 0.5, lineHeight: 1 }}>
-                2 Approvals
-              </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#f59e0b', mt: 1, fontWeight: 700 }}>
-                Requires host action
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Occupancy Rate</div>
+          <div className={styles.metricValue} style={{ color: '#3b82f6' }}>91.6%</div>
+          <div className={styles.metricSubtext} style={{ color: '#9ca3af' }}>11 of 12 Total Seats Filled</div>
+        </div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Pending Requests</div>
+          <div className={styles.metricValue} style={{ color: '#f59e0b' }}>2 Approvals</div>
+          <div className={styles.metricSubtext} style={{ color: '#f59e0b' }}>Requires host action</div>
+        </div>
+      </div>
+
 
       {/* ─── Row 2: 60% / 40% Split (Listings Performance & Earnings Timeline) ─── */}
       <Grid container spacing={3} mb={4}>
@@ -493,10 +458,11 @@ function HostCenter() {
         </Grid>
       </Box>
 
-      {/* ─── Multi-step Create Listing Dialog ─── */}
+      {/* Multi-step Create Listing Dialog */}
       <CreateListingModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
-    </Box>
+    </div>
   );
 }
+
 
 export default HostCenter;

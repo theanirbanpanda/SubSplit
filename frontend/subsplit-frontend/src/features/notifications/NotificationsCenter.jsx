@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import styles from './NotificationsCenter.module.scss';
 import {
   fetchNotifications,
   markNotificationAsRead,
@@ -42,6 +43,7 @@ import {
   deleteNotification,
   clearAllNotifications,
 } from './notificationsSlice';
+
 
 const FILTER_CHIPS = ['All', 'JOIN_REQUEST', 'PAYMENT', 'ESCROW', 'RENEWAL', 'SYSTEM'];
 
@@ -124,105 +126,79 @@ function NotificationsCenter() {
   };
 
   return (
-    <Box sx={{ color: '#f3f4f6' }}>
-      {/* ─── Header & Actions ─── */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} alignItems="flex-start" justifyContent="space-between" spacing={2.5} mb={3}>
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1.5} mb={0.5}>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: 900, fontSize: { xs: '1.75rem', md: '2.1rem' }, color: '#f3f4f6', letterSpacing: '-0.03em' }}
-              >
-                Notifications & Activity Center
-              </Typography>
-              <Chip
-                icon={<Bell size={13} color="#2563eb" />}
-                label={`${unreadCount} Unread`}
-                size="small"
-                sx={{ background: 'rgba(37,99,235,0.12)', color: '#3b82f6', fontWeight: 800, border: '1px solid rgba(37,99,235,0.3)' }}
-              />
-            </Stack>
-            <Typography sx={{ color: '#9ca3af', fontSize: '0.95rem' }}>
-              Stay informed on subscription renewals, host messages, wallet transactions, and escrow updates.
-            </Typography>
-          </Box>
+    <div className={styles.notificationsContainer}>
+      {/* Header & Actions */}
+      <div className={styles.headerSection}>
+        <div className={styles.headerInfo}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <h1 className={styles.pageTitle}>Notifications & Activity Center</h1>
+            <Chip
+              icon={<Bell size={13} color="#2563eb" />}
+              label={`${unreadCount} Unread`}
+              size="small"
+              sx={{ background: 'rgba(37,99,235,0.12)', color: '#3b82f6', fontWeight: 800, border: '1px solid rgba(37,99,235,0.3)' }}
+            />
+          </div>
+          <p className={styles.subtitle}>
+            Stay informed on subscription renewals, host messages, wallet transactions, and escrow updates.
+          </p>
+        </div>
 
-          <Stack direction="row" spacing={1.5}>
-            {unreadCount > 0 && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleMarkAllRead}
-                startIcon={<CheckCheck size={16} />}
-                sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', py: 1, px: 2, borderColor: '#22c55e', color: '#22c55e' }}
-              >
-                Mark All Read
-              </Button>
-            )}
-            {notifications.length > 0 && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleClearAll}
-                startIcon={<Trash2 size={16} />}
-                sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', py: 1, px: 2, borderColor: '#ef4444', color: '#ef4444' }}
-              >
-                Clear All
-              </Button>
-            )}
-          </Stack>
-        </Stack>
+        <div className={styles.headerActions}>
+          {unreadCount > 0 && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleMarkAllRead}
+              startIcon={<CheckCheck size={16} />}
+              sx={{ borderRadius: '0.75rem', textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', py: 1, px: 2, borderColor: '#22c55e', color: '#22c55e' }}
+            >
+              Mark All Read
+            </Button>
+          )}
+          {notifications.length > 0 && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleClearAll}
+              startIcon={<Trash2 size={16} />}
+              sx={{ borderRadius: '0.75rem', textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', py: 1, px: 2, borderColor: '#ef4444', color: '#ef4444' }}
+            >
+              Clear All
+            </Button>
+          )}
+        </div>
+      </div>
 
-        {/* ─── Summary Strip (Metric Cards) ─── */}
-        <Grid container spacing={2.5} mb={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.25, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>
-                Total Notifications
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#ffffff', mt: 0.5, lineHeight: 1 }}>
-                {notifications.length} Items
-              </Typography>
-            </Paper>
-          </Grid>
+      {/* Metrics Overview */}
+      <div className={styles.metricsGrid}>
+        <div className={styles.metricCard}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>Total Notifications</div>
+          <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#ffffff', marginTop: '0.5rem' }}>{notifications.length} Items</div>
+        </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.25, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>
-                Unread Activity
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#3b82f6', mt: 0.5, lineHeight: 1 }}>
-                {unreadCount} Unread
-              </Typography>
-            </Paper>
-          </Grid>
+        <div className={styles.metricCard}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>Unread Activity</div>
+          <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#3b82f6', marginTop: '0.5rem' }}>{unreadCount} Unread</div>
+        </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.25, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>
-                Join Requests
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#f59e0b', mt: 0.5, lineHeight: 1 }}>
-                {notifications.filter((n) => n.notificationType === 'JOIN_REQUEST').length} Requests
-              </Typography>
-            </Paper>
-          </Grid>
+        <div className={styles.metricCard}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>Join Requests</div>
+          <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#f59e0b', marginTop: '0.5rem' }}>
+            {notifications.filter((n) => n.notificationType === 'JOIN_REQUEST').length} Requests
+          </div>
+        </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.25, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>
-                Wallet & Escrow
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#22c55e', mt: 0.5, lineHeight: 1 }}>
-                {notifications.filter((n) => n.notificationType === 'PAYMENT' || n.notificationType === 'ESCROW').length} Updates
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+        <div className={styles.metricCard}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af' }}>Wallet & Escrow</div>
+          <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#22c55e', marginTop: '0.5rem' }}>
+            {notifications.filter((n) => n.notificationType === 'PAYMENT' || n.notificationType === 'ESCROW').length} Updates
+          </div>
+        </div>
+      </div>
 
-        {/* ─── Category Filters Bar ─── */}
-        <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+        {/* Category Filters Bar */}
+        <div className={styles.filtersBar}>
           {FILTER_CHIPS.map((chip) => {
             const isSelected = selectedFilter === chip;
             return (
@@ -234,7 +210,7 @@ function NotificationsCenter() {
                 sx={{
                   fontWeight: 700,
                   fontSize: '0.8rem',
-                  borderRadius: '10px',
+                  borderRadius: '0.625rem',
                   px: 0.75,
                   background: isSelected ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#14161a',
                   color: isSelected ? '#ffffff' : '#9ca3af',
@@ -243,14 +219,14 @@ function NotificationsCenter() {
               />
             );
           })}
-        </Stack>
-      </Box>
+        </div>
 
-      {/* ─── Notification List Section ─── */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', mb: 2.5, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
+      {/* Notification List Section */}
+      <div className={styles.listSection}>
+        <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', mb: 1, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
           Activity Log ({filteredNotifications.length})
         </Typography>
+
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -259,27 +235,18 @@ function NotificationsCenter() {
         ) : filteredNotifications.length > 0 ? (
           <Stack spacing={2}>
             {filteredNotifications.map((item) => (
-              <Paper
+              <div
                 key={item.id}
-                elevation={0}
                 onClick={() => handleCardClick(item)}
-                sx={{
-                  p: 2.5,
-                  borderRadius: '18px',
-                  background: item.isRead ? '#14161a' : 'rgba(37,99,235,0.06)',
-                  border: item.isRead ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(37,99,235,0.3)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  '&:hover': { transform: 'translateX(3px)', borderColor: '#3b82f6' },
-                }}
+                className={`${styles.notifCard} ${item.isRead ? '' : styles.unread}`}
               >
                 <Stack direction="row" alignItems="flex-start" justifyContent="space-between" mb={1}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Box
                       sx={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: '10px',
+                        width: '2.375rem',
+                        height: '2.375rem',
+                        borderRadius: '0.625rem',
                         background: 'rgba(255,255,255,0.05)',
                         border: '1px solid rgba(255,255,255,0.1)',
                         display: 'flex',
@@ -339,15 +306,14 @@ function NotificationsCenter() {
                   </Stack>
                 </Stack>
 
-
                 <Typography sx={{ fontSize: '0.88rem', color: '#9ca3af', lineHeight: 1.5, pl: { sm: 6.5 } }}>
                   {item.message}
                 </Typography>
-              </Paper>
+              </div>
             ))}
           </Stack>
         ) : (
-          <Paper elevation={0} sx={{ p: 5, textAlign: 'center', borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className={styles.emptyState}>
             <Bell size={32} color="#9ca3af" style={{ marginBottom: 12 }} />
             <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#ffffff', mb: 0.5 }}>
               No notifications found
@@ -355,11 +321,13 @@ function NotificationsCenter() {
             <Typography sx={{ fontSize: '0.85rem', color: '#9ca3af' }}>
               When join requests, payments, or escrow activities occur, notifications will appear here.
             </Typography>
-          </Paper>
+          </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
+
   );
 }
+
 
 export default NotificationsCenter;

@@ -55,6 +55,9 @@ import ActivityFeed from './components/ActivityFeed';
 import QuickActions from './components/QuickActions';
 import ProtectionBanner from '../marketplace/components/ProtectionBanner';
 
+import styles from './Dashboard.module.scss';
+
+
 const PROVIDER_ICONS = {
   netflix: { Icon: Tv2, color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' },
   spotify: { Icon: Music, color: '#22c55e', bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)' },
@@ -133,51 +136,45 @@ function Dashboard() {
   });
 
   return (
-    <Box sx={{ color: '#f3f4f6', pb: 4 }}>
-      {/* ─── Hero Section ─── */}
-      <Box sx={{ mb: 3 }}>
+    <div className={styles.dashboardContainer}>
+      {/* Hero Section */}
+      <div className={styles.heroWrapper}>
         <DashboardHero />
-      </Box>
+      </div>
 
-      {/* ─── 4 Metric Stat Cards ─── */}
-      <Grid container spacing={2.5} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Active Subscriptions" 
-            value={String(activeCount)} 
-            icon={Layers} 
-            colorClass="green" 
-            linkTo="#my-subscriptions" 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Monthly Savings" 
-            value={monthlySavings} 
-            icon={WalletIcon} 
-            colorClass="purple" 
-            linkTo="/app/expenses" 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Upcoming Renewals" 
-            value={String(activeCount)} 
-            icon={Clock} 
-            colorClass="yellow" 
-            linkTo="/app/notifications" 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Wallet Balance" 
-            value={balanceDisplay} 
-            icon={CreditCard} 
-            colorClass="blue" 
-            linkTo="/app/settlements" 
-          />
-        </Grid>
-      </Grid>
+      {/* 4 Metric Stat Cards */}
+      <div className={styles.statsGrid}>
+
+        <StatCard 
+          title="Active Subscriptions" 
+          value={String(activeCount)} 
+          icon={Layers} 
+          colorClass="green" 
+          linkTo="#my-subscriptions" 
+        />
+        <StatCard 
+          title="Monthly Savings" 
+          value={monthlySavings} 
+          icon={WalletIcon} 
+          colorClass="purple" 
+          linkTo="/app/expenses" 
+        />
+        <StatCard 
+          title="Upcoming Renewals" 
+          value={String(activeCount)} 
+          icon={Clock} 
+          colorClass="yellow" 
+          linkTo="/app/notifications" 
+        />
+        <StatCard 
+          title="Wallet Balance" 
+          value={balanceDisplay} 
+          icon={CreditCard} 
+          colorClass="blue" 
+          linkTo="/app/settlements" 
+        />
+      </div>
+
 
       {/* ─── Section 1: My Subscription Passes ─── */}
       <Box sx={{ mb: 4 }} id="my-subscriptions">
@@ -648,8 +645,9 @@ function Dashboard() {
           </Button>
         </DialogContent>
       </Dialog>
-    </Box>
+    </div>
   );
 }
 
 export default Dashboard;
+
