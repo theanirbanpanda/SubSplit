@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMyWallet, addMoneyToWallet } from './walletSlice';
 import {
+
   Box,
   Grid,
   Typography,
@@ -37,6 +38,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import styles from './Settlements.module.scss';
+
 
 const PAYMENT_METHODS = [
   { id: 'pm-1', name: 'Google Pay UPI', detail: 'anirban@okaxis', type: 'UPI', isDefault: true, icon: QrCode, color: '#3b82f6' },
@@ -79,167 +82,111 @@ function Settlements() {
 
 
   return (
-    <Box sx={{ color: '#f3f4f6' }}>
-      {/* ─── Header & Top Actions ─── */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} alignItems="flex-start" justifyContent="space-between" spacing={2.5} mb={3}>
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1.5} mb={0.5}>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: 900, fontSize: { xs: '1.75rem', md: '2.1rem' }, color: '#f3f4f6', letterSpacing: '-0.03em' }}
-              >
-                Wallet & Escrow Control
-              </Typography>
-              <Chip
-                icon={<ShieldCheck size={13} color="#22c55e" />}
-                label="100% Escrow Shield"
-                size="small"
-                sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
-              />
-            </Stack>
-            <Typography sx={{ color: '#9ca3af', fontSize: '0.95rem' }}>
-              Your financial dashboard for escrow deposits, subscription payments, and instant payouts.
-            </Typography>
-          </Box>
-
-          <Stack direction="row" spacing={1.5}>
-            <Button
-              variant="outlined"
+    <div className={styles.settlementsContainer}>
+      {/* Header & Top Actions */}
+      <div className={styles.headerSection}>
+        <div className={styles.headerInfo}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <h1 className={styles.pageTitle}>Wallet & Escrow Control</h1>
+            <Chip
+              icon={<ShieldCheck size={13} color="#22c55e" />}
+              label="100% Escrow Shield"
               size="small"
-              onClick={() => navigate('/app/settlements')}
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: '0.88rem', py: 1, px: 2.2 }}
-            >
-              Withdraw Payouts
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Plus size={16} />}
-              onClick={() => setAddMoneyOpen(true)}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: '0.88rem',
-                py: 1,
-                px: 2.5,
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                boxShadow: '0 4px 16px rgba(37,99,235,0.35)',
-              }}
-            >
-              Add Money
-            </Button>
-          </Stack>
-        </Stack>
+              sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
+            />
+          </div>
+          <p className={styles.subtitle}>
+            Your financial dashboard for escrow deposits, subscription payments, and instant payouts.
+          </p>
+        </div>
 
-        {/* ─── Row 1: 3 Financial Overview Cards ─── */}
-        <Grid container spacing={2.5}>
-          {/* Card 1: Wallet Balance */}
-          <Grid item xs={12} md={5}>
-            <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#9ca3af' }}>
-                  Total Wallet Balance
-                </Typography>
-                <Box sx={{ p: 1, borderRadius: '12px', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)' }}>
-                  <Wallet size={20} color="#3b82f6" />
-                </Box>
-              </Stack>
+        <div className={styles.headerActions}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => navigate('/app/settlements')}
+            sx={{ borderRadius: '0.75rem', textTransform: 'none', fontWeight: 700, fontSize: '0.875rem', py: 1, px: 2.2 }}
+          >
+            Withdraw Payouts
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<Plus size={16} />}
+            onClick={() => setAddMoneyOpen(true)}
+            sx={{
+              borderRadius: '0.75rem',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: '0.875rem',
+              py: 1,
+              px: 2.5,
+              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+            }}
+          >
+            Add Money
+          </Button>
+        </div>
+      </div>
 
-              <Typography sx={{ fontWeight: 900, fontSize: '2.4rem', color: '#f3f4f6', lineHeight: 1, letterSpacing: '-0.03em', mb: 2.5 }}>
-                {balanceDisplay}
-              </Typography>
+      {/* Financial Overview Metrics */}
+      <div className={styles.metricsGrid}>
+        {/* Card 1: Wallet Balance */}
+        <div className={styles.metricCard}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '0.75rem' }}>
+            <span className={styles.metricLabel}>Total Wallet Balance</span>
+            <Box sx={{ p: 1, borderRadius: '0.75rem', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)' }}>
+              <Wallet size={20} color="#3b82f6" />
+            </Box>
+          </div>
+          <div className={styles.metricValue} style={{ color: '#f3f4f6' }}>{balanceDisplay}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', pt: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: '0.75rem' }}>
+            <div>
+              <span className={styles.metricSubtext} style={{ color: '#9ca3af', display: 'block' }}>Available Funds</span>
+              <span style={{ fontWeight: 800, fontSize: '1rem', color: '#22c55e' }}>{balanceDisplay}</span>
+            </div>
+            <div>
+              <span className={styles.metricSubtext} style={{ color: '#9ca3af', display: 'block' }}>Locked in Escrow</span>
+              <span style={{ fontWeight: 800, fontSize: '1rem', color: '#3b82f6' }}>₹400.00</span>
+            </div>
+          </div>
+        </div>
 
-              <Grid container spacing={1.5} sx={{ pt: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <Grid item xs={6}>
-                  <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>
-                    Available Funds
-                  </Typography>
-                  <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#22c55e' }}>
-                    {balanceDisplay}
-                  </Typography>
-                </Grid>
+        {/* Card 2: Savings Tracker */}
+        <div className={styles.metricCard}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '0.75rem' }}>
+            <span className={styles.metricLabel}>Monthly Savings</span>
+            <Box sx={{ p: 1, borderRadius: '0.75rem', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)' }}>
+              <TrendingDown size={20} color="#22c55e" />
+            </Box>
+          </div>
+          <div className={styles.metricValue} style={{ color: '#22c55e' }}>₹1,240.00</div>
+          <div className={styles.metricSubtext} style={{ color: '#9ca3af', marginTop: '0.5rem' }}>
+            Lifetime Saved: <strong style={{ color: '#f3f4f6' }}>₹8,196.00</strong>
+          </div>
+          <Chip label="+78% vs Retail Cost" size="small" sx={{ mt: 0.8, background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem', height: 18 }} />
+        </div>
 
-                <Grid item xs={6}>
-                  <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>
-                    Locked in Escrow
-                  </Typography>
-                  <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#3b82f6' }}>
-                    ₹400.00
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
+        {/* Card 3: Upcoming Payments */}
+        <div className={styles.metricCard}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '0.75rem' }}>
+            <span className={styles.metricLabel}>Upcoming Due</span>
+            <Box sx={{ p: 1, borderRadius: '0.75rem', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }}>
+              <Zap size={20} color="#f59e0b" />
+            </Box>
+          </div>
+          <div className={styles.metricValue} style={{ color: '#f59e0b' }}>₹129.00</div>
+          <div className={styles.metricSubtext} style={{ color: '#9ca3af', marginTop: '0.5rem' }}>Netflix Premium (Due Aug 15)</div>
+          <Chip label="AutoPay Secured" size="small" sx={{ mt: 0.8, background: 'rgba(59,130,246,0.15)', color: '#3b82f6', fontWeight: 800, fontSize: '0.66rem', height: 18 }} />
+        </div>
+      </div>
 
-          {/* Card 2: Savings Tracker */}
-          <Grid item xs={12} sm={6} md={3.5}>
-            <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#9ca3af' }}>
-                  Monthly Savings
-                </Typography>
-                <Box sx={{ p: 1, borderRadius: '12px', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)' }}>
-                  <TrendingDown size={20} color="#22c55e" />
-                </Box>
-              </Stack>
-
-              <Typography sx={{ fontWeight: 900, fontSize: '2.1rem', color: '#22c55e', lineHeight: 1, letterSpacing: '-0.03em', mb: 2 }}>
-                ₹1,240.00
-              </Typography>
-
-              <Box sx={{ pt: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                  Lifetime Saved:{' '}
-                  <Box component="span" sx={{ color: '#f3f4f6', fontWeight: 800 }}>
-                    ₹8,196.00
-                  </Box>
-                </Typography>
-                <Chip
-                  label="+78% vs Retail Cost"
-                  size="small"
-                  sx={{ mt: 0.8, background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem', height: 18 }}
-                />
-              </Box>
-            </Paper>
-          </Grid>
-
-          {/* Card 3: Upcoming Payments */}
-          <Grid item xs={12} sm={6} md={3.5}>
-            <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#9ca3af' }}>
-                  Upcoming Due
-                </Typography>
-                <Box sx={{ p: 1, borderRadius: '12px', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }}>
-                  <Zap size={20} color="#f59e0b" />
-                </Box>
-              </Stack>
-
-              <Typography sx={{ fontWeight: 900, fontSize: '2.1rem', color: '#f59e0b', lineHeight: 1, letterSpacing: '-0.03em', mb: 2 }}>
-                ₹129.00
-              </Typography>
-
-              <Box sx={{ pt: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                  Netflix Premium (Due Aug 15)
-                </Typography>
-                <Chip
-                  label="AutoPay Secured"
-                  size="small"
-                  sx={{ mt: 0.8, background: 'rgba(59,130,246,0.15)', color: '#3b82f6', fontWeight: 800, fontSize: '0.66rem', height: 18 }}
-                />
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
 
       {/* ─── Row 2: 65% / 35% Split (Transactions & Escrow Control) ─── */}
+
       <Grid container spacing={3} mb={4}>
         {/* Left 65%: Recent Transactions Timeline */}
-        <Grid item xs={12} md={7.8}>
+        <Grid item xs={12} md={7.8} width="100%">
           <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.15rem' }}>
@@ -494,9 +441,10 @@ function Settlements() {
           </Box>
         </DialogContent>
       </Dialog>
-    </Box>
+    </div>
   );
 }
+
 
 
 export default Settlements;

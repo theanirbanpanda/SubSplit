@@ -17,6 +17,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.subsplit.notification.service.NotificationService;
+import com.subsplit.common.enums.NotificationType;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -26,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final NotificationService notificationService;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -52,13 +56,29 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         user.setProfile(profile);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        try {
+            notificationService.createNotification(
+                    savedUser,
+                    NotificationType.SYSTEM,
+                    "Welcome to SubSplit! 👋",
+                    "Your account has been created. Explore subscription groups or list your extra seats."
+            );
+            notificationService.createNotification(
+                    savedUser,
+                    NotificationType.SYSTEM,
+                    "Action Required: Complete KYC 🛡️",
+                    "Please complete your 1-click identity verification (KYC) to activate your SubSplit wallet and access shared passes."
+            );
+        } catch (Exception ignored) {}
+
+        String accessToken = jwtService.generateAccessToken(savedUser);
+        String refreshToken = jwtService.generateRefreshToken(savedUser);
 
         return new AuthResponse(accessToken, refreshToken);
     }
+
 
     @Override
     public AuthResponse login(LoginRequest request) {

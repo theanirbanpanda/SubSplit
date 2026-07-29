@@ -1,4 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchHostJoinRequests,
+  acceptJoinRequest,
+  rejectJoinRequest,
+  fetchMyListings,
+} from '../marketplace/marketplaceSlice';
 import {
   Box,
   Grid,
@@ -42,6 +49,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CreateListingModal from '../marketplace/components/CreateListingModal';
+import styles from './HostCenter.module.scss';
+
 
 const LISTINGS_DATA = [
   {
@@ -94,29 +103,6 @@ const LISTINGS_DATA = [
   },
 ];
 
-const PENDING_REQUESTS = [
-  {
-    id: 'req-1',
-    userName: 'Rahul Malhotra',
-    initials: 'RM',
-    avatarBg: '#2563eb',
-    trustScore: '4.9★',
-    isKycVerified: true,
-    requestedListing: 'Netflix Premium 4K (Slot 4)',
-    timeAgo: '10 mins ago',
-  },
-  {
-    id: 'req-2',
-    userName: 'Priya Sharma',
-    initials: 'PS',
-    avatarBg: '#10b981',
-    trustScore: '5.0★',
-    isKycVerified: true,
-    requestedListing: 'ChatGPT Plus Team (Slot 5)',
-    timeAgo: '25 mins ago',
-  },
-];
-
 const RECENT_EARNINGS = [
   { text: 'Escrow Released for Netflix 4K', amount: '+₹299', date: 'Today, 1:20 PM', color: '#22c55e' },
   { text: 'Spotify Slot Joined by Ananya', amount: '+₹149', date: 'Yesterday', color: '#22c55e' },
@@ -138,134 +124,104 @@ const AI_RECOMMENDATIONS = [
   },
 ];
 
-const CREATE_STEPS = ['Choose Platform', 'Plan Details', 'Pricing', 'Seat Config', 'Verification', 'Publish'];
-
 function HostCenter() {
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
-  const [approvedReqs, setApprovedReqs] = useState({});
+  const { hostJoinRequests = [] } = useSelector((state) => state.marketplace);
 
-  const handleApproveRequest = (id) => {
-    setApprovedReqs((prev) => ({ ...prev, [id]: 'approved' }));
+  useEffect(() => {
+    dispatch(fetchHostJoinRequests());
+    dispatch(fetchMyListings());
+  }, [dispatch]);
+
+  const handleApproveRequest = async (requestId) => {
+    await dispatch(acceptJoinRequest(requestId));
+    dispatch(fetchHostJoinRequests());
   };
 
-  const handleRejectRequest = (id) => {
-    setApprovedReqs((prev) => ({ ...prev, [id]: 'rejected' }));
+  const handleRejectRequest = async (requestId) => {
+    await dispatch(rejectJoinRequest(requestId));
+    dispatch(fetchHostJoinRequests());
   };
+
 
   return (
-    <Box sx={{ color: '#f3f4f6' }}>
-      {/* ─── Header & Top Actions ─── */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} alignItems="flex-start" justifyContent="space-between" spacing={2.5} mb={3}>
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1.5} mb={0.5}>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: 900, fontSize: { xs: '1.75rem', md: '2.1rem' }, color: '#f3f4f6', letterSpacing: '-0.03em' }}
-              >
-                Host Center Workspace
-              </Typography>
-              <Chip
-                icon={<ShieldCheck size={13} color="#22c55e" />}
-                label="Super Host Status"
-                size="small"
-                sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
-              />
-            </Stack>
-            <Typography sx={{ color: '#9ca3af', fontSize: '0.95rem' }}>
-              Manage your subscription sharing business, pending member approvals, and monthly earnings.
-            </Typography>
-          </Box>
-
-          <Stack direction="row" spacing={1.5}>
-            <Button
-              variant="outlined"
+    <div className={styles.hostContainer}>
+      {/* Header & Top Actions */}
+      <div className={styles.headerSection}>
+        <div className={styles.headerInfo}>
+          <div className={styles.titleRow}>
+            <h1 className={styles.pageTitle}>Host Center Workspace</h1>
+            <Chip
+              icon={<ShieldCheck size={13} color="#22c55e" />}
+              label="Super Host Status"
               size="small"
-              onClick={() => navigate('/app/settlements')}
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: '0.88rem', py: 1, px: 2.2 }}
-            >
-              Withdraw Payouts (₹8,450)
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Plus size={16} />}
-              onClick={() => setCreateModalOpen(true)}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: '0.88rem',
-                py: 1,
-                px: 2.5,
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                boxShadow: '0 4px 16px rgba(37,99,235,0.35)',
-              }}
-            >
-              Create Listing
-            </Button>
-          </Stack>
-        </Stack>
+              sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
+            />
+          </div>
+          <p className={styles.subtitle}>
+            Manage your subscription sharing business, pending member approvals, and monthly earnings.
+          </p>
+        </div>
 
-        {/* ─── Row 1: 4 Metric Overview Cards ─── */}
-        <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Monthly Host Earnings
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#22c55e', mt: 0.5, lineHeight: 1 }}>
-                ₹8,450 / mo
-              </Typography>
-              <Chip label="+18.4% this month" size="small" sx={{ mt: 1, background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem', height: 18 }} />
-            </Paper>
-          </Grid>
+        <div className={styles.headerActions}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => navigate('/app/settlements')}
+            sx={{ borderRadius: '0.75rem', textTransform: 'none', fontWeight: 700, fontSize: '0.875rem', py: 1, px: 2.2 }}
+          >
+            Withdraw Payouts (₹8,450)
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<Plus size={16} />}
+            onClick={() => setCreateModalOpen(true)}
+            sx={{
+              borderRadius: '0.75rem',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: '0.875rem',
+              py: 1,
+              px: 2.5,
+              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+            }}
+          >
+            List New Pass
+          </Button>
+        </div>
+      </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Active Groups
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#f3f4f6', mt: 0.5, lineHeight: 1 }}>
-                4 Listings
-              </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', mt: 1 }}>
-                Netflix, Spotify, ChatGPT, Disney+
-              </Typography>
-            </Paper>
-          </Grid>
+      {/* Row 1: 4 Metric Overview Cards */}
+      <div className={styles.metricsGrid}>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Monthly Host Earnings</div>
+          <div className={styles.metricValue} style={{ color: '#22c55e' }}>₹8,450 / mo</div>
+          <Chip label="+18.4% this month" size="small" sx={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem', height: 18 }} />
+        </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Occupancy Rate
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#3b82f6', mt: 0.5, lineHeight: 1 }}>
-                91.6%
-              </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', mt: 1 }}>
-                11 of 12 Total Seats Filled
-              </Typography>
-            </Paper>
-          </Grid>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Active Groups</div>
+          <div className={styles.metricValue} style={{ color: '#f3f4f6' }}>4 Listings</div>
+          <div className={styles.metricSubtext} style={{ color: '#9ca3af' }}>Netflix, Spotify, ChatGPT, Disney+</div>
+        </div>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-                Pending Requests
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#f59e0b', mt: 0.5, lineHeight: 1 }}>
-                2 Approvals
-              </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#f59e0b', mt: 1, fontWeight: 700 }}>
-                Requires host action
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Occupancy Rate</div>
+          <div className={styles.metricValue} style={{ color: '#3b82f6' }}>91.6%</div>
+          <div className={styles.metricSubtext} style={{ color: '#9ca3af' }}>11 of 12 Total Seats Filled</div>
+        </div>
+
+        <div className={styles.metricCard}>
+          <div className={styles.metricLabel}>Pending Requests</div>
+          <div className={styles.metricValue} style={{ color: '#f59e0b' }}>2 Approvals</div>
+          <div className={styles.metricSubtext} style={{ color: '#f59e0b' }}>Requires host action</div>
+        </div>
+      </div>
+
 
       {/* ─── Row 2: 60% / 40% Split (Listings Performance & Earnings Timeline) ─── */}
       <Grid container spacing={3} mb={4}>
@@ -381,70 +337,97 @@ function HostCenter() {
         </Typography>
 
         <Grid container spacing={2.5}>
-          {PENDING_REQUESTS.map(({ id, userName, initials, avatarBg, trustScore, isKycVerified, requestedListing, timeAgo }) => {
-            const currentStatus = approvedReqs[id];
+          {hostJoinRequests && hostJoinRequests.length > 0 ? (
+            hostJoinRequests.map((req) => {
+              const { id, memberName, listingTitle, platform, price, status, message } = req;
+              const isApproved = status === 'APPROVED';
+              const isRejected = status === 'REJECTED';
+              const isPending = status === 'PENDING';
+              const initials = memberName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'M';
 
-            return (
-              <Grid item xs={12} md={6} key={id}>
-                <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Avatar sx={{ width: 40, height: 40, bgcolor: avatarBg, fontWeight: 900, fontSize: '0.9rem' }}>
-                        {initials}
-                      </Avatar>
-                      <Box>
-                        <Stack direction="row" alignItems="center" spacing={0.75}>
-                          <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#f3f4f6' }}>
-                            {userName}
+              return (
+                <Grid item xs={12} md={6} key={id}>
+                  <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Avatar sx={{ width: 40, height: 40, bgcolor: '#2563eb', fontWeight: 900, fontSize: '0.9rem' }}>
+                          {initials}
+                        </Avatar>
+                        <Box>
+                          <Stack direction="row" alignItems="center" spacing={0.75}>
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#f3f4f6' }}>
+                              {memberName}
+                            </Typography>
+                            <ShieldCheck size={14} color="#22c55e" />
+                          </Stack>
+                          <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af' }}>
+                            Reserved in Escrow: <Box component="span" sx={{ color: '#22c55e', fontWeight: 800 }}>₹{price}</Box>
                           </Typography>
-                          {isKycVerified && <ShieldCheck size={14} color="#22c55e" />}
-                        </Stack>
-                        <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af' }}>
-                          Trust Rating: {trustScore} • {timeAgo}
+                        </Box>
+                      </Stack>
+
+                      <Chip label={platform || 'Pass'} size="small" sx={{ background: 'rgba(37,99,235,0.12)', color: '#3b82f6', fontWeight: 800, fontSize: '0.68rem' }} />
+                    </Stack>
+
+                    <Typography sx={{ fontSize: '0.82rem', color: '#9ca3af', mb: 1 }}>
+                      Requested: <Box component="span" sx={{ color: '#f3f4f6', fontWeight: 700 }}>{listingTitle}</Box>
+                    </Typography>
+
+                    {message && (
+                      <Typography sx={{ fontSize: '0.76rem', color: '#6b7280', mb: 2, fontStyle: 'italic' }}>
+                        "{message}"
+                      </Typography>
+                    )}
+
+                    {isApproved ? (
+                      <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(34,197,94,0.15)', textAlign: 'center' }}>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#22c55e' }}>
+                          ✓ Request Approved! Escrow payment released to wallet.
                         </Typography>
                       </Box>
-                    </Stack>
-
-                    <Chip label={requestedListing.split(' ')[0]} size="small" sx={{ background: 'rgba(37,99,235,0.12)', color: '#3b82f6', fontWeight: 800, fontSize: '0.68rem' }} />
-                  </Stack>
-
-                  <Typography sx={{ fontSize: '0.82rem', color: '#9ca3af', mb: 2 }}>
-                    Requested: <Box component="span" sx={{ color: '#f3f4f6', fontWeight: 700 }}>{requestedListing}</Box>
-                  </Typography>
-
-                  {currentStatus ? (
-                    <Box sx={{ p: 1.25, borderRadius: '10px', background: currentStatus === 'approved' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', textAlign: 'center' }}>
-                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: currentStatus === 'approved' ? '#22c55e' : '#ef4444' }}>
-                        {currentStatus === 'approved' ? '✓ Request Approved! Member added to group.' : '✕ Request Declined.'}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Stack direction="row" spacing={1.5}>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        size="small"
-                        onClick={() => handleApproveRequest(id)}
-                        sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}
-                      >
-                        Approve Request
-                      </Button>
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleRejectRequest(id)}
-                        sx={{ borderRadius: '10px', fontWeight: 700, color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', textTransform: 'none' }}
-                      >
-                        Decline
-                      </Button>
-                    </Stack>
-                  )}
-                </Paper>
-              </Grid>
-            );
-          })}
+                    ) : isRejected ? (
+                      <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(239,68,68,0.15)', textAlign: 'center' }}>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ef4444' }}>
+                          ✕ Request Declined. Funds refunded to member.
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Stack direction="row" spacing={1.5} mt={1}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleApproveRequest(id)}
+                          sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}
+                        >
+                          Accept Request
+                        </Button>
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleRejectRequest(id)}
+                          sx={{ borderRadius: '10px', fontWeight: 700, color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', textTransform: 'none', '&:hover': { borderColor: '#ef4444', background: 'rgba(239,68,68,0.1)' } }}
+                        >
+                          Decline
+                        </Button>
+                      </Stack>
+                    )}
+                  </Paper>
+                </Grid>
+              );
+            })
+          ) : (
+            <Grid item xs={12}>
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', background: '#14161a', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
+                <Typography sx={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: 600 }}>
+                  No pending member join requests at this moment.
+                </Typography>
+              </Paper>
+            </Grid>
+          )}
         </Grid>
+
       </Box>
 
       {/* ─── Row 4: Smart AI Recommendations ─── */}
@@ -475,10 +458,11 @@ function HostCenter() {
         </Grid>
       </Box>
 
-      {/* ─── Multi-step Create Listing Dialog ─── */}
+      {/* Multi-step Create Listing Dialog */}
       <CreateListingModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
-    </Box>
+    </div>
   );
 }
+
 
 export default HostCenter;

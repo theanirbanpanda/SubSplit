@@ -58,6 +58,9 @@ import com.subsplit.wallet.entity.WalletTransaction;
 import com.subsplit.wallet.repository.WalletRepository;
 import com.subsplit.wallet.repository.WalletTransactionRepository;
 
+import com.subsplit.notification.service.NotificationService;
+import com.subsplit.common.enums.NotificationType;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -75,6 +78,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     private final MembershipRepository membershipRepository;
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
+    private final NotificationService notificationService;
 
 
 
@@ -183,8 +187,23 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         Listing savedListing = listingRepository.save(listing);
         log.info("Successfully created new listing with ID: {}", savedListing.getId());
+
+        try {
+            if (host != null) {
+                notificationService.createNotification(
+                        host,
+                        NotificationType.SYSTEM,
+                        "Group Pass Published 🚀",
+                        "Your subscription pass '" + savedListing.getTitle() + "' is now active on the Marketplace!"
+                );
+            }
+        } catch (Exception e) {
+            log.error("Failed to send notification on listing creation: ", e);
+        }
+
         return mapToListingResponse(savedListing);
     }
+
 
     @Override
     @Transactional
@@ -777,6 +796,26 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         String memberName = (member.getFirstName() + " " + member.getLastName()).trim();
         if (memberName.isEmpty()) memberName = member.getEmail();
 
+        // Trigger real notifications
+        try {
+            if (listing.getHost() != null) {
+                notificationService.createNotification(
+                        listing.getHost(),
+                        NotificationType.JOIN_REQUEST,
+                        "New Join Request Received 📩",
+                        memberName + " requested to join your group pass '" + listing.getTitle() + "'."
+                );
+            }
+            notificationService.createNotification(
+                    member,
+                    NotificationType.JOIN_REQUEST,
+                    "Group Join Request Sent 🎉",
+                    "Your request to join '" + listing.getTitle() + "' was sent. ₹" + requiredAmount + " reserved in escrow."
+            );
+        } catch (Exception e) {
+            log.error("Failed to generate notification for join request: ", e);
+        }
+
         return JoinRequestResponse.builder()
                 .id(saved.getId())
                 .listingId(listingId)
@@ -886,6 +925,196 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .build();
         }).collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JoinRequestResponse> getHostJoinRequests(User host) {
+        if (host == null) {
+            return List.of();
+        }
+
+        List<JoinRequest> requests = joinRequestRepository.findByHostIdOrderByCreatedAtDesc(host.getId());
+        return requests.stream().map(req -> {
+            Listing listing = req.getListing();
+            User member = req.getMember();
+            String listingTitle = (listing != null) ? listing.getTitle() : "Subscription Group";
+            String platform = (listing != null && listing.getPlan() != null && listing.getPlan().getSubscription() != null)
+                    ? listing.getPlan().getSubscription().getProviderName()
+                    : "Pass";
+
+            String memberName = (member != null) ? member.getFullName() : "Member";
+            BigDecimal price = (listing != null) ? listing.getSeatPrice() : BigDecimal.ZERO;
+
+            return JoinRequestResponse.builder()
+                    .id(req.getId())
+                    .listingId(listing != null ? listing.getId() : null)
+                    .memberId(member != null ? member.getId() : null)
+                    .memberName(memberName)
+                    .status(req.getStatus())
+                    .message(req.getMessage())
+                    .listingTitle(listingTitle)
+                    .platform(platform)
+                    .hostName(host.getFullName())
+                    .price(price)
+                    .createdAt(req.getCreatedAt())
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public JoinRequestResponse acceptJoinRequest(User host, Long requestId) {
+        JoinRequest joinReq = joinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Join request not found with id: " + requestId));
+
+        Listing listing = joinReq.getListing();
+        if (listing == null || listing.getHost() == null || !Objects.equals(listing.getHost().getId(), host.getId())) {
+            throw new UnauthorizedException("You are not authorized to accept this join request");
+        }
+
+        if (joinReq.getStatus() != JoinRequestStatus.PENDING) {
+            throw new BadRequestException("Request is already " + joinReq.getStatus());
+        }
+
+        // Approve join request
+        joinReq.setStatus(JoinRequestStatus.APPROVED);
+        JoinRequest savedReq = joinRequestRepository.save(joinReq);
+
+        // Update available seats on listing
+        if (listing.getAvailableSeats() != null && listing.getAvailableSeats() > 0) {
+            listing.setAvailableSeats(listing.getAvailableSeats() - 1);
+            if (listing.getAvailableSeats() == 0) {
+                listing.setStatus(ListingStatus.FULL);
+            }
+            listingRepository.save(listing);
+        }
+
+        // Release escrow money to host's wallet
+        BigDecimal amount = listing.getSeatPrice();
+        if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
+            Wallet hostWallet = walletRepository.findByUserId(host.getId())
+                    .orElseGet(() -> walletRepository.save(Wallet.builder()
+                            .user(host)
+                            .balance(BigDecimal.ZERO)
+                            .build()));
+
+            hostWallet.setBalance(hostWallet.getBalance().add(amount));
+            walletRepository.save(hostWallet);
+
+            walletTransactionRepository.save(WalletTransaction.builder()
+                    .wallet(hostWallet)
+                    .transactionType(TransactionType.ESCROW_RELEASE)
+                    .amount(amount)
+                    .referenceId(listing.getId())
+                    .remarks("Escrow payment received for listing: " + listing.getTitle())
+                    .build());
+        }
+
+
+        User member = joinReq.getMember();
+        String memberName = member != null ? member.getFullName() : "Member";
+
+        // Real-time notifications
+        try {
+            if (member != null) {
+                notificationService.createNotification(
+                        member,
+                        NotificationType.JOIN_REQUEST,
+                        "Join Request Approved 🎉",
+                        "Host " + host.getFullName() + " approved your request for '" + listing.getTitle() + "'! Access credentials are now unlocked on your Dashboard."
+                );
+            }
+
+            notificationService.createNotification(
+                    host,
+                    NotificationType.PAYMENT,
+                    "Payment Received 💳",
+                    "₹" + amount + " released from escrow for new member " + memberName + "."
+            );
+        } catch (Exception e) {
+            log.error("Failed to send notification on accept join request: ", e);
+        }
+
+        return JoinRequestResponse.builder()
+                .id(savedReq.getId())
+                .listingId(listing.getId())
+                .memberId(member != null ? member.getId() : null)
+                .memberName(memberName)
+                .status(savedReq.getStatus())
+                .message(savedReq.getMessage())
+                .listingTitle(listing.getTitle())
+                .price(listing.getSeatPrice())
+                .createdAt(savedReq.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public JoinRequestResponse rejectJoinRequest(User host, Long requestId) {
+        JoinRequest joinReq = joinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Join request not found with id: " + requestId));
+
+        Listing listing = joinReq.getListing();
+        if (listing == null || listing.getHost() == null || !Objects.equals(listing.getHost().getId(), host.getId())) {
+            throw new UnauthorizedException("You are not authorized to reject this join request");
+        }
+
+        if (joinReq.getStatus() != JoinRequestStatus.PENDING) {
+            throw new BadRequestException("Request is already " + joinReq.getStatus());
+        }
+
+        // Reject join request
+        joinReq.setStatus(JoinRequestStatus.REJECTED);
+        JoinRequest savedReq = joinRequestRepository.save(joinReq);
+
+        // Refund reserved escrow deposit back to member's wallet
+        BigDecimal refundAmount = listing.getSeatPrice();
+        User member = joinReq.getMember();
+        if (member != null && refundAmount != null && refundAmount.compareTo(BigDecimal.ZERO) > 0) {
+            Wallet memberWallet = walletRepository.findByUserId(member.getId()).orElse(null);
+            if (memberWallet != null) {
+                memberWallet.setBalance(memberWallet.getBalance().add(refundAmount));
+                walletRepository.save(memberWallet);
+
+                walletTransactionRepository.save(WalletTransaction.builder()
+                        .wallet(memberWallet)
+                        .transactionType(TransactionType.REFUND)
+                        .amount(refundAmount)
+                        .referenceId(listing.getId())
+                        .remarks("Escrow deposit refunded for rejected request: " + listing.getTitle())
+                        .build());
+            }
+        }
+
+        String memberName = member != null ? member.getFullName() : "Member";
+
+        // Real-time notification to member
+        try {
+            if (member != null) {
+                notificationService.createNotification(
+                        member,
+                        NotificationType.JOIN_REQUEST,
+                        "Join Request Declined ❌",
+                        "Your request to join '" + listing.getTitle() + "' was declined by the host. ₹" + refundAmount + " has been refunded to your wallet."
+                );
+            }
+        } catch (Exception e) {
+            log.error("Failed to send notification on reject join request: ", e);
+        }
+
+        return JoinRequestResponse.builder()
+                .id(savedReq.getId())
+                .listingId(listing.getId())
+                .memberId(member != null ? member.getId() : null)
+                .memberName(memberName)
+                .status(savedReq.getStatus())
+                .message(savedReq.getMessage())
+                .listingTitle(listing.getTitle())
+                .price(listing.getSeatPrice())
+                .createdAt(savedReq.getCreatedAt())
+                .build();
+    }
 }
+
 
 

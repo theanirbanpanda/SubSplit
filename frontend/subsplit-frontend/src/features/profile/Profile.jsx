@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCurrentUser, uploadProfilePicture, updateUserProfile, fetchKycStatus } from '../auth/authSlice';
 import KycUploadModal from './components/KycUploadModal';
+import styles from './Profile.module.scss';
+
+
+
+
 import {
   Box,
   Grid,
@@ -267,7 +272,8 @@ function Profile() {
   }
 
   return (
-    <Box sx={{ color: '#f3f4f6' }}>
+    <div className={styles.profileContainer}>
+
       {/* Hidden File Input for Profile Picture Upload */}
       <input
         type="file"
@@ -850,9 +856,10 @@ import KycUploadModal from './components/KycUploadModal';
           setToast({ open: true, message: 'KYC Verification Successful! Account verified.', severity: 'success' });
         }}
       />
-    </Box>
+    </div>
   );
 }
+
 
 
 export default Profile;

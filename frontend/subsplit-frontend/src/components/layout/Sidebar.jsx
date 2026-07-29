@@ -148,10 +148,11 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
                   navigate(path);
                   if (mobileOpen) {
                     handleDrawerToggle();
-                  } else {
+                  } else if (isActive) {
                     toggleSidebar();
                   }
                 }}
+
                 sx={{
                   borderRadius: '8px',
                   py: 1,

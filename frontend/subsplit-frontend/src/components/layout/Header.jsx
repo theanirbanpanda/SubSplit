@@ -14,14 +14,20 @@ import {
   Badge,
   Typography,
   Avatar,
+  Menu,
+  MenuItem,
+  Divider,
+  Paper,
+  Chip,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { Menu as MenuIcon, Bell, Search, Wallet, User as UserIcon } from 'lucide-react';
+import { Menu as MenuIcon, Bell, Search, Wallet, User as UserIcon, CheckCheck, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { logoutUser } from '../../features/auth/authSlice'; // Ensure this is imported if used
 import { setFilter } from '../../features/marketplace/marketplaceSlice';
 
 import { fetchMyWallet } from '../../features/settlements/walletSlice';
+import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../features/notifications/notificationsSlice';
 
 function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
@@ -29,12 +35,14 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const theme = useTheme();
   const { user } = useSelector((state) => state.auth);
   const { wallet } = useSelector((state) => state.wallet);
+  const { items: notifications, unreadCount } = useSelector((state) => state.notifications);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [notifAnchorEl, setNotifAnchorEl] = useState(null);
 
   useEffect(() => {
     dispatch(fetchMyWallet());
+    dispatch(fetchNotifications());
   }, [dispatch]);
 
   const balanceDisplay = wallet?.balance != null ? `₹${wallet.balance.toFixed(2)}` : '₹0.00';
@@ -54,6 +62,49 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
     setSearchVal(val);
     dispatch(setFilter({ search: val, trendingOnly: false }));
   };
+
+  const handleNotifClick = (event) => {
+    setNotifAnchorEl(event.currentTarget);
+  };
+
+  const handleNotifClose = () => {
+    setNotifAnchorEl(null);
+  };
+
+  const handleMarkAllRead = () => {
+    dispatch(markAllNotificationsAsRead());
+  };
+
+  const getNotificationDestination = (item) => {
+    if (!item) return '/app/dashboard';
+    const type = item.notificationType?.toUpperCase() || '';
+    const text = ((item.title || '') + ' ' + (item.message || '')).toLowerCase();
+
+    if (text.includes('requested to join your group') || text.includes('new join request received')) {
+      return '/app/host';
+    }
+    if (text.includes('published') || text.includes('listing')) {
+      return '/app/host';
+    }
+    if (type === 'PAYMENT' || type === 'ESCROW' || text.includes('wallet') || text.includes('top-up') || text.includes('payout')) {
+      return '/app/settlements';
+    }
+    if (text.includes('kyc') || text.includes('identity') || text.includes('verify')) {
+      return '/app/profile';
+    }
+    if (type === 'JOIN_REQUEST' || text.includes('join request') || text.includes('approved') || text.includes('declined')) {
+      return '/app/dashboard';
+    }
+    return '/app/dashboard';
+  };
+
+  const handleNotifItemClick = (item) => {
+    dispatch(markNotificationAsRead(item.id));
+    handleNotifClose();
+    const destination = getNotificationDestination(item);
+    navigate(destination);
+  };
+
 
   return (
     <AppBar
@@ -139,13 +190,127 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
 
           {/* Notifications */}
           <IconButton
-            onClick={() => navigate('/app/notifications')}
+            onClick={handleNotifClick}
             sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6', background: 'rgba(255, 255, 255, 0.05)' } }}
           >
-            <Badge badgeContent={2} sx={{ '& .MuiBadge-badge': { backgroundColor: '#22c55e', color: '#fff', fontWeight: 'bold' } }}>
+            <Badge badgeContent={unreadCount} sx={{ '& .MuiBadge-badge': { backgroundColor: '#22c55e', color: '#fff', fontWeight: 'bold' } }}>
               <Bell size={20} />
             </Badge>
           </IconButton>
+
+          {/* Notifications Dropdown Popover */}
+          <Menu
+            anchorEl={notifAnchorEl}
+            open={Boolean(notifAnchorEl)}
+            onClose={handleNotifClose}
+            PaperProps={{
+              sx: {
+                width: 360,
+                maxHeight: 440,
+                mt: 1.5,
+                borderRadius: '16px',
+                background: '#111114',
+                border: '1px solid #2A2A30',
+                color: '#ffffff',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+              },
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#ffffff' }}>
+                Notifications ({unreadCount} new)
+              </Typography>
+              {unreadCount > 0 && (
+                <Button
+                  size="small"
+                  onClick={handleMarkAllRead}
+                  startIcon={<CheckCheck size={14} />}
+                  sx={{ color: '#22c55e', fontSize: '0.75rem', textTransform: 'none', fontWeight: 700 }}
+                >
+                  Mark all read
+                </Button>
+              )}
+            </Box>
+
+            <Divider sx={{ borderColor: '#2A2A30' }} />
+
+            {notifications && notifications.length > 0 ? (
+              notifications.slice(0, 5).map((item) => (
+                <MenuItem
+                  key={item.id}
+                  onClick={() => handleNotifItemClick(item)}
+
+                  sx={{
+                    py: 1.5,
+                    px: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: 0.5,
+                    background: item.isRead ? 'transparent' : 'rgba(37,99,235,0.08)',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    '&:hover': { background: 'rgba(255,255,255,0.05)' },
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1} width="100%">
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        bgcolor: item.isRead ? 'transparent' : '#22c55e',
+                      }}
+                    />
+                    <Typography sx={{ fontSize: '0.82rem', fontWeight: item.isRead ? 600 : 800, color: '#ffffff', flex: 1 }}>
+                      {item.title}
+                    </Typography>
+                    <Chip
+                      label={item.notificationType || 'SYSTEM'}
+                      size="small"
+                      sx={{
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        height: 18,
+                        bgcolor: 'rgba(255,255,255,0.08)',
+                        color: '#9ca3af',
+                      }}
+                    />
+                  </Stack>
+                  <Typography sx={{ fontSize: '0.76rem', color: '#9ca3af', pl: 2, lineHeight: 1.4 }}>
+                    {item.message}
+                  </Typography>
+                </MenuItem>
+              ))
+            ) : (
+              <Box sx={{ p: 3, textAlign: 'center', color: '#9ca3af' }}>
+                <Typography sx={{ fontSize: '0.85rem' }}>No notifications yet</Typography>
+              </Box>
+            )}
+
+            <Divider sx={{ borderColor: '#2A2A30' }} />
+
+            <Box sx={{ p: 1.5, textAlign: 'center' }}>
+              <Button
+                fullWidth
+                size="small"
+                onClick={() => {
+                  handleNotifClose();
+                  navigate('/app/notifications');
+                }}
+                endIcon={<ArrowRight size={14} />}
+                sx={{
+                  color: '#3b82f6',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  textTransform: 'none',
+                }}
+              >
+                View Notifications Center
+              </Button>
+            </Box>
+          </Menu>
 
           {/* User Profile Avatar */}
           <IconButton

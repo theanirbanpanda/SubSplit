@@ -19,8 +19,12 @@ public interface JoinRequestRepository extends JpaRepository<JoinRequest, Long> 
     @Query("SELECT j FROM JoinRequest j WHERE j.member.id = :memberId ORDER BY j.createdAt DESC")
     List<JoinRequest> findByMemberIdOrderByCreatedAtDesc(@Param("memberId") Long memberId);
 
+    @Query("SELECT j FROM JoinRequest j WHERE j.listing.host.id = :hostId ORDER BY j.createdAt DESC")
+    List<JoinRequest> findByHostIdOrderByCreatedAtDesc(@Param("hostId") Long hostId);
+
     boolean existsByListingIdAndMemberId(Long listingId, Long memberId);
 }
+
 
 
 

@@ -17,12 +17,16 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.subsplit.notification.service.NotificationService;
+import com.subsplit.common.enums.NotificationType;
+
 @Service
 @RequiredArgsConstructor
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
+    private final NotificationService notificationService;
 
     @Override
     public List<Wallet> getAllWallets() {
@@ -72,6 +76,16 @@ public class WalletServiceImpl implements WalletService {
                 .remarks("Added funds via instant wallet top-up")
                 .build();
         walletTransactionRepository.save(transaction);
+
+        // Send notification
+        try {
+            notificationService.createNotification(
+                    user,
+                    NotificationType.PAYMENT,
+                    "Wallet Top-Up Successful 💳",
+                    "₹" + amount + " added to your SubSplit wallet balance."
+            );
+        } catch (Exception ignored) {}
 
         return mapToResponse(savedWallet);
     }

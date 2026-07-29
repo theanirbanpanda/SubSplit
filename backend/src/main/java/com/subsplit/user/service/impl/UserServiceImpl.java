@@ -23,12 +23,16 @@ import com.subsplit.wallet.repository.WalletRepository;
 import com.subsplit.wallet.entity.Wallet;
 import java.math.BigDecimal;
 
+import com.subsplit.notification.service.NotificationService;
+import com.subsplit.common.enums.NotificationType;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
+    private final NotificationService notificationService;
 
     @Override
     public List<User> getAllUsers() {
@@ -168,6 +172,15 @@ public class UserServiceImpl implements UserService {
                 });
 
         String docLabel = (documentType != null && !documentType.isBlank()) ? documentType : "Govt ID Verified";
+
+        try {
+            notificationService.createNotification(
+                    savedUser,
+                    NotificationType.SYSTEM,
+                    "KYC Verification Approved ✅",
+                    "Your identity document (" + docLabel + ") was verified successfully. SubSplit wallet is active!"
+            );
+        } catch (Exception ignored) {}
 
         return com.subsplit.user.dto.KycStatusResponse.builder()
                 .userId(userId)

@@ -12,8 +12,10 @@ import {
 } from '@mui/material';
 import { ShieldCheck, Users, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import styles from './MarketplaceCard.module.scss';
 
 function MarketplaceCard({ listing }) {
+
   const navigate = useNavigate();
 
   const {
@@ -40,24 +42,12 @@ function MarketplaceCard({ listing }) {
 
   return (
     <Card
+      className={styles.card}
       elevation={0}
-      onClick={() => navigate(`/app/marketplace/${id}`)}
-      sx={{
-        borderRadius: '20px',
-        border: '1px solid #2A2A30',
-        background: '#18181C',
-        cursor: 'pointer',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          borderColor: '#3b82f6',
-          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.6)',
-        },
-      }}
+      onClick={() => navigate(`/app/marketplace/listing/${id}`)}
     >
-      <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+      <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+
         {/* Top bar: Badge & Wishlist Heart */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1.5}>
           <Chip
