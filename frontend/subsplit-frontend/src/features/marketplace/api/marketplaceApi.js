@@ -70,4 +70,20 @@ export const fetchMyJoinRequestsApi = async () => {
   return response.data;
 };
 
+export const fetchHostJoinRequestsApi = async () => {
+  const response = await api.get('/marketplace/join-requests/host-requests');
+  return response.data;
+};
+
+export const acceptJoinRequestApi = async (requestId) => {
+  const response = await api.put(`/marketplace/join-requests/${requestId}/accept`);
+  return response.data;
+};
+
+export const rejectJoinRequestApi = async (requestId) => {
+  const response = await api.put(`/marketplace/join-requests/${requestId}/reject`);
+  return response.data;
+};
+
+
 

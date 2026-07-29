@@ -1,4 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchHostJoinRequests,
+  acceptJoinRequest,
+  rejectJoinRequest,
+  fetchMyListings,
+} from '../marketplace/marketplaceSlice';
 import {
   Box,
   Grid,
@@ -94,29 +101,6 @@ const LISTINGS_DATA = [
   },
 ];
 
-const PENDING_REQUESTS = [
-  {
-    id: 'req-1',
-    userName: 'Rahul Malhotra',
-    initials: 'RM',
-    avatarBg: '#2563eb',
-    trustScore: '4.9★',
-    isKycVerified: true,
-    requestedListing: 'Netflix Premium 4K (Slot 4)',
-    timeAgo: '10 mins ago',
-  },
-  {
-    id: 'req-2',
-    userName: 'Priya Sharma',
-    initials: 'PS',
-    avatarBg: '#10b981',
-    trustScore: '5.0★',
-    isKycVerified: true,
-    requestedListing: 'ChatGPT Plus Team (Slot 5)',
-    timeAgo: '25 mins ago',
-  },
-];
-
 const RECENT_EARNINGS = [
   { text: 'Escrow Released for Netflix 4K', amount: '+₹299', date: 'Today, 1:20 PM', color: '#22c55e' },
   { text: 'Spotify Slot Joined by Ananya', amount: '+₹149', date: 'Yesterday', color: '#22c55e' },
@@ -138,21 +122,28 @@ const AI_RECOMMENDATIONS = [
   },
 ];
 
-const CREATE_STEPS = ['Choose Platform', 'Plan Details', 'Pricing', 'Seat Config', 'Verification', 'Publish'];
-
 function HostCenter() {
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
-  const [approvedReqs, setApprovedReqs] = useState({});
+  const { hostJoinRequests = [] } = useSelector((state) => state.marketplace);
 
-  const handleApproveRequest = (id) => {
-    setApprovedReqs((prev) => ({ ...prev, [id]: 'approved' }));
+  useEffect(() => {
+    dispatch(fetchHostJoinRequests());
+    dispatch(fetchMyListings());
+  }, [dispatch]);
+
+  const handleApproveRequest = async (requestId) => {
+    await dispatch(acceptJoinRequest(requestId));
+    dispatch(fetchHostJoinRequests());
   };
 
-  const handleRejectRequest = (id) => {
-    setApprovedReqs((prev) => ({ ...prev, [id]: 'rejected' }));
+  const handleRejectRequest = async (requestId) => {
+    await dispatch(rejectJoinRequest(requestId));
+    dispatch(fetchHostJoinRequests());
   };
+
 
   return (
     <Box sx={{ color: '#f3f4f6' }}>
@@ -381,70 +372,97 @@ function HostCenter() {
         </Typography>
 
         <Grid container spacing={2.5}>
-          {PENDING_REQUESTS.map(({ id, userName, initials, avatarBg, trustScore, isKycVerified, requestedListing, timeAgo }) => {
-            const currentStatus = approvedReqs[id];
+          {hostJoinRequests && hostJoinRequests.length > 0 ? (
+            hostJoinRequests.map((req) => {
+              const { id, memberName, listingTitle, platform, price, status, message } = req;
+              const isApproved = status === 'APPROVED';
+              const isRejected = status === 'REJECTED';
+              const isPending = status === 'PENDING';
+              const initials = memberName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'M';
 
-            return (
-              <Grid item xs={12} md={6} key={id}>
-                <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                      <Avatar sx={{ width: 40, height: 40, bgcolor: avatarBg, fontWeight: 900, fontSize: '0.9rem' }}>
-                        {initials}
-                      </Avatar>
-                      <Box>
-                        <Stack direction="row" alignItems="center" spacing={0.75}>
-                          <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#f3f4f6' }}>
-                            {userName}
+              return (
+                <Grid item xs={12} md={6} key={id}>
+                  <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Avatar sx={{ width: 40, height: 40, bgcolor: '#2563eb', fontWeight: 900, fontSize: '0.9rem' }}>
+                          {initials}
+                        </Avatar>
+                        <Box>
+                          <Stack direction="row" alignItems="center" spacing={0.75}>
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#f3f4f6' }}>
+                              {memberName}
+                            </Typography>
+                            <ShieldCheck size={14} color="#22c55e" />
+                          </Stack>
+                          <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af' }}>
+                            Reserved in Escrow: <Box component="span" sx={{ color: '#22c55e', fontWeight: 800 }}>₹{price}</Box>
                           </Typography>
-                          {isKycVerified && <ShieldCheck size={14} color="#22c55e" />}
-                        </Stack>
-                        <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af' }}>
-                          Trust Rating: {trustScore} • {timeAgo}
+                        </Box>
+                      </Stack>
+
+                      <Chip label={platform || 'Pass'} size="small" sx={{ background: 'rgba(37,99,235,0.12)', color: '#3b82f6', fontWeight: 800, fontSize: '0.68rem' }} />
+                    </Stack>
+
+                    <Typography sx={{ fontSize: '0.82rem', color: '#9ca3af', mb: 1 }}>
+                      Requested: <Box component="span" sx={{ color: '#f3f4f6', fontWeight: 700 }}>{listingTitle}</Box>
+                    </Typography>
+
+                    {message && (
+                      <Typography sx={{ fontSize: '0.76rem', color: '#6b7280', mb: 2, fontStyle: 'italic' }}>
+                        "{message}"
+                      </Typography>
+                    )}
+
+                    {isApproved ? (
+                      <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(34,197,94,0.15)', textAlign: 'center' }}>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#22c55e' }}>
+                          ✓ Request Approved! Escrow payment released to wallet.
                         </Typography>
                       </Box>
-                    </Stack>
-
-                    <Chip label={requestedListing.split(' ')[0]} size="small" sx={{ background: 'rgba(37,99,235,0.12)', color: '#3b82f6', fontWeight: 800, fontSize: '0.68rem' }} />
-                  </Stack>
-
-                  <Typography sx={{ fontSize: '0.82rem', color: '#9ca3af', mb: 2 }}>
-                    Requested: <Box component="span" sx={{ color: '#f3f4f6', fontWeight: 700 }}>{requestedListing}</Box>
-                  </Typography>
-
-                  {currentStatus ? (
-                    <Box sx={{ p: 1.25, borderRadius: '10px', background: currentStatus === 'approved' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', textAlign: 'center' }}>
-                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: currentStatus === 'approved' ? '#22c55e' : '#ef4444' }}>
-                        {currentStatus === 'approved' ? '✓ Request Approved! Member added to group.' : '✕ Request Declined.'}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Stack direction="row" spacing={1.5}>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        size="small"
-                        onClick={() => handleApproveRequest(id)}
-                        sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}
-                      >
-                        Approve Request
-                      </Button>
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleRejectRequest(id)}
-                        sx={{ borderRadius: '10px', fontWeight: 700, color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', textTransform: 'none' }}
-                      >
-                        Decline
-                      </Button>
-                    </Stack>
-                  )}
-                </Paper>
-              </Grid>
-            );
-          })}
+                    ) : isRejected ? (
+                      <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(239,68,68,0.15)', textAlign: 'center' }}>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ef4444' }}>
+                          ✕ Request Declined. Funds refunded to member.
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Stack direction="row" spacing={1.5} mt={1}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleApproveRequest(id)}
+                          sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}
+                        >
+                          Accept Request
+                        </Button>
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleRejectRequest(id)}
+                          sx={{ borderRadius: '10px', fontWeight: 700, color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', textTransform: 'none', '&:hover': { borderColor: '#ef4444', background: 'rgba(239,68,68,0.1)' } }}
+                        >
+                          Decline
+                        </Button>
+                      </Stack>
+                    )}
+                  </Paper>
+                </Grid>
+              );
+            })
+          ) : (
+            <Grid item xs={12}>
+              <Paper elevation={0} sx={{ p: 4, borderRadius: '20px', background: '#14161a', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
+                <Typography sx={{ color: '#9ca3af', fontSize: '0.9rem', fontWeight: 600 }}>
+                  No pending member join requests at this moment.
+                </Typography>
+              </Paper>
+            </Grid>
+          )}
         </Grid>
+
       </Box>
 
       {/* ─── Row 4: Smart AI Recommendations ─── */}

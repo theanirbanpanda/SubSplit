@@ -25,8 +25,9 @@ public class WalletTransaction extends BaseEntity {
     private Wallet wallet;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type")
+    @Column(name = "transaction_type", length = 50)
     private TransactionType transactionType;
+
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;

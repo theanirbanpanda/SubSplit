@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
+
   fetchMarketplaceListingsApi,
   fetchMarketplaceCategoriesApi,
   fetchTopHostsApi,
@@ -11,6 +12,9 @@ import {
   submitJoinRequestApi,
   checkJoinStatusApi,
   fetchMyJoinRequestsApi,
+  fetchHostJoinRequestsApi,
+  acceptJoinRequestApi,
+  rejectJoinRequestApi,
 } from './api/marketplaceApi';
 import { normalizeListing } from './utils/normalizeListing';
 
@@ -25,6 +29,43 @@ export const fetchMyJoinRequests = createAsyncThunk(
     }
   }
 );
+
+export const fetchHostJoinRequests = createAsyncThunk(
+  'marketplace/fetchHostJoinRequests',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetchHostJoinRequestsApi();
+      return response.data || [];
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch host join requests');
+    }
+  }
+);
+
+export const acceptJoinRequest = createAsyncThunk(
+  'marketplace/acceptJoinRequest',
+  async (requestId, { rejectWithValue }) => {
+    try {
+      const response = await acceptJoinRequestApi(requestId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to accept join request');
+    }
+  }
+);
+
+export const rejectJoinRequest = createAsyncThunk(
+  'marketplace/rejectJoinRequest',
+  async (requestId, { rejectWithValue }) => {
+    try {
+      const response = await rejectJoinRequestApi(requestId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reject join request');
+    }
+  }
+);
+
 
 
 
@@ -171,6 +212,7 @@ const initialState = {
   topHosts: [],
   myListings: [],
   myJoinRequests: [],
+  hostJoinRequests: [],
   selectedListing: null,
   similarListings: [],
 
@@ -275,9 +317,28 @@ const marketplaceSlice = createSlice({
       // fetchMyJoinRequests
       .addCase(fetchMyJoinRequests.fulfilled, (state, action) => {
         state.myJoinRequests = action.payload;
+      })
+      // fetchHostJoinRequests
+      .addCase(fetchHostJoinRequests.fulfilled, (state, action) => {
+        state.hostJoinRequests = action.payload;
+      })
+      // acceptJoinRequest
+      .addCase(acceptJoinRequest.fulfilled, (state, action) => {
+        const updated = action.payload;
+        state.hostJoinRequests = state.hostJoinRequests.map((r) =>
+          r.id === updated.id ? { ...r, status: 'APPROVED' } : r
+        );
+      })
+      // rejectJoinRequest
+      .addCase(rejectJoinRequest.fulfilled, (state, action) => {
+        const updated = action.payload;
+        state.hostJoinRequests = state.hostJoinRequests.map((r) =>
+          r.id === updated.id ? { ...r, status: 'REJECTED' } : r
+        );
       });
   },
 });
+
 
 
 export const { setFilter, resetFilters, setSelectedListing } = marketplaceSlice.actions;

@@ -126,6 +126,32 @@ public class MarketplaceController {
         return ResponseEntity.ok(ApiResponse.success("My join requests retrieved successfully", response));
     }
 
+    @GetMapping("/join-requests/host-requests")
+    public ResponseEntity<ApiResponse<List<JoinRequestResponse>>> getHostJoinRequests(Authentication authentication) {
+        User currentUser = getAuthenticatedUser(authentication);
+        List<JoinRequestResponse> response = marketplaceService.getHostJoinRequests(currentUser);
+        return ResponseEntity.ok(ApiResponse.success("Host join requests retrieved successfully", response));
+    }
+
+    @PutMapping("/join-requests/{id}/accept")
+    public ResponseEntity<ApiResponse<JoinRequestResponse>> acceptJoinRequest(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUser(authentication);
+        JoinRequestResponse response = marketplaceService.acceptJoinRequest(currentUser, id);
+        return ResponseEntity.ok(ApiResponse.success("Join request accepted successfully", response));
+    }
+
+    @PutMapping("/join-requests/{id}/reject")
+    public ResponseEntity<ApiResponse<JoinRequestResponse>> rejectJoinRequest(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUser(authentication);
+        JoinRequestResponse response = marketplaceService.rejectJoinRequest(currentUser, id);
+        return ResponseEntity.ok(ApiResponse.success("Join request rejected successfully", response));
+    }
+
+
     @GetMapping("/listings/my-listings")
 
     public ResponseEntity<ApiResponse<List<ListingResponse>>> getMyListings(Authentication authentication) {

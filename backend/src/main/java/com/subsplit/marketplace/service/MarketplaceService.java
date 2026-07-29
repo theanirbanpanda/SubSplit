@@ -56,6 +56,13 @@ public interface MarketplaceService {
     JoinRequestResponse getJoinRequestStatus(User member, Long listingId);
 
     List<JoinRequestResponse> getMyJoinRequests(User member);
+
+    List<JoinRequestResponse> getHostJoinRequests(User host);
+
+    JoinRequestResponse acceptJoinRequest(User host, Long requestId);
+
+    JoinRequestResponse rejectJoinRequest(User host, Long requestId);
 }
+
 
 

@@ -25,6 +25,13 @@ public class SubsplitApplication {
             } catch (Exception e) {
                 // Ignore if already LONGTEXT
             }
+            try {
+                jdbcTemplate.execute("ALTER TABLE wallet_transactions MODIFY COLUMN transaction_type VARCHAR(50)");
+                System.out.println("   [DB Migration] Altered wallet_transactions.transaction_type to VARCHAR(50) successfully");
+            } catch (Exception e) {
+                // Ignore if already altered
+            }
+
             System.out.println("\n==================================================");
             System.out.println("   SubSplit Backend Started Successfully!");
             System.out.println("   Server is running at: http://localhost:8080");
