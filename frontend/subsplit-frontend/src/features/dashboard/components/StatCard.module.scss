@@ -1,73 +1,76 @@
 @import '../../marketplace/styles/marketplaceVariables.scss';
 
+// ─── Stat Card ────────────────────────────────────────────────────────────────
 .card {
-  background: #111114;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: $radius-xl;
-  padding: $spacing-3 $spacing-2;
+  background: #14161e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 1.375rem 1.25rem;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;       // HORIZONTAL layout — icon left, text right
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: flex-start;
+  text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   height: 100%;
   text-decoration: none;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
 
   &:hover {
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.15);
-    background: lighten(#111114, 2%);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
 }
 
+// ─── Icon Wrapper ─────────────────────────────────────────────────────────────
 .iconWrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: $spacing-2;
+  flex-shrink: 0;
 
   svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 }
 
+// ─── Text ─────────────────────────────────────────────────────────────────────
 .title {
-  font-size: 0.8rem;
-  color: $text-secondary;
-  font-weight: 500;
-  margin-bottom: $spacing-1;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.25rem;
+  display: block;
 }
 
 .value {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 900;
   color: $text-primary;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
 }
 
-// Accent classes for icons
-.green {
-  background: rgba(34, 197, 94, 0.1);
-  color: $accent-green;
-}
-
-.purple {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
-}
-
-.yellow {
-  background: rgba(234, 179, 8, 0.1);
-  color: #eab308;
-}
-
-.blue {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
+// ─── Color Variants ───────────────────────────────────────────────────────────
+.green  { background: rgba(34, 197, 94, 0.12);   color: #22c55e; }
+.purple { background: rgba(168, 85, 247, 0.12);  color: #a855f7; }
+.yellow { background: rgba(234, 179, 8, 0.12);   color: #eab308; }
+.blue   { background: rgba(59, 130, 246, 0.12);  color: #3b82f6; }

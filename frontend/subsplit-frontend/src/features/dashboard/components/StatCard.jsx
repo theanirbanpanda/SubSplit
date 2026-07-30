@@ -16,13 +16,23 @@ const StatCard = ({ title, value, icon: Icon, colorClass, linkTo }) => {
   };
 
   return (
-    <div className={styles.card} onClick={handleClick} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') handleClick(); }}>
-
+    <div
+      className={styles.card}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') handleClick(); }}
+    >
+      {/* Icon on the left */}
       <div className={`${styles.iconWrapper} ${styles[colorClass]}`}>
         <Icon />
       </div>
-      <div className={styles.title}>{title}</div>
-      <div className={styles.value}>{value}</div>
+
+      {/* Text stacked on the right */}
+      <div>
+        <span className={styles.title}>{title}</span>
+        <div className={styles.value}>{value}</div>
+      </div>
     </div>
   );
 };
