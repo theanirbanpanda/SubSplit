@@ -1,9 +1,10 @@
 package com.subsplit.dispute.entity;
 
 import com.subsplit.common.entity.BaseEntity;
-import com.subsplit.common.enums.DisputeStatus;
 import com.subsplit.common.entity.User;
-import com.subsplit.wallet.entity.EscrowTransaction;
+import com.subsplit.common.enums.DisputeStatus;
+import com.subsplit.listing.entity.JoinRequest;
+import com.subsplit.listing.entity.Listing;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,28 +24,41 @@ public class Dispute extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "escrow_transaction_id")
-    private EscrowTransaction escrowTransaction;
+    @JoinColumn(name = "listing_id")
+    private Listing listing;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "raised_by")
+    @JoinColumn(name = "join_request_id")
+    private JoinRequest joinRequest;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "raised_by_id", nullable = false)
     private User raisedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "against_user_id")
+    private User againstUser;
+
+    @Column(nullable = false, length = 100)
     private String reason;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String proofImage;
+
     @Enumerated(EnumType.STRING)
-    private DisputeStatus status;
+    @Column(nullable = false, length = 50)
+    @Builder.Default
+    private DisputeStatus status = DisputeStatus.OPEN;
 
     @Column(columnDefinition = "TEXT")
-    private String resolution;
+    private String resolutionNotes;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resolved_by")
+    @JoinColumn(name = "resolved_by_id")
     private User resolvedBy;
 
     private LocalDateTime resolvedAt;
-
 }

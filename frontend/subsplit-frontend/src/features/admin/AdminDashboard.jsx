@@ -71,7 +71,9 @@ import {
   fetchAdminAnalyticsApi,
   fetchAdminLogsApi,
 } from './api/adminApi';
+import { fetchAllDisputesAdminApi, resolveDisputeAdminApi } from '../disputes/api/disputeApi';
 import styles from './AdminDashboard.module.scss';
+
 
 function AdminDashboard() {
   const [tabValue, setTabValue] = useState(0); // 0: Analytics, 1: Proof Audits, 2: Listings, 3: Users, 4: Logs
@@ -104,6 +106,11 @@ function AdminDashboard() {
   const [systemLogs, setSystemLogs] = useState([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
 
+  // Disputes state
+  const [adminDisputes, setAdminDisputes] = useState([]);
+  const [loadingDisputes, setLoadingDisputes] = useState(false);
+  const [selectedDisputeModal, setSelectedDisputeModal] = useState(null);
+
   useEffect(() => {
     loadAllData();
   }, []);
@@ -114,7 +121,39 @@ function AdminDashboard() {
     loadListings();
     loadPendingProofs();
     loadLogs();
+    loadDisputes();
   };
+
+  const loadDisputes = async () => {
+    setLoadingDisputes(true);
+    try {
+      const data = await fetchAllDisputesAdminApi();
+      setAdminDisputes(data);
+    } catch (err) {
+      console.error('Failed to fetch admin disputes:', err);
+    } finally {
+      setLoadingDisputes(false);
+    }
+  };
+
+  const handleResolveDispute = async (disputeId, action) => {
+    const notes = window.prompt(`Enter resolution notes for dispute #${disputeId}:`, action === 'REFUND_MEMBER' ? 'Member dispute verified. Refund processed to wallet.' : 'Dispute audited and dismissed.');
+    if (notes === null) return;
+
+    try {
+      const updated = await resolveDisputeAdminApi(disputeId, { action, resolutionNotes: notes });
+      setAdminDisputes((prev) => prev.map((d) => (d.id === disputeId ? updated : d)));
+      if (selectedDisputeModal && selectedDisputeModal.id === disputeId) {
+        setSelectedDisputeModal(updated);
+      }
+      setToast({ open: true, message: `Dispute #${disputeId} resolved (${action}).`, severity: 'success' });
+      loadUsers();
+      loadAnalytics();
+    } catch (err) {
+      setToast({ open: true, message: 'Failed to resolve dispute.', severity: 'error' });
+    }
+  };
+
 
   const loadAnalytics = async () => {
     setLoadingAnalytics(true);
@@ -398,9 +437,11 @@ function AdminDashboard() {
         >
           <Tab label="Platform Analytics & Revenue" icon={<BarChart3 size={16} />} iconPosition="start" />
           <Tab label={`Proof Audits (${pendingProofs.length})`} icon={<FileCheck size={16} />} iconPosition="start" />
+          <Tab label={`Disputes Audit (${adminDisputes.length})`} icon={<AlertTriangle size={16} />} iconPosition="start" />
           <Tab label={`Listings (${listings.length})`} icon={<Layers size={16} />} iconPosition="start" />
           <Tab label={`User Governance (${users.length})`} icon={<Users size={16} />} iconPosition="start" />
           <Tab label={`System Audit Logs (${systemLogs.length})`} icon={<Shield size={16} />} iconPosition="start" />
+
         </Tabs>
       </Box>
 
@@ -684,8 +725,118 @@ function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 2: LISTING MANAGEMENT */}
+      {/* TAB 2: DISPUTES AUDIT QUEUE */}
       {tabValue === 2 && (
+        <div className={styles.tableCard}>
+          <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.1rem', mb: 0.5 }}>
+            Dispute & Claims Audit Queue
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#9ca3af', display: 'block', mb: 2.5 }}>
+            Inspect reported user disputes, evaluate member proof screenshots, and execute wallet refunds or dismissals.
+          </Typography>
+
+          {loadingDisputes ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress size={32} sx={{ color: '#f59e0b' }} />
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table sx={{ minWidth: 700 }}>
+                <TableHead>
+                  <TableRow sx={{ '& th': { borderColor: 'rgba(255, 255, 255, 0.08)', color: '#9ca3af', fontWeight: 800, fontSize: '0.75rem' } }}>
+                    <TableCell>DISPUTE ID & PASS</TableCell>
+                    <TableCell>RAISED BY / AGAINST</TableCell>
+                    <TableCell>REASON & DETAILS</TableCell>
+                    <TableCell>REFUND VALUE</TableCell>
+                    <TableCell>STATUS</TableCell>
+                    <TableCell align="right">AUDIT ACTIONS</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {adminDisputes.length > 0 ? (
+                    adminDisputes.map((d) => {
+                      const isRefunded = d.status === 'RESOLVED_REFUNDED';
+                      const isRejected = d.status === 'RESOLVED_REJECTED';
+
+                      return (
+                        <TableRow key={d.id} sx={{ '& td': { borderColor: 'rgba(255, 255, 255, 0.08)', color: '#f3f4f6', fontSize: '0.85rem' } }}>
+                          <TableCell>
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.88rem' }}>{d.listingTitle}</Typography>
+                            <Chip label={`Dispute #${d.id}`} size="small" sx={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 800, fontSize: '0.68rem', mt: 0.5 }} />
+                          </TableCell>
+
+                          <TableCell>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.82rem' }}>Member: {d.raisedByName}</Typography>
+                            <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>Host: {d.againstUserName || 'Platform Host'}</Typography>
+                          </TableCell>
+
+                          <TableCell sx={{ maxWidth: 220 }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.8rem', color: '#fbbf24' }}>{d.reason}</Typography>
+                            <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {d.description}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell sx={{ color: '#22c55e', fontWeight: 900 }}>₹{d.amount}</TableCell>
+
+                          <TableCell>
+                            <Chip
+                              label={d.status}
+                              size="small"
+                              sx={{
+                                background: isRefunded ? 'rgba(34,197,94,0.15)' : isRejected ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                                color: isRefunded ? '#22c55e' : isRejected ? '#ef4444' : '#f59e0b',
+                                fontWeight: 800,
+                                fontSize: '0.68rem',
+                              }}
+                            />
+                          </TableCell>
+
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Tooltip title="Inspect Dispute & Proof">
+                                <IconButton size="small" onClick={() => setSelectedDisputeModal(d)} sx={{ background: 'rgba(255,255,255,0.06)', color: '#f3f4f6' }}>
+                                  <Eye size={16} />
+                                </IconButton>
+                              </Tooltip>
+
+                              {!isRefunded && !isRejected && (
+                                <>
+                                  <Tooltip title="Resolve & Refund Member Wallet">
+                                    <IconButton size="small" onClick={() => handleResolveDispute(d.id, 'REFUND_MEMBER')} sx={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', '&:hover': { background: '#22c55e', color: '#09090b' } }}>
+                                      <Check size={16} />
+                                    </IconButton>
+                                  </Tooltip>
+
+                                  <Tooltip title="Dismiss / Reject Dispute">
+                                    <IconButton size="small" onClick={() => handleResolveDispute(d.id, 'REJECT_DISPUTE')} sx={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', '&:hover': { background: '#ef4444', color: '#ffffff' } }}>
+                                      <X size={16} />
+                                    </IconButton>
+                                  </Tooltip>
+                                </>
+                              )}
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center" sx={{ py: 4, color: '#9ca3af' }}>
+                        No reported disputes in database.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: LISTING MANAGEMENT */}
+      {tabValue === 3 && (
+
         <div className={styles.tableCard}>
           <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" justifyContent="space-between" mb={2.5} spacing={2}>
             <Box>
@@ -818,8 +969,8 @@ function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 3: USER GOVERNANCE */}
-      {tabValue === 3 && (
+      {/* TAB 4: USER GOVERNANCE */}
+      {tabValue === 4 && (
         <div className={styles.tableCard}>
           <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" justifyContent="space-between" mb={2.5} spacing={2}>
             <Box>
@@ -951,8 +1102,9 @@ function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB 4: REAL-TIME SYSTEM AUDIT LOGS */}
-      {tabValue === 4 && (
+      {/* TAB 5: REAL-TIME SYSTEM AUDIT LOGS */}
+      {tabValue === 5 && (
+
         <div className={styles.tableCard}>
           <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.1rem', mb: 2 }}>
             Real-Time System & Security Audit Logs
@@ -1283,7 +1435,134 @@ function AdminDashboard() {
         )}
       </Dialog>
 
+      {/* INSPECT & RESOLVE DISPUTE DIALOG MODAL */}
+      <Dialog
+        open={Boolean(selectedDisputeModal)}
+        onClose={() => setSelectedDisputeModal(null)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { background: '#14161a', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '20px', color: '#f3f4f6' },
+        }}
+      >
+        {selectedDisputeModal && (
+          <>
+            <DialogTitle sx={{ pt: 3, px: 3.5, pb: 1 }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6' }}>
+                    Inspect Dispute #{selectedDisputeModal.id}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#9ca3af' }}>
+                    Pass: {selectedDisputeModal.listingTitle} • Amount: ₹{selectedDisputeModal.amount}
+                  </Typography>
+                </Box>
+                <IconButton onClick={() => setSelectedDisputeModal(null)} sx={{ color: '#9ca3af' }}>
+                  <X size={20} />
+                </IconButton>
+              </Stack>
+            </DialogTitle>
+
+            <DialogContent sx={{ px: 3.5, py: 2 }}>
+              <Grid container spacing={3}>
+                {/* Left: Dispute Claim Details */}
+                <Grid item xs={12} md={6}>
+                  <Paper elevation={0} sx={{ p: 2.5, background: '#1c1e24', borderRadius: '14px', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    <Typography variant="subtitle2" sx={{ color: '#ef4444', fontWeight: 900, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <AlertTriangle size={16} /> Disputed Claim Information
+                    </Typography>
+
+                    <Stack spacing={1.5}>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#9ca3af' }}>DISPUTED BY (MEMBER)</Typography>
+                        <Typography sx={{ fontWeight: 800, color: '#f3f4f6', fontSize: '0.88rem' }}>
+                          {selectedDisputeModal.raisedByName} ({selectedDisputeModal.raisedByEmail})
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#9ca3af' }}>DISPUTED AGAINST (HOST)</Typography>
+                        <Typography sx={{ fontWeight: 800, color: '#f3f4f6', fontSize: '0.88rem' }}>
+                          {selectedDisputeModal.againstUserName || 'Host'} ({selectedDisputeModal.againstUserEmail || 'N/A'})
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#9ca3af' }}>REASON & CATEGORY</Typography>
+                        <Typography sx={{ fontWeight: 800, color: '#fbbf24', fontSize: '0.88rem' }}>
+                          {selectedDisputeModal.reason}
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#9ca3af' }}>FULL MEMBER DESCRIPTION</Typography>
+                        <Typography sx={{ fontSize: '0.82rem', color: '#f3f4f6', mt: 0.25 }}>
+                          {selectedDisputeModal.description}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Paper>
+                </Grid>
+
+                {/* Right: Attached Proof Image */}
+                <Grid item xs={12} md={6}>
+                  <Paper elevation={0} sx={{ p: 2.5, background: '#1c1e24', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Typography variant="subtitle2" sx={{ color: '#3b82f6', fontWeight: 900, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <FileCheck size={16} /> Member Proof Attachment
+                    </Typography>
+
+                    {selectedDisputeModal.proofImage ? (
+                      <Box sx={{ width: '100%', maxHeight: 220, borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <img src={selectedDisputeModal.proofImage} alt="Dispute Proof" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      </Box>
+                    ) : (
+                      <Box sx={{ p: 3, textAlign: 'center', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '10px' }}>
+                        <Typography sx={{ fontSize: '0.82rem', color: '#9ca3af' }}>
+                          No screenshot attachment uploaded with this claim.
+                        </Typography>
+                      </Box>
+                    )}
+                  </Paper>
+                </Grid>
+              </Grid>
+            </DialogContent>
+
+            <DialogActions sx={{ px: 3.5, pb: 3, justifyContent: 'space-between' }}>
+              <Stack direction="row" spacing={1.5}>
+                {selectedDisputeModal.status !== 'RESOLVED_REFUNDED' && selectedDisputeModal.status !== 'RESOLVED_REJECTED' && (
+                  <>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      startIcon={<Check size={18} />}
+                      onClick={() => handleResolveDispute(selectedDisputeModal.id, 'REFUND_MEMBER')}
+                      sx={{ borderRadius: '10px', fontWeight: 900, textTransform: 'none', px: 2.5 }}
+                    >
+                      Resolve & Refund Member (₹{selectedDisputeModal.amount})
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<X size={18} />}
+                      onClick={() => handleResolveDispute(selectedDisputeModal.id, 'REJECT_DISPUTE')}
+                      sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none' }}
+                    >
+                      Dismiss Dispute
+                    </Button>
+                  </>
+                )}
+              </Stack>
+
+              <Button onClick={() => setSelectedDisputeModal(null)} sx={{ color: '#9ca3af', fontWeight: 700 }}>
+                Close
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
       {/* Toast Notification */}
+
       <Snackbar
         open={toast.open}
         autoHideDuration={4000}

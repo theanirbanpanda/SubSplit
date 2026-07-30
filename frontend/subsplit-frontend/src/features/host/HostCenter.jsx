@@ -26,29 +26,10 @@ import {
   Step,
   StepLabel,
 } from '@mui/material';
-import {
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  Plus,
-  ArrowUpRight,
-  CheckCircle2,
-  Clock,
-  MessageSquare,
-  XCircle,
-  Sparkles,
-  Edit,
-  Pause,
-  Copy,
-  Flame,
-  Tv2,
-  Music,
-  Bot,
-  Layers,
-  Zap,
-} from 'lucide-react';
+import { ShieldCheck, TrendingUp, Users, Plus, ArrowUpRight, CheckCircle2, Clock, MessageSquare, XCircle, Sparkles, Edit, Pause, Copy, Flame, Tv2, Music, Bot, Layers, Zap, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CreateListingModal from '../marketplace/components/CreateListingModal';
+import RaiseDisputeModal from '../disputes/RaiseDisputeModal';
 import styles from './HostCenter.module.scss';
 
 
@@ -132,6 +113,8 @@ function HostCenter() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
   const [selectedRequestForCreds, setSelectedRequestForCreds] = useState(null);
+  const [raiseDisputeOpen, setRaiseDisputeOpen] = useState(false);
+  const [disputeTargetRequest, setDisputeTargetRequest] = useState(null);
   const { hostJoinRequests = [] } = useSelector((state) => state.marketplace);
 
   useEffect(() => {
@@ -388,16 +371,40 @@ function HostCenter() {
                     )}
 
                     {isApproved ? (
-                      <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(34,197,94,0.15)', textAlign: 'center' }}>
-                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#22c55e' }}>
-                          ✓ Request Approved! Escrow payment released to wallet.
-                        </Typography>
+                      <Box>
+                        <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(34,197,94,0.15)', textAlign: 'center', mb: 1 }}>
+                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#22c55e' }}>
+                            ✓ Request Approved! Escrow payment released to wallet.
+                          </Typography>
+                        </Box>
+                        <Button
+                          fullWidth
+                          size="small"
+                          variant="outlined"
+                          startIcon={<AlertTriangle size={14} />}
+                          onClick={() => { setDisputeTargetRequest(req); setRaiseDisputeOpen(true); }}
+                          sx={{ borderRadius: '9px', fontWeight: 700, textTransform: 'none', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', fontSize: '0.75rem', '&:hover': { borderColor: '#ef4444', background: 'rgba(239,68,68,0.1)' } }}
+                        >
+                          Report Member Issue / Raise Dispute
+                        </Button>
                       </Box>
                     ) : isCredentialsShared ? (
-                      <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(245,158,11,0.15)', textAlign: 'center' }}>
-                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#f59e0b' }}>
-                          🔑 Credentials Shared! Awaiting Member Login Proof (24h Deadline).
-                        </Typography>
+                      <Box>
+                        <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(245,158,11,0.15)', textAlign: 'center', mb: 1 }}>
+                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#f59e0b' }}>
+                            🔑 Credentials Shared! Awaiting Member Login Proof (24h Deadline).
+                          </Typography>
+                        </Box>
+                        <Button
+                          fullWidth
+                          size="small"
+                          variant="outlined"
+                          startIcon={<AlertTriangle size={14} />}
+                          onClick={() => { setDisputeTargetRequest(req); setRaiseDisputeOpen(true); }}
+                          sx={{ borderRadius: '9px', fontWeight: 700, textTransform: 'none', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', fontSize: '0.75rem', '&:hover': { borderColor: '#ef4444', background: 'rgba(239,68,68,0.1)' } }}
+                        >
+                          Report Member Issue / Raise Dispute
+                        </Button>
                       </Box>
                     ) : isRejected ? (
                       <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(239,68,68,0.15)', textAlign: 'center' }}>
@@ -482,6 +489,14 @@ function HostCenter() {
         onClose={() => setCredentialsModalOpen(false)}
         onSubmit={handleShareCredentialsSubmit}
         requestItem={selectedRequestForCreds}
+      />
+
+      {/* Host Raise Dispute Modal */}
+      <RaiseDisputeModal
+        open={raiseDisputeOpen}
+        onClose={() => { setRaiseDisputeOpen(false); setDisputeTargetRequest(null); }}
+        listing={disputeTargetRequest ? { id: disputeTargetRequest.listingId, title: disputeTargetRequest.listingTitle } : null}
+        joinRequest={disputeTargetRequest}
       />
     </div>
   );
