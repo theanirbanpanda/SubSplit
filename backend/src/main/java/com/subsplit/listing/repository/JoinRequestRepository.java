@@ -22,8 +22,12 @@ public interface JoinRequestRepository extends JpaRepository<JoinRequest, Long> 
     @Query("SELECT j FROM JoinRequest j WHERE j.listing.host.id = :hostId ORDER BY j.createdAt DESC")
     List<JoinRequest> findByHostIdOrderByCreatedAtDesc(@Param("hostId") Long hostId);
 
+    @Query("SELECT DISTINCT j.listing.id FROM JoinRequest j WHERE j.member.id = :memberId AND j.status != com.subsplit.common.enums.JoinRequestStatus.REJECTED AND j.status != com.subsplit.common.enums.JoinRequestStatus.CANCELLED AND j.listing.id IS NOT NULL")
+    List<Long> findListingIdsByMemberIdNonRejected(@Param("memberId") Long memberId);
+
     boolean existsByListingIdAndMemberId(Long listingId, Long memberId);
 }
+
 
 
 

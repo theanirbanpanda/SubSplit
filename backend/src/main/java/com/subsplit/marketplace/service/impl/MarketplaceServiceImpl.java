@@ -105,9 +105,23 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, validatedSortBy));
 
+        List<Long> excludeListingIds = new ArrayList<>();
+        if (excludeHostId != null) {
+            try {
+                List<Long> joinReqListingIds = joinRequestRepository.findListingIdsByMemberIdNonRejected(excludeHostId);
+                if (joinReqListingIds != null) excludeListingIds.addAll(joinReqListingIds);
+
+                List<Long> membershipListingIds = membershipRepository.findListingIdsByMemberId(excludeHostId);
+                if (membershipListingIds != null) excludeListingIds.addAll(membershipListingIds);
+            } catch (Exception e) {
+                log.error("Failed to query joinee listing IDs for user exclusion: ", e);
+            }
+        }
+
         Specification<Listing> spec = ListingSpecification.filterListings(
-                excludeHostId, search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly
+                excludeHostId, excludeListingIds, search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly
         );
+
 
 
         Page<Listing> listingPage = listingRepository.findAll(spec, pageable);

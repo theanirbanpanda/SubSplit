@@ -13,7 +13,9 @@ import styles from './ListingTable.module.scss';
 const ListingTable = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { listings, loading, filters } = useSelector((state) => state.marketplace);
+  const { user } = useSelector((state) => state.auth || {});
+  const { listings, loading, filters, myJoinRequests = [] } = useSelector((state) => state.marketplace);
+  const { subscriptions = [] } = useSelector((state) => state.subscriptions || {});
   const [categoryAnchorEl, setCategoryAnchorEl] = useState(null);
   const [priceAnchorEl, setPriceAnchorEl] = useState(null);
   const [sortAnchorEl, setSortAnchorEl] = useState(null);
@@ -45,7 +47,6 @@ const ListingTable = () => {
 
   const handleTrendingToggle = () => {
     if (!filters.trendingOnly) {
-      // Turn ON trending, clear other filters to ensure it works alone
       dispatch(setFilter({ 
         trendingOnly: true, 
         category: 'All', 
@@ -53,13 +54,31 @@ const ListingTable = () => {
         search: '' 
       }));
     } else {
-      // Turn OFF trending
       dispatch(setFilter({ trendingOnly: false }));
     }
   };
 
   const filteredListings = listings.filter((listing) => {
+    // Exclude if current user is host
+    if (user?.id && (listing.hostId === user.id || listing.host?.id === user.id)) {
+      return false;
+    }
+
+    // Exclude if current user is already a joinee with a pending/approved request
+    const isJoinee = myJoinRequests.some(
+      (req) => (req.listingId === listing.id || req.listing?.id === listing.id) &&
+               req.status !== 'REJECTED' && req.status !== 'CANCELLED'
+    );
+    if (isJoinee) return false;
+
+    // Exclude if current user is already an active subscriber/member
+    const isSubscribed = subscriptions.some(
+      (sub) => sub.listingId === listing.id || sub.listing?.id === listing.id
+    );
+    if (isSubscribed) return false;
+
     // Search Filter
+
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       const matchesSearch = 

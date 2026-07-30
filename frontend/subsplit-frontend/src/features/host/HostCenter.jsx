@@ -183,14 +183,6 @@ function HostCenter() {
 
         <div className={styles.headerActions}>
           <Button
-            variant="outlined"
-            size="small"
-            onClick={() => navigate('/app/settlements')}
-            sx={{ borderRadius: '0.75rem', textTransform: 'none', fontWeight: 700, fontSize: '0.875rem', py: 1, px: 2.2 }}
-          >
-            Withdraw Payouts (₹8,450)
-          </Button>
-          <Button
             variant="contained"
             size="small"
             startIcon={<Plus size={16} />}
@@ -208,6 +200,7 @@ function HostCenter() {
             List New Pass
           </Button>
         </div>
+
       </div>
 
       {/* Row 1: 4 Metric Overview Cards */}

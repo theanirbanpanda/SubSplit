@@ -7,8 +7,26 @@ import styles from './RecentlyAdded.module.scss';
 
 const RecentlyAdded = () => {
   const navigate = useNavigate();
-  const { listings } = useSelector((state) => state.marketplace);
-  const recentListings = [...listings].reverse().slice(0, 5);
+  const { user } = useSelector((state) => state.auth || {});
+  const { listings = [], myJoinRequests = [] } = useSelector((state) => state.marketplace);
+  const { subscriptions = [] } = useSelector((state) => state.subscriptions || {});
+
+  const availableListings = listings.filter((listing) => {
+    if (user?.id && (listing.hostId === user.id || listing.host?.id === user.id)) return false;
+    const isJoinee = myJoinRequests.some(
+      (req) => (req.listingId === listing.id || req.listing?.id === listing.id) &&
+               req.status !== 'REJECTED' && req.status !== 'CANCELLED'
+    );
+    if (isJoinee) return false;
+    const isSubscribed = subscriptions.some(
+      (sub) => sub.listingId === listing.id || sub.listing?.id === listing.id
+    );
+    if (isSubscribed) return false;
+    return true;
+  });
+
+  const recentListings = [...availableListings].reverse().slice(0, 5);
+
 
   return (
     <div className={styles.section}>
