@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+
 import useLogoClick from '../../hooks/useLogoClick';
 import { logoutUser, logout } from '../../features/auth/authSlice';
 import {
@@ -42,6 +43,7 @@ const MENU_ITEMS = [
   { text: 'Wallet', icon: Wallet, path: '/app/settlements' },
   { text: 'Messages', icon: MessageSquare, path: '/app/messages' },
   { text: 'Notifications', icon: Bell, path: '/app/notifications' },
+  { text: 'Control Center', icon: Settings, path: '/app/admin', adminOnly: true, highlight: true },
   { text: 'Profile', icon: User, path: '/app/profile' },
 ];
 
@@ -51,6 +53,15 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
   const location = useLocation();
   const dispatch = useDispatch();
   const handleLogoClick = useLogoClick();
+
+  const { user } = useSelector((state) => state.auth || {});
+  const isAdmin =
+    user?.role === 'ADMIN' ||
+    user?.role === 'ROLE_ADMIN' ||
+    user?.role?.name === 'ADMIN' ||
+    user?.role?.name === 'ROLE_ADMIN' ||
+    user?.isAdmin === true;
+
 
   const drawerContent = (
     <Box
@@ -139,9 +150,24 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
       {/* Main Nav Links */}
       <Box sx={{ overflowY: 'auto', flexGrow: 1, px: sidebarCollapsed ? 1 : 1.5, py: 2, '&::-webkit-scrollbar': { display: 'none' } }}>
         <List disablePadding>
-          {MENU_ITEMS.map(({ text, icon: Icon, path }) => {
+          {MENU_ITEMS.map(({ text, icon: Icon, path, adminOnly, highlight }) => {
+            if (adminOnly && !isAdmin) return null;
             const isActive = location.pathname.startsWith(path);
-            
+
+            const getBackground = () => {
+              if (highlight) {
+                return isActive ? 'rgba(245, 158, 11, 0.22)' : 'rgba(245, 158, 11, 0.08)';
+              }
+              return isActive ? 'rgba(34, 197, 94, 0.1)' : 'transparent';
+            };
+
+            const getColor = () => {
+              if (highlight) {
+                return isActive ? '#fbbf24' : '#f59e0b';
+              }
+              return isActive ? '#22c55e' : '#9ca3af';
+            };
+
             const buttonContent = (
               <ListItemButton
                 onClick={() => {
@@ -152,23 +178,24 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
                     toggleSidebar();
                   }
                 }}
-
                 sx={{
                   borderRadius: '8px',
                   py: 1,
                   px: sidebarCollapsed ? 0 : 1.5,
                   mb: 0.5,
                   justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                  background: isActive ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
-                  color: isActive ? '#22c55e' : '#9ca3af',
+                  background: getBackground(),
+                  color: getColor(),
+                  border: highlight ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid transparent',
                   transition: 'all 0.15s ease',
                   '&:hover': {
-                    background: isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                    color: isActive ? '#22c55e' : '#f3f4f6',
+                    background: highlight ? 'rgba(245, 158, 11, 0.28)' : isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    color: highlight ? '#fbbf24' : isActive ? '#22c55e' : '#f3f4f6',
                   },
                 }}
                 aria-label={text}
               >
+
                 <ListItemIcon sx={{ 
                   minWidth: sidebarCollapsed ? 'auto' : 36, 
                   color: 'inherit',

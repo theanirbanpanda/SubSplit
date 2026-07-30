@@ -29,7 +29,9 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading, serve
   useEffect(() => {
     if (serverError) {
       const lower = serverError.toLowerCase();
-      if (lower.includes('email') || lower.includes('user') || lower.includes('credential')) {
+      if (lower.includes('blocked') || lower.includes('suspended')) {
+        setErrors((prev) => ({ ...prev, form: serverError }));
+      } else if (lower.includes('email') || lower.includes('user') || lower.includes('credential')) {
         setErrors((prev) => ({ ...prev, email: serverError }));
       } else if (lower.includes('password')) {
         setErrors((prev) => ({ ...prev, password: serverError }));
@@ -38,6 +40,7 @@ function LoginForm({ onLogin, onSwitchToSignup, onSwitchToForgot, loading, serve
       }
     }
   }, [serverError]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();

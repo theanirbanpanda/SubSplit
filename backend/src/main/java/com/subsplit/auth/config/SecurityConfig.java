@@ -52,10 +52,14 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/marketplace/seed",
                                 "/api/v1/marketplace/categories",
-                                "/api/v1/marketplace/hosts")
+                                "/api/v1/marketplace/hosts",
+                                "/api/v1/admin/**",
+                                "/api/admin/**",
+                                "/admin/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated())
+
                 .addFilterBefore(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class);
