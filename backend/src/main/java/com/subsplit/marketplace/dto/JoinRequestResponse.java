@@ -25,6 +25,14 @@ public class JoinRequestResponse {
     private java.math.BigDecimal price;
     private java.math.BigDecimal walletBalance;
     private LocalDateTime createdAt;
+    private String credentialsUsername;
+    private String credentialsPassword;
+    private String credentialsNotes;
+    private LocalDateTime credentialsSharedAt;
+    private LocalDateTime deadlineAt;
+    private String proofImage;
+    private LocalDateTime proofSubmittedAt;
 }
+
 
 

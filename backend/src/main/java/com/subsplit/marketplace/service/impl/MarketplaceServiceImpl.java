@@ -34,7 +34,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import com.subsplit.common.enums.JoinRequestStatus;
+
 import com.subsplit.listing.entity.JoinRequest;
 import com.subsplit.listing.entity.OwnershipProof;
 import com.subsplit.listing.repository.JoinRequestRepository;
@@ -909,6 +911,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     : "Verified Host";
             BigDecimal price = (listing != null) ? listing.getSeatPrice() : BigDecimal.ZERO;
 
+            LocalDateTime sharedAt = req.getCredentialsSharedAt();
+            LocalDateTime deadlineAt = sharedAt != null ? sharedAt.plusHours(24) : null;
+
             return JoinRequestResponse.builder()
                     .id(req.getId())
                     .listingId(listing != null ? listing.getId() : null)
@@ -922,6 +927,13 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .price(price)
                     .walletBalance(walletBal)
                     .createdAt(req.getCreatedAt())
+                    .credentialsUsername(req.getCredentialsUsername())
+                    .credentialsPassword(req.getCredentialsPassword())
+                    .credentialsNotes(req.getCredentialsNotes())
+                    .credentialsSharedAt(sharedAt)
+                    .deadlineAt(deadlineAt)
+                    .proofImage(req.getProofImage())
+                    .proofSubmittedAt(req.getProofSubmittedAt())
                     .build();
         }).collect(Collectors.toList());
     }
@@ -944,6 +956,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
             String memberName = (member != null) ? member.getFullName() : "Member";
             BigDecimal price = (listing != null) ? listing.getSeatPrice() : BigDecimal.ZERO;
+            LocalDateTime sharedAt = req.getCredentialsSharedAt();
+            LocalDateTime deadlineAt = sharedAt != null ? sharedAt.plusHours(24) : null;
 
             return JoinRequestResponse.builder()
                     .id(req.getId())
@@ -957,13 +971,20 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .hostName(host.getFullName())
                     .price(price)
                     .createdAt(req.getCreatedAt())
+                    .credentialsUsername(req.getCredentialsUsername())
+                    .credentialsPassword(req.getCredentialsPassword())
+                    .credentialsNotes(req.getCredentialsNotes())
+                    .credentialsSharedAt(sharedAt)
+                    .deadlineAt(deadlineAt)
+                    .proofImage(req.getProofImage())
+                    .proofSubmittedAt(req.getProofSubmittedAt())
                     .build();
         }).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public JoinRequestResponse acceptJoinRequest(User host, Long requestId) {
+    public JoinRequestResponse acceptJoinRequest(User host, Long requestId, ShareCredentialsRequest credentialsRequest) {
         JoinRequest joinReq = joinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Join request not found with id: " + requestId));
 
@@ -976,64 +997,34 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             throw new BadRequestException("Request is already " + joinReq.getStatus());
         }
 
-        // Approve join request
-        joinReq.setStatus(JoinRequestStatus.APPROVED);
+        // Save credentials & set status to CREDENTIALS_SHARED (Hold escrow funds until member proof verification)
+        LocalDateTime now = LocalDateTime.now();
+        joinReq.setCredentialsUsername(credentialsRequest.getUsername());
+        joinReq.setCredentialsPassword(credentialsRequest.getPassword());
+        joinReq.setCredentialsNotes(credentialsRequest.getNotes());
+        joinReq.setCredentialsSharedAt(now);
+        joinReq.setStatus(JoinRequestStatus.CREDENTIALS_SHARED);
+
         JoinRequest savedReq = joinRequestRepository.save(joinReq);
-
-        // Update available seats on listing
-        if (listing.getAvailableSeats() != null && listing.getAvailableSeats() > 0) {
-            listing.setAvailableSeats(listing.getAvailableSeats() - 1);
-            if (listing.getAvailableSeats() == 0) {
-                listing.setStatus(ListingStatus.FULL);
-            }
-            listingRepository.save(listing);
-        }
-
-        // Release escrow money to host's wallet
-        BigDecimal amount = listing.getSeatPrice();
-        if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
-            Wallet hostWallet = walletRepository.findByUserId(host.getId())
-                    .orElseGet(() -> walletRepository.save(Wallet.builder()
-                            .user(host)
-                            .balance(BigDecimal.ZERO)
-                            .build()));
-
-            hostWallet.setBalance(hostWallet.getBalance().add(amount));
-            walletRepository.save(hostWallet);
-
-            walletTransactionRepository.save(WalletTransaction.builder()
-                    .wallet(hostWallet)
-                    .transactionType(TransactionType.ESCROW_RELEASE)
-                    .amount(amount)
-                    .referenceId(listing.getId())
-                    .remarks("Escrow payment received for listing: " + listing.getTitle())
-                    .build());
-        }
-
 
         User member = joinReq.getMember();
         String memberName = member != null ? member.getFullName() : "Member";
 
-        // Real-time notifications
+        // Real-time notification to member
         try {
             if (member != null) {
                 notificationService.createNotification(
                         member,
                         NotificationType.JOIN_REQUEST,
-                        "Join Request Approved 🎉",
-                        "Host " + host.getFullName() + " approved your request for '" + listing.getTitle() + "'! Access credentials are now unlocked on your Dashboard."
+                        "Credentials Shared 🔑",
+                        "Host " + host.getFullName() + " shared login credentials for '" + listing.getTitle() + "'. Please test login and submit proof within 24 hours."
                 );
             }
-
-            notificationService.createNotification(
-                    host,
-                    NotificationType.PAYMENT,
-                    "Payment Received 💳",
-                    "₹" + amount + " released from escrow for new member " + memberName + "."
-            );
         } catch (Exception e) {
-            log.error("Failed to send notification on accept join request: ", e);
+            log.error("Failed to send notification on credentials shared: ", e);
         }
+
+        LocalDateTime deadlineAt = now.plusHours(24);
 
         return JoinRequestResponse.builder()
                 .id(savedReq.getId())
@@ -1045,8 +1036,130 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .listingTitle(listing.getTitle())
                 .price(listing.getSeatPrice())
                 .createdAt(savedReq.getCreatedAt())
+                .credentialsUsername(savedReq.getCredentialsUsername())
+                .credentialsPassword(savedReq.getCredentialsPassword())
+                .credentialsNotes(savedReq.getCredentialsNotes())
+                .credentialsSharedAt(savedReq.getCredentialsSharedAt())
+                .deadlineAt(deadlineAt)
                 .build();
     }
+
+    @Override
+    @Transactional
+    public JoinRequestResponse submitProofAndSettle(User user, Long requestId, SubmitProofRequest proofRequest) {
+        JoinRequest joinReq = joinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Join request not found with id: " + requestId));
+
+        Listing listing = joinReq.getListing();
+        User host = listing != null ? listing.getHost() : null;
+        User member = joinReq.getMember() != null ? joinReq.getMember() : user;
+
+        if (joinReq.getStatus() == JoinRequestStatus.REJECTED || joinReq.getStatus() == JoinRequestStatus.CANCELLED) {
+            throw new BadRequestException("Cannot submit proof for request with status: " + joinReq.getStatus());
+        }
+
+        if (joinReq.getStatus() == JoinRequestStatus.APPROVED) {
+            return JoinRequestResponse.builder()
+                    .id(joinReq.getId())
+                    .listingId(listing != null ? listing.getId() : null)
+                    .memberId(member.getId())
+                    .memberName(member.getFullName())
+                    .status(joinReq.getStatus())
+                    .message(joinReq.getMessage())
+                    .listingTitle(listing != null ? listing.getTitle() : "Group Pass")
+                    .price(listing != null ? listing.getSeatPrice() : BigDecimal.ZERO)
+                    .createdAt(joinReq.getCreatedAt())
+                    .credentialsUsername(joinReq.getCredentialsUsername())
+                    .credentialsPassword(joinReq.getCredentialsPassword())
+                    .credentialsNotes(joinReq.getCredentialsNotes())
+                    .proofImage(joinReq.getProofImage())
+                    .proofSubmittedAt(joinReq.getProofSubmittedAt())
+                    .build();
+        }
+
+        // Save proof screenshot & update status to APPROVED
+        LocalDateTime now = LocalDateTime.now();
+        joinReq.setProofImage(proofRequest.getProofImage());
+        joinReq.setProofSubmittedAt(now);
+        joinReq.setStatus(JoinRequestStatus.APPROVED);
+        JoinRequest savedReq = joinRequestRepository.save(joinReq);
+
+        // Update available seats on listing
+        if (listing != null && listing.getAvailableSeats() != null && listing.getAvailableSeats() > 0) {
+            listing.setAvailableSeats(listing.getAvailableSeats() - 1);
+            if (listing.getAvailableSeats() == 0) {
+                listing.setStatus(ListingStatus.FULL);
+            }
+            listingRepository.save(listing);
+        }
+
+        // Release escrow money to host's wallet balance
+        BigDecimal amount = (listing != null) ? listing.getSeatPrice() : BigDecimal.ZERO;
+        if (host != null && amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
+            try {
+                Wallet hostWallet = walletRepository.findByUserId(host.getId())
+                        .orElseGet(() -> walletRepository.save(Wallet.builder()
+                                .user(host)
+                                .balance(BigDecimal.ZERO)
+                                .build()));
+
+                hostWallet.setBalance(hostWallet.getBalance().add(amount));
+                walletRepository.save(hostWallet);
+
+                walletTransactionRepository.save(WalletTransaction.builder()
+                        .wallet(hostWallet)
+                        .transactionType(TransactionType.ESCROW_RELEASE)
+                        .amount(amount)
+                        .referenceId(listing != null ? listing.getId() : null)
+                        .remarks("Escrow payment released for listing: " + (listing != null ? listing.getTitle() : "Group Pass"))
+                        .build());
+            } catch (Exception e) {
+                log.error("Failed to update wallet balance on escrow release: ", e);
+            }
+        }
+
+        String memberName = member.getFullName();
+
+        // Real-time notifications
+        try {
+            notificationService.createNotification(
+                    member,
+                    NotificationType.JOIN_REQUEST,
+                    "Subscription Pass Activated 🎉",
+                    "Your login proof for '" + (listing != null ? listing.getTitle() : "Pass") + "' was verified! Pass is active."
+            );
+
+            if (host != null) {
+                notificationService.createNotification(
+                        host,
+                        NotificationType.PAYMENT,
+                        "Member Verified & Payout Settled 💰",
+                        "₹" + amount + " released from escrow to your wallet for member " + memberName + "."
+                );
+            }
+        } catch (Exception e) {
+            log.error("Failed to send notification on proof verification: ", e);
+        }
+
+        return JoinRequestResponse.builder()
+                .id(savedReq.getId())
+                .listingId(listing != null ? listing.getId() : null)
+                .memberId(member.getId())
+                .memberName(memberName)
+                .status(savedReq.getStatus())
+                .message(savedReq.getMessage())
+                .listingTitle(listing != null ? listing.getTitle() : "Group Pass")
+                .price(amount)
+                .createdAt(savedReq.getCreatedAt())
+                .credentialsUsername(savedReq.getCredentialsUsername())
+                .credentialsPassword(savedReq.getCredentialsPassword())
+                .credentialsNotes(savedReq.getCredentialsNotes())
+                .proofImage(savedReq.getProofImage())
+                .proofSubmittedAt(savedReq.getProofSubmittedAt())
+                .build();
+    }
+
+
 
     @Override
     @Transactional

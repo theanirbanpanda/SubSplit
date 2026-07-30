@@ -124,11 +124,14 @@ const AI_RECOMMENDATIONS = [
   },
 ];
 
-function HostCenter() {
+import ShareCredentialsModal from './components/ShareCredentialsModal';
 
+function HostCenter() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
+  const [selectedRequestForCreds, setSelectedRequestForCreds] = useState(null);
   const { hostJoinRequests = [] } = useSelector((state) => state.marketplace);
 
   useEffect(() => {
@@ -136,8 +139,19 @@ function HostCenter() {
     dispatch(fetchMyListings());
   }, [dispatch]);
 
-  const handleApproveRequest = async (requestId) => {
-    await dispatch(acceptJoinRequest(requestId));
+  const handleOpenCredentialsModal = (requestItem) => {
+    setSelectedRequestForCreds(requestItem);
+    setCredentialsModalOpen(true);
+  };
+
+  const handleShareCredentialsSubmit = async (credentialsData) => {
+    if (!selectedRequestForCreds) return;
+    await dispatch(
+      acceptJoinRequest({
+        requestId: selectedRequestForCreds.id,
+        ...credentialsData,
+      })
+    );
     dispatch(fetchHostJoinRequests());
   };
 
@@ -145,6 +159,7 @@ function HostCenter() {
     await dispatch(rejectJoinRequest(requestId));
     dispatch(fetchHostJoinRequests());
   };
+
 
 
   return (
@@ -342,7 +357,7 @@ function HostCenter() {
               const { id, memberName, listingTitle, platform, price, status, message } = req;
               const isApproved = status === 'APPROVED';
               const isRejected = status === 'REJECTED';
-              const isPending = status === 'PENDING';
+              const isCredentialsShared = status === 'CREDENTIALS_SHARED';
               const initials = memberName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'M';
 
               return (
@@ -385,6 +400,12 @@ function HostCenter() {
                           ✓ Request Approved! Escrow payment released to wallet.
                         </Typography>
                       </Box>
+                    ) : isCredentialsShared ? (
+                      <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(245,158,11,0.15)', textAlign: 'center' }}>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#f59e0b' }}>
+                          🔑 Credentials Shared! Awaiting Member Login Proof (24h Deadline).
+                        </Typography>
+                      </Box>
                     ) : isRejected ? (
                       <Box sx={{ p: 1.25, borderRadius: '10px', background: 'rgba(239,68,68,0.15)', textAlign: 'center' }}>
                         <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ef4444' }}>
@@ -397,7 +418,7 @@ function HostCenter() {
                           fullWidth
                           variant="contained"
                           size="small"
-                          onClick={() => handleApproveRequest(id)}
+                          onClick={() => handleOpenCredentialsModal(req)}
                           sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}
                         >
                           Accept Request
@@ -413,6 +434,7 @@ function HostCenter() {
                         </Button>
                       </Stack>
                     )}
+
                   </Paper>
                 </Grid>
               );
@@ -460,9 +482,18 @@ function HostCenter() {
 
       {/* Multi-step Create Listing Dialog */}
       <CreateListingModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
+
+      {/* Share Subscription Credentials Modal */}
+      <ShareCredentialsModal
+        open={credentialsModalOpen}
+        onClose={() => setCredentialsModalOpen(false)}
+        onSubmit={handleShareCredentialsSubmit}
+        requestItem={selectedRequestForCreds}
+      />
     </div>
   );
 }
+
 
 
 export default HostCenter;

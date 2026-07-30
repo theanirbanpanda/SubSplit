@@ -14,8 +14,10 @@ import {
   fetchMyJoinRequestsApi,
   fetchHostJoinRequestsApi,
   acceptJoinRequestApi,
+  submitProofAndSettleApi,
   rejectJoinRequestApi,
 } from './api/marketplaceApi';
+
 import { normalizeListing } from './utils/normalizeListing';
 
 export const fetchMyJoinRequests = createAsyncThunk(
@@ -44,12 +46,24 @@ export const fetchHostJoinRequests = createAsyncThunk(
 
 export const acceptJoinRequest = createAsyncThunk(
   'marketplace/acceptJoinRequest',
-  async (requestId, { rejectWithValue }) => {
+  async ({ requestId, username, password, notes }, { rejectWithValue }) => {
     try {
-      const response = await acceptJoinRequestApi(requestId);
+      const response = await acceptJoinRequestApi(requestId, { username, password, notes });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to accept join request');
+      return rejectWithValue(error.response?.data?.message || 'Failed to share credentials & accept join request');
+    }
+  }
+);
+
+export const submitProofAndSettle = createAsyncThunk(
+  'marketplace/submitProofAndSettle',
+  async ({ requestId, proofImage }, { rejectWithValue }) => {
+    try {
+      const response = await submitProofAndSettleApi(requestId, { proofImage });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to verify proof & settle holding money');
     }
   }
 );
@@ -65,6 +79,7 @@ export const rejectJoinRequest = createAsyncThunk(
     }
   }
 );
+
 
 
 
@@ -326,7 +341,17 @@ const marketplaceSlice = createSlice({
       .addCase(acceptJoinRequest.fulfilled, (state, action) => {
         const updated = action.payload;
         state.hostJoinRequests = state.hostJoinRequests.map((r) =>
-          r.id === updated.id ? { ...r, status: 'APPROVED' } : r
+          r.id === updated.id ? { ...r, ...updated, status: 'CREDENTIALS_SHARED' } : r
+        );
+      })
+      // submitProofAndSettle
+      .addCase(submitProofAndSettle.fulfilled, (state, action) => {
+        const updated = action.payload;
+        state.myJoinRequests = state.myJoinRequests.map((r) =>
+          r.id === updated.id ? { ...r, ...updated, status: 'APPROVED' } : r
+        );
+        state.hostJoinRequests = state.hostJoinRequests.map((r) =>
+          r.id === updated.id ? { ...r, ...updated, status: 'APPROVED' } : r
         );
       })
       // rejectJoinRequest
@@ -338,6 +363,7 @@ const marketplaceSlice = createSlice({
       });
   },
 });
+
 
 
 

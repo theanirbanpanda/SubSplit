@@ -31,6 +31,30 @@ public class SubsplitApplication {
             } catch (Exception e) {
                 // Ignore if already altered
             }
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN credentials_username VARCHAR(255)");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN credentials_password VARCHAR(255)");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN credentials_notes LONGTEXT");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN credentials_shared_at DATETIME");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests MODIFY COLUMN proof_image LONGTEXT");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests MODIFY COLUMN credentials_notes LONGTEXT");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests MODIFY COLUMN status VARCHAR(50)");
+            } catch (Exception e) {}
+            System.out.println("   [DB Migration] Verified join_requests credentials and proof columns.");
+
+
 
             System.out.println("\n==================================================");
             System.out.println("   SubSplit Backend Started Successfully!");

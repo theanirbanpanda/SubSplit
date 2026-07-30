@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,7 +9,10 @@ import {
   toggleAutoRenew,
 } from '../groups/subscriptionsSlice';
 import { fetchMyWallet } from '../settlements/walletSlice';
-import { fetchMyJoinRequests } from '../marketplace/marketplaceSlice';
+import { fetchMyJoinRequests, submitProofAndSettle } from '../marketplace/marketplaceSlice';
+import ViewCredentialsAndProofModal from '../marketplace/components/ViewCredentialsAndProofModal';
+import VerificationOverlayModal from '../marketplace/components/VerificationOverlayModal';
+
 import {
   Box,
   Grid,
@@ -25,7 +29,10 @@ import {
   DialogTitle,
   DialogContent,
   TextField,
+  Snackbar,
+  Alert,
 } from '@mui/material';
+
 import {
   Layers,
   Wallet as WalletIcon,
@@ -93,11 +100,70 @@ function Dashboard() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const activeProofRef = useRef({ req: null, proof: null });
+  const [viewCredsModalOpen, setViewCredsModalOpen] = useState(false);
+  const [selectedCredsReq, setSelectedCredsReq] = useState(null);
+  const [verifyingModalOpen, setVerifyingModalOpen] = useState(false);
+
+  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+
+  const handleOpenCredsModal = (reqItem) => {
+    setSelectedCredsReq(reqItem);
+    setViewCredsModalOpen(true);
+  };
+
+  const handleProofSelected = (proofImageData) => {
+    activeProofRef.current = { req: selectedCredsReq, proof: proofImageData };
+    setViewCredsModalOpen(false);
+    setVerifyingModalOpen(true);
+  };
+
+  const handleVerificationComplete = async () => {
+    const { req, proof } = activeProofRef.current;
+    setVerifyingModalOpen(false);
+
+    if (req && proof) {
+      try {
+        await dispatch(
+          submitProofAndSettle({
+            requestId: req.id,
+            proofImage: proof,
+          })
+        ).unwrap();
+
+        dispatch(fetchMyJoinRequests());
+        dispatch(fetchMyWallet());
+        dispatch(fetchMySubscriptions());
+        setToast({
+          open: true,
+          message: '🎉 Login Proof Verified! Pass activated & holding payment settled to host wallet.',
+          severity: 'success',
+        });
+      } catch (err) {
+        dispatch(fetchMyJoinRequests());
+        dispatch(fetchMyWallet());
+        dispatch(fetchMySubscriptions());
+        setToast({
+          open: true,
+          message: typeof err === 'string' ? err : 'Failed to process proof verification.',
+          severity: 'error',
+        });
+      } finally {
+        activeProofRef.current = { req: null, proof: null };
+        setSelectedCredsReq(null);
+      }
+    }
+  };
+
+
+
+
   const handleCancelPass = (id) => {
     if (window.confirm('Are you sure you want to cancel your slot membership? You will retain access until the end of your billing period.')) {
       dispatch(cancelSubscription(id));
     }
   };
+
 
   // Map subscriptions to UI theme
   const activeMemberships = subscriptions.map((item) => {
@@ -480,9 +546,26 @@ function Dashboard() {
             {myJoinRequests.map((req) => {
               const isApproved = req.status === 'APPROVED';
               const isPending = req.status === 'PENDING';
-              const statusColor = isApproved ? '#22c55e' : (isPending ? '#f59e0b' : '#ef4444');
-              const statusBg = isApproved ? 'rgba(34,197,94,0.12)' : (isPending ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)');
-              const StatusIcon = isApproved ? CheckCircle2 : (isPending ? Hourglass : XCircle);
+              const isCredentialsShared = req.status === 'CREDENTIALS_SHARED';
+
+              let statusColor = '#ef4444';
+              let statusBg = 'rgba(239,68,68,0.12)';
+              let StatusIcon = XCircle;
+
+              if (isApproved) {
+                statusColor = '#22c55e';
+                statusBg = 'rgba(34,197,94,0.12)';
+                StatusIcon = CheckCircle2;
+              } else if (isCredentialsShared) {
+                statusColor = '#f59e0b';
+                statusBg = 'rgba(245,158,11,0.15)';
+                StatusIcon = Hourglass;
+              } else if (isPending) {
+                statusColor = '#f59e0b';
+                statusBg = 'rgba(245,158,11,0.12)';
+                StatusIcon = Hourglass;
+              }
+
               const dateStr = req.createdAt ? new Date(req.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
 
               return (
@@ -515,7 +598,7 @@ function Dashboard() {
 
                         <Chip
                           icon={<StatusIcon size={12} color={statusColor} />}
-                          label={req.status}
+                          label={isCredentialsShared ? 'Credentials Received' : req.status}
                           size="small"
                           sx={{
                             background: statusBg,
@@ -541,7 +624,24 @@ function Dashboard() {
                       </Typography>
                     </Box>
 
-                    {req.listingId && (
+                    {isCredentialsShared ? (
+                      <Button
+                        fullWidth
+                        size="small"
+                        variant="contained"
+                        onClick={() => handleOpenCredsModal(req)}
+                        sx={{
+                          borderRadius: '10px',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          textTransform: 'none',
+                          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                          py: 0.8,
+                        }}
+                      >
+                        🔑 View Credentials & Submit Proof
+                      </Button>
+                    ) : req.listingId && (
                       <Button
                         fullWidth
                         size="small"
@@ -565,6 +665,7 @@ function Dashboard() {
                 </Grid>
               );
             })}
+
           </Grid>
         ) : (
           <Paper elevation={0} sx={{ p: 3.5, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
@@ -645,9 +746,42 @@ function Dashboard() {
           </Button>
         </DialogContent>
       </Dialog>
+
+      {/* Member View Credentials & Upload Proof Modal */}
+      <ViewCredentialsAndProofModal
+        open={viewCredsModalOpen}
+        onClose={() => setViewCredsModalOpen(false)}
+        requestItem={selectedCredsReq}
+        onSubmitProof={handleProofSelected}
+      />
+
+      {/* 5-Second Verification Overlay Modal (No countdown timer display) */}
+      <VerificationOverlayModal
+        open={verifyingModalOpen}
+        onComplete={handleVerificationComplete}
+      />
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={5000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setToast({ ...toast, open: false })}
+          severity={toast.severity}
+          variant="filled"
+          sx={{ width: '100%', borderRadius: '12px', fontWeight: 700 }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
+
+
 
 export default Dashboard;
 

@@ -75,8 +75,13 @@ export const fetchHostJoinRequestsApi = async () => {
   return response.data;
 };
 
-export const acceptJoinRequestApi = async (requestId) => {
-  const response = await api.put(`/marketplace/join-requests/${requestId}/accept`);
+export const acceptJoinRequestApi = async (requestId, credentialsData) => {
+  const response = await api.put(`/marketplace/join-requests/${requestId}/accept`, credentialsData);
+  return response.data;
+};
+
+export const submitProofAndSettleApi = async (requestId, proofData) => {
+  const response = await api.post(`/marketplace/join-requests/${requestId}/submit-proof-and-settle`, proofData);
   return response.data;
 };
 
@@ -84,6 +89,7 @@ export const rejectJoinRequestApi = async (requestId) => {
   const response = await api.put(`/marketplace/join-requests/${requestId}/reject`);
   return response.data;
 };
+
 
 
 
