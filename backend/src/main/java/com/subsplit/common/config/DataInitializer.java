@@ -50,10 +50,15 @@ public class DataInitializer implements CommandLineRunner {
         Role hostRole = roleRepository.findByName("HOST")
                 .orElseGet(() -> roleRepository.save(Role.builder().name("HOST").description("Host User").build()));
 
-        roleRepository.findByName("ADMIN")
+        Role adminRole = roleRepository.findByName("ADMIN")
                 .orElseGet(() -> roleRepository.save(Role.builder().name("ADMIN").description("System Admin").build()));
 
+        // 0. Seed Default System Admin
+        createAdminIfNotFound("subadmin@admin.com", "subadmin", "SubSplit", "Admin", adminRole);
+
+
         // 1. Seed Hosts
+
         User host1 = createHostIfNotFound("vikram@subsplit.com", "Vikram", "S.", hostRole,
                 "Verified SubSplit super host managing top streaming & productivity groups.");
         User host2 = createHostIfNotFound("ananya@subsplit.com", "Ananya", "R.", hostRole,
@@ -166,7 +171,34 @@ public class DataInitializer implements CommandLineRunner {
         });
     }
 
+    private User createAdminIfNotFound(String email, String password, String firstName, String lastName, Role role) {
+        return userRepository.findByEmail(email).orElseGet(() -> {
+            User user = User.builder()
+                    .email(email)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .fullName((firstName + " " + lastName).trim())
+                    .passwordHash(passwordEncoder.encode(password))
+                    .role(role)
+                    .isActive(true)
+                    .emailVerified(true)
+                    .build();
+
+            UserProfile profile = UserProfile.builder()
+                    .user(user)
+                    .bio("SubSplit System Administrator Control Center Account")
+                    .state("Maharashtra")
+                    .city("Mumbai")
+                    .build();
+            user.setProfile(profile);
+
+            log.info("Created default system admin user: {}", email);
+            return userRepository.save(user);
+        });
+    }
+
     private Category createCategoryIfNotFound(String name, String description, String icon) {
+
         List<Category> list = categoryRepository.findAll();
         for (Category c : list) {
             if (c.getCategoryName().equalsIgnoreCase(name)) {

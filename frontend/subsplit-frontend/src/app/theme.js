@@ -45,21 +45,37 @@ const theme = createTheme({
           backgroundColor: '#0d0e11',
           color: '#f3f4f6',
           fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif',
-          scrollbarColor: '#252830 #0d0e11',
-          '& ::-webkit-scrollbar': {
-            width: '8px',
-            height: '8px',
+          scrollbarColor: 'transparent transparent',
+          '*:hover': {
+            scrollbarColor: 'rgba(255, 255, 255, 0.25) transparent',
           },
-          '& ::-webkit-scrollbar-track': {
-            background: '#0d0e11',
+          '::-webkit-scrollbar': {
+            width: '5px',
+            height: '5px',
           },
-          '& ::-webkit-scrollbar-thumb': {
-            background: '#252830',
-            borderRadius: '4px',
+          '::-webkit-scrollbar-track, ::-webkit-scrollbar-track-piece, ::-webkit-scrollbar-corner': {
+            background: 'transparent !important',
+            border: 'none !important',
+            boxShadow: 'none !important',
+          },
+
+          '::-webkit-scrollbar-thumb': {
+            background: 'transparent',
+            borderRadius: '10px',
+            transition: 'background 0.3s ease',
+          },
+          '*:hover::-webkit-scrollbar-thumb, *:active::-webkit-scrollbar-thumb, *:focus::-webkit-scrollbar-thumb': {
+            background: 'rgba(255, 255, 255, 0.25)',
+          },
+          '::-webkit-scrollbar-thumb:hover': {
+            background: 'rgba(255, 255, 255, 0.5) !important',
           },
         },
       },
     },
+
+
+
 
     MuiButton: {
       styleOverrides: {

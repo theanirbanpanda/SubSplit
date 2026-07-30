@@ -136,10 +136,21 @@ public class MarketplaceController {
     @PutMapping("/join-requests/{id}/accept")
     public ResponseEntity<ApiResponse<JoinRequestResponse>> acceptJoinRequest(
             Authentication authentication,
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @Valid @RequestBody ShareCredentialsRequest request) {
         User currentUser = getAuthenticatedUser(authentication);
-        JoinRequestResponse response = marketplaceService.acceptJoinRequest(currentUser, id);
-        return ResponseEntity.ok(ApiResponse.success("Join request accepted successfully", response));
+        JoinRequestResponse response = marketplaceService.acceptJoinRequest(currentUser, id, request);
+        return ResponseEntity.ok(ApiResponse.success("Credentials shared and request updated successfully", response));
+    }
+
+    @PostMapping("/join-requests/{id}/submit-proof-and-settle")
+    public ResponseEntity<ApiResponse<JoinRequestResponse>> submitProofAndSettle(
+            Authentication authentication,
+            @PathVariable Long id,
+            @Valid @RequestBody SubmitProofRequest request) {
+        User currentUser = getAuthenticatedUser(authentication);
+        JoinRequestResponse response = marketplaceService.submitProofAndSettle(currentUser, id, request);
+        return ResponseEntity.ok(ApiResponse.success("Proof verified and money settled successfully", response));
     }
 
     @PutMapping("/join-requests/{id}/reject")
@@ -150,6 +161,7 @@ public class MarketplaceController {
         JoinRequestResponse response = marketplaceService.rejectJoinRequest(currentUser, id);
         return ResponseEntity.ok(ApiResponse.success("Join request rejected successfully", response));
     }
+
 
 
     @GetMapping("/listings/my-listings")

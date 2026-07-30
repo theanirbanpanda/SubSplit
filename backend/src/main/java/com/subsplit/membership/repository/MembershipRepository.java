@@ -17,6 +17,10 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByMemberIdAndStatus(Long memberId, com.subsplit.common.enums.MembershipStatus status);
 
     long countByMemberIdAndStatus(Long memberId, com.subsplit.common.enums.MembershipStatus status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT m.listing.id FROM Membership m WHERE m.member.id = :memberId AND m.listing.id IS NOT NULL")
+    List<Long> findListingIdsByMemberId(@org.springframework.data.repository.query.Param("memberId") Long memberId);
 }
+
 
 

@@ -36,4 +36,23 @@ public class JoinRequest extends BaseEntity {
     private JoinRequestStatus status;
 
     private String message;
+
+    @Column(name = "credentials_username")
+    private String credentialsUsername;
+
+    @Column(name = "credentials_password")
+    private String credentialsPassword;
+
+    @Column(name = "credentials_notes", columnDefinition = "LONGTEXT")
+    private String credentialsNotes;
+
+    @Column(name = "credentials_shared_at")
+    private java.time.LocalDateTime credentialsSharedAt;
+
+    @Column(name = "proof_image", columnDefinition = "LONGTEXT")
+    private String proofImage;
+
+    @Column(name = "proof_submitted_at")
+    private java.time.LocalDateTime proofSubmittedAt;
 }
+

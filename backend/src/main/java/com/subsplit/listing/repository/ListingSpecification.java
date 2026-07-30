@@ -16,6 +16,7 @@ public class ListingSpecification {
 
     public static Specification<Listing> filterListings(
             Long excludeHostId,
+            List<Long> excludeListingIds,
             String search,
             String category,
             Long subscriptionId,
@@ -33,6 +34,12 @@ public class ListingSpecification {
                 Join<Object, Object> hostJoin = root.join("host", JoinType.LEFT);
                 predicates.add(cb.notEqual(hostJoin.get("id"), excludeHostId));
             }
+
+            // Exclude listings where current user is already a joinee/member
+            if (excludeListingIds != null && !excludeListingIds.isEmpty()) {
+                predicates.add(cb.not(root.get("id").in(excludeListingIds)));
+            }
+
 
 
             // Avoid duplicate rows when fetching joins

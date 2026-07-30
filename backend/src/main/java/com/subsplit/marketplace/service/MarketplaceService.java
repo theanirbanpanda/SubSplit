@@ -59,10 +59,14 @@ public interface MarketplaceService {
 
     List<JoinRequestResponse> getHostJoinRequests(User host);
 
-    JoinRequestResponse acceptJoinRequest(User host, Long requestId);
+    JoinRequestResponse acceptJoinRequest(User host, Long requestId, ShareCredentialsRequest credentialsRequest);
+
+
+    JoinRequestResponse submitProofAndSettle(User member, Long requestId, SubmitProofRequest proofRequest);
 
     JoinRequestResponse rejectJoinRequest(User host, Long requestId);
 }
+
 
 
 

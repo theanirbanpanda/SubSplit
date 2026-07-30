@@ -13,8 +13,23 @@ import ListingDetails from "../features/marketplace/ListingDetails";
 import HostCenter from "../features/host/HostCenter";
 import NotificationsCenter from "../features/notifications/NotificationsCenter";
 import Messages from "../features/messages/Messages";
+import AdminDashboard from "../features/admin/AdminDashboard";
 import PrivateRoute from "../components/routes/PrivateRoute";
 import PublicRoute from "../components/routes/PublicRoute";
+
+import { useSelector } from "react-redux";
+
+function AdminRoute() {
+  const { user } = useSelector((state) => state.auth || {});
+  const isAdmin =
+    user?.role === 'ADMIN' ||
+    user?.role === 'ROLE_ADMIN' ||
+    user?.role?.name === 'ADMIN' ||
+    user?.role?.name === 'ROLE_ADMIN' ||
+    user?.isAdmin === true;
+
+  return isAdmin ? <AdminDashboard /> : <Navigate to="/app/dashboard" replace />;
+}
 
 export default function AppRoutes() {
   return (
@@ -42,9 +57,12 @@ export default function AppRoutes() {
             <Route path="host" element={<HostCenter />} />
             <Route path="notifications" element={<NotificationsCenter />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="admin" element={<AdminRoute />} />
             <Route path="profile" element={<Profile />} />
           </Route>
         </Route>
+
+
 
         {/* Catch-all Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
