@@ -7,6 +7,7 @@ import Groups from "../features/groups/Groups";
 import Expenses from "../features/expenses/Expenses";
 import Settlements from "../features/settlements/Settlements";
 import Profile from "../features/profile/Profile";
+import UserReviewsPage from "../features/profile/pages/UserReviewsPage";
 import LandingPage from "../features/landing/pages/LandingPage";
 import Marketplace from "../features/marketplace/Marketplace";
 import ListingDetails from "../features/marketplace/ListingDetails";
@@ -72,6 +73,7 @@ export default function AppRoutes() {
             <Route path="messages" element={<Messages />} />
             <Route path="admin" element={<AdminRoute />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="profile/reviews" element={<UserReviewsPage />} />
           </Route>
         </Route>
 

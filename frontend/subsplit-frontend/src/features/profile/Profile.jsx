@@ -456,15 +456,33 @@ function Profile() {
         </Grid>
 
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
-            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
-              Host Rating
-            </Typography>
+          <Paper
+            elevation={0}
+            onClick={() => navigate('/app/profile/reviews')}
+            sx={{
+              p: 2.5,
+              borderRadius: '20px',
+              background: '#14161a',
+              border: '1px solid rgba(255,255,255,0.08)',
+              height: '100%',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': { borderColor: '#a855f7', transform: 'translateY(-2px)' },
+            }}
+          >
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
+                Host Rating
+              </Typography>
+              <Typography sx={{ fontSize: '0.7rem', color: '#a855f7', fontWeight: 700 }}>
+                View Reviews →
+              </Typography>
+            </Stack>
             <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#a855f7', mt: 0.5, lineHeight: 1 }}>
               4.9★ Super Host
             </Typography>
             <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', mt: 1 }}>
-              14 Completed Groups
+              Based on 14 Verified Reviews
             </Typography>
           </Paper>
         </Grid>

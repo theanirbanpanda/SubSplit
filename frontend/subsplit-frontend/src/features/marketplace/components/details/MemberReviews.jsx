@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -8,15 +9,22 @@ import {
   Avatar,
   Chip,
   Button,
+  Snackbar,
+  Alert,
 } from '@mui/material';
-import { Star, ThumbsUp, ShieldCheck } from 'lucide-react';
+import { Star, ThumbsUp, ShieldCheck, Edit3, CheckCircle2 } from 'lucide-react';
 import { fetchListingReviews } from '../../marketplaceSlice';
 import { DEFAULT_REVIEWS } from '../../data/mockListings';
+import WriteReviewModal from './WriteReviewModal';
 
-function MemberReviews({ listingId, reviewSummary }) {
+function MemberReviews({ listingId, reviewSummary, hostId, hostName }) {
   const dispatch = useDispatch();
   const { currentReviews } = useSelector((state) => state.marketplace);
+  const { user } = useSelector((state) => state.auth || {});
+
   const [helpfulCounts, setHelpfulCounts] = useState({});
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     if (listingId && !reviewSummary) {
@@ -26,6 +34,7 @@ function MemberReviews({ listingId, reviewSummary }) {
 
   const activeReviews = reviewSummary?.reviews || currentReviews?.reviews || DEFAULT_REVIEWS.map(r => ({
     id: r.id,
+    reviewerId: r.reviewerId,
     reviewerName: r.name,
     city: r.city,
     avatarBg: r.avatarBg,
@@ -38,11 +47,18 @@ function MemberReviews({ listingId, reviewSummary }) {
 
   const avgRating = reviewSummary?.averageRating || currentReviews?.averageRating || 4.9;
 
+  const isHost = user && hostId && (user.id === hostId || user.email === hostId);
+  const userHasReviewed = user && activeReviews.some(r => r.reviewerId === user.id);
+
   const handleHelpful = (id) => {
     setHelpfulCounts((prev) => ({
       ...prev,
       [id]: (prev[id] || 0) + 1,
     }));
+  };
+
+  const handleReviewSuccess = (msg) => {
+    setToast({ open: true, message: msg, severity: 'success' });
   };
 
   return (
@@ -52,11 +68,42 @@ function MemberReviews({ listingId, reviewSummary }) {
           Verified Member Reviews
         </Typography>
 
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Star size={18} fill="#f59e0b" color="#f59e0b" />
-          <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#ffffff' }}>
-            {avgRating} / 5.0
-          </Typography>
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Star size={18} fill="#f59e0b" color="#f59e0b" />
+            <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#ffffff' }}>
+              {avgRating} / 5.0
+            </Typography>
+          </Stack>
+
+          {!isHost && !userHasReviewed && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Edit3 size={14} />}
+              onClick={() => setReviewModalOpen(true)}
+              sx={{
+                borderRadius: '10px',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                textTransform: 'none',
+                py: 0.6,
+                px: 1.8,
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+              }}
+            >
+              Write a Review
+            </Button>
+          )}
+
+          {userHasReviewed && (
+            <Chip
+              icon={<CheckCircle2 size={12} color="#22c55e" />}
+              label="Reviewed"
+              size="small"
+              sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
+            />
+          )}
         </Stack>
       </Stack>
 
@@ -164,6 +211,32 @@ function MemberReviews({ listingId, reviewSummary }) {
           );
         })}
       </Stack>
+
+      {/* Write Review Modal */}
+      <WriteReviewModal
+        open={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        listingId={listingId}
+        hostName={hostName}
+        onSuccess={handleReviewSuccess}
+      />
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+          severity={toast.severity}
+          variant="filled"
+          sx={{ borderRadius: '12px', fontWeight: 700 }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -714,11 +714,28 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             reviewer = userRepository.findAll().stream().findFirst().orElseThrow();
         }
 
+        // Constraint 1: Host cannot review themselves
+        if (listing.getHost() != null && Objects.equals(listing.getHost().getId(), reviewer.getId())) {
+            throw new BadRequestException("You cannot submit a review on your own listing");
+        }
+
+        // Constraint 2: One review per joinee per listing
+        if (reviewRepository.existsByReviewerIdAndMembershipListingId(reviewer.getId(), listingId)) {
+            throw new BadRequestException("You have already submitted a review for this listing");
+        }
+
+        // Constraint 3: Plain text only & max 500 characters validation
+        String plainText = request.getReviewText() != null ? request.getReviewText().replaceAll("<[^>]*>", "").trim() : "";
+        if (plainText.length() < 5 || plainText.length() > 500) {
+            throw new BadRequestException("Review comment must be plain text between 5 and 500 characters");
+        }
+
         Review review = Review.builder()
                 .reviewer(reviewer)
                 .reviewee(listing.getHost())
+                .listing(listing)
                 .rating(request.getRating())
-                .reviewText(request.getReviewText())
+                .reviewText(plainText)
                 .build();
 
         Review saved = reviewRepository.save(review);
@@ -732,13 +749,15 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .reviewerAvatar(reviewer.getProfileImage())
                 .reviewerInitials(getInitials(name))
                 .avatarBg("#2563eb")
-                .city("Verified User")
+                .city("Verified Member")
                 .rating(saved.getRating())
                 .reviewText(saved.getReviewText())
                 .formattedDate("Just now")
                 .createdAt(saved.getCreatedAt())
                 .isVerifiedMember(true)
                 .helpfulCount(0)
+                .listingId(listing.getId())
+                .listingTitle(listing.getTitle())
                 .build();
     }
 

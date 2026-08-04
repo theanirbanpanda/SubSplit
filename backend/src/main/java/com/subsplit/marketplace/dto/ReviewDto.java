@@ -25,4 +25,6 @@ public class ReviewDto {
     private LocalDateTime createdAt;
     private Boolean isVerifiedMember;
     private Integer helpfulCount;
+    private Long listingId;
+    private String listingTitle;
 }

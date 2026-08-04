@@ -3,6 +3,7 @@ package com.subsplit.review.entity;
 import com.subsplit.common.entity.BaseEntity;
 import com.subsplit.membership.entity.Membership;
 import com.subsplit.common.entity.User;
+import com.subsplit.listing.entity.Listing;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,10 @@ public class Review extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "listing_id")
+    private Listing listing;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "membership_id")
