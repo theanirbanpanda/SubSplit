@@ -1,28 +1,35 @@
+@use '../../styles/abstracts/variables' as *;
+
+// ─── Dashboard Container ──────────────────────────────────────────────────────
 .dashboardContainer {
   width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
-
+  padding: 0.25rem 0 2.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: $gap-component-section;
+
+  @media (max-width: 48rem) {
+    gap: $gap-component-section-mobile;
+  }
 }
 
+// ─── Hero ─────────────────────────────────────────────────────────────────────
 .heroWrapper {
   width: 100%;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
+// ─── Stats Grid ───────────────────────────────────────────────────────────────
 .statsGrid {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 2.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $gap-grid-cards-mobile;
+  margin-bottom: 0;
 
-  @media (min-width: 36rem) {
+  @media (min-width: 48rem) {
     grid-template-columns: repeat(2, 1fr);
+    gap: $gap-grid-cards;
   }
 
   @media (min-width: 64rem) {
@@ -30,75 +37,94 @@
   }
 }
 
+// ─── Section Header ───────────────────────────────────────────────────────────
 .sectionHeader {
   width: 100%;
-  text-align: center;
-  margin-bottom: 1.5rem;
+  text-align: left;
+  margin-bottom: $gap-heading-body;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $gap-icon-text;
 }
 
 .sectionTitle {
   font-weight: 900;
-  font-size: 1.5rem;
-  color: #f3f4f6;
-  letter-spacing: -0.02em;
+  font-size: 1.25rem;
+  color: #f1f5f9;
+  letter-spacing: -0.025em;
   margin: 0;
 }
 
 .sectionSubtitle {
-  font-size: 0.875rem;
-  color: #9ca3af;
+  font-size: 0.82rem;
+  color: #64748b;
   margin: 0;
+  font-weight: 500;
 }
 
+// ─── Subscription Passes Grid ─────────────────────────────────────────────────
 .passesGrid {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  gap: $gap-grid-cards-mobile;
 
   @media (min-width: 48rem) {
     grid-template-columns: repeat(2, 1fr);
+    gap: $gap-grid-cards;
   }
 
-  @media (min-width: 72rem) {
+  @media (min-width: 80rem) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
+// ─── Pass Card ────────────────────────────────────────────────────────────────
 .passCard {
-  background: #14161a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.25rem;
+  background: #14161e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  gap: 1.125rem;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
 
   &:hover {
-    transform: translateY(-0.25rem);
-    border-color: rgba(59, 130, 246, 0.4);
+    transform: translateY(-3px);
+    border-color: rgba(59, 130, 246, 0.35);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.1);
   }
 }
 
+// ─── Two-Column Split ─────────────────────────────────────────────────────────
 .splitSection {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  gap: $gap-grid-cards-mobile;
 
   @media (min-width: 64rem) {
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 3fr 2fr;
+    gap: $gap-grid-cards;
   }
 }
 
+// ─── Banner ───────────────────────────────────────────────────────────────────
 .bannerWrapper {
   width: 100%;
-  margin-top: 2rem;
+  margin-top: 0;
 }
+

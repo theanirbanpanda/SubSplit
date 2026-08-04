@@ -55,6 +55,11 @@ export const submitListingReviewApi = async (id, reviewData) => {
   return response.data;
 };
 
+export const fetchUserReviewsApi = async (userId) => {
+  const response = await api.get(`/reviews/user/${userId}`);
+  return response.data;
+};
+
 export const submitJoinRequestApi = async (id, requestData = {}) => {
   const response = await api.post(`/marketplace/listings/${id}/join-requests`, requestData);
   return response.data;

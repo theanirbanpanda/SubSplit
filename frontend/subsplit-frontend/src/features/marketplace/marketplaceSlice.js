@@ -9,6 +9,8 @@ import {
   fetchMyListingsApi,
   fetchSimilarListingsApi,
   fetchListingReviewsApi,
+  submitListingReviewApi,
+  fetchUserReviewsApi,
   submitJoinRequestApi,
   checkJoinStatusApi,
   fetchMyJoinRequestsApi,
@@ -46,9 +48,9 @@ export const fetchHostJoinRequests = createAsyncThunk(
 
 export const acceptJoinRequest = createAsyncThunk(
   'marketplace/acceptJoinRequest',
-  async ({ requestId, username, password, notes }, { rejectWithValue }) => {
+  async ({ requestId, shareType, username, password, invitationLink, activationCode, notes }, { rejectWithValue }) => {
     try {
-      const response = await acceptJoinRequestApi(requestId, { username, password, notes });
+      const response = await acceptJoinRequestApi(requestId, { shareType, username, password, invitationLink, activationCode, notes });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to share credentials & accept join request');
@@ -197,6 +199,31 @@ export const fetchListingReviews = createAsyncThunk(
   }
 );
 
+export const submitListingReview = createAsyncThunk(
+  'marketplace/submitListingReview',
+  async ({ listingId, rating, reviewText }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await submitListingReviewApi(listingId, { rating, reviewText });
+      dispatch(fetchListingReviews(listingId));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to submit review');
+    }
+  }
+);
+
+export const fetchUserReviews = createAsyncThunk(
+  'marketplace/fetchUserReviews',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await fetchUserReviewsApi(userId);
+      return response.data || null;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user reviews');
+    }
+  }
+);
+
 export const submitJoinRequest = createAsyncThunk(
   'marketplace/submitJoinRequest',
   async ({ listingId, message }, { rejectWithValue }) => {
@@ -232,6 +259,7 @@ const initialState = {
   similarListings: [],
 
   currentReviews: null,
+  userReviews: null,
   joinRequestStatus: null,
   loading: false,
   detailsLoading: false,
@@ -320,6 +348,10 @@ const marketplaceSlice = createSlice({
       // fetchListingReviews
       .addCase(fetchListingReviews.fulfilled, (state, action) => {
         state.currentReviews = action.payload;
+      })
+      // fetchUserReviews
+      .addCase(fetchUserReviews.fulfilled, (state, action) => {
+        state.userReviews = action.payload;
       })
       // submitJoinRequest
       .addCase(submitJoinRequest.fulfilled, (state, action) => {

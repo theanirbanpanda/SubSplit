@@ -65,7 +65,7 @@ public class AdminServiceImpl implements AdminService {
             dynamicLogs.add(AdminLog.builder()
                     .id(tx.getId())
                     .action("WALLET_TRANSACTION")
-                    .details(tx.getRemarks() != null ? tx.getRemarks() : "Wallet transaction processed: ₹" + tx.getAmount())
+                    .description(tx.getRemarks() != null ? tx.getRemarks() : "Wallet transaction processed: ₹" + tx.getAmount())
                     .createdAt(tx.getCreatedAt() != null ? tx.getCreatedAt() : LocalDateTime.now())
                     .build());
         }
@@ -77,11 +77,12 @@ public class AdminServiceImpl implements AdminService {
                 dynamicLogs.add(AdminLog.builder()
                         .id(req.getId() + 1000)
                         .action("PROOF_VERIFIED")
-                        .details("Escrow verified and released for '" + title + "'")
+                        .description("Escrow verified and released for '" + title + "'")
                         .createdAt(req.getProofSubmittedAt() != null ? req.getProofSubmittedAt() : req.getCreatedAt())
                         .build());
             }
         }
+
 
         dynamicLogs.sort(Comparator.comparing(AdminLog::getCreatedAt).reversed());
         return dynamicLogs;
@@ -315,6 +316,9 @@ public class AdminServiceImpl implements AdminService {
                             .memberEmail(member != null ? member.getEmail() : null)
                             .amount(amount)
                             .status(r.getStatus() != null ? r.getStatus().name() : "PENDING")
+                            .shareType(r.getShareType() != null ? r.getShareType() : "CREDENTIALS")
+                            .invitationLink(r.getInvitationLink())
+                            .activationCode(r.getActivationCode())
                             .credentialsUsername(r.getCredentialsUsername())
                             .credentialsPassword(r.getCredentialsPassword())
                             .credentialsNotes(r.getCredentialsNotes())

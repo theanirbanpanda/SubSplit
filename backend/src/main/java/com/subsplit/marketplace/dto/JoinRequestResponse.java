@@ -25,6 +25,9 @@ public class JoinRequestResponse {
     private java.math.BigDecimal price;
     private java.math.BigDecimal walletBalance;
     private LocalDateTime createdAt;
+    private String shareType;
+    private String invitationLink;
+    private String activationCode;
     private String credentialsUsername;
     private String credentialsPassword;
     private String credentialsNotes;

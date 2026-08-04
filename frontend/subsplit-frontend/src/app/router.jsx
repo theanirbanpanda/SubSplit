@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
 import Auth from "../features/auth/pages/Auth";
 import Dashboard from "../features/dashboard/Dashboard";
@@ -7,6 +7,7 @@ import Groups from "../features/groups/Groups";
 import Expenses from "../features/expenses/Expenses";
 import Settlements from "../features/settlements/Settlements";
 import Profile from "../features/profile/Profile";
+import UserReviewsPage from "../features/profile/pages/UserReviewsPage";
 import LandingPage from "../features/landing/pages/LandingPage";
 import Marketplace from "../features/marketplace/Marketplace";
 import ListingDetails from "../features/marketplace/ListingDetails";
@@ -18,6 +19,18 @@ import PrivateRoute from "../components/routes/PrivateRoute";
 import PublicRoute from "../components/routes/PublicRoute";
 
 import { useSelector } from "react-redux";
+
+function ScrollToTopOnNavigation() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
+
+  return null;
+}
 
 function AdminRoute() {
   const { user } = useSelector((state) => state.auth || {});
@@ -34,6 +47,7 @@ function AdminRoute() {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
+      <ScrollToTopOnNavigation />
       <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />
@@ -59,6 +73,7 @@ export default function AppRoutes() {
             <Route path="messages" element={<Messages />} />
             <Route path="admin" element={<AdminRoute />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="profile/reviews" element={<UserReviewsPage />} />
           </Route>
         </Route>
 

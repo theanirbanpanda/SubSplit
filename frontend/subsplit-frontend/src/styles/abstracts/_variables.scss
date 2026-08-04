@@ -46,3 +46,13 @@ $shadow-primary-hover: 0 6px 28px rgba(37, 99, 235, 0.55);
 // ── Transitions ──
 $transition-default: all 0.2s ease;
 $transition-fast: all 0.15s ease;
+
+// ── Standard Gap Design Tokens ──
+$gap-icon-text: 8px;
+$gap-heading-subheading: 6px;
+$gap-heading-body: 16px;
+$gap-grid-cards: 24px;
+$gap-grid-cards-mobile: 16px;
+$gap-component-section: 40px;
+$gap-component-section-mobile: 24px;
+

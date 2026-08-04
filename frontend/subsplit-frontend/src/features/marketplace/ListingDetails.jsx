@@ -107,17 +107,22 @@ function ListingDetails() {
       <Box sx={{ width: '100%', mx: 'auto', pt: 1, pb: 4 }}>
         <Grid container spacing={{ xs: 3, md: 4 }}>
           {/* Left Column — 65% (8 Cols) */}
-          <Grid item xs={12} md={7.8}>
+          <Grid size={{ xs: 12, md: 7.8 }}>
             <SubscriptionHero listing={listing} />
             <SubscriptionDetails listing={listing} />
             <HostProfileCard host={listing.host} />
             <OccupancyCard listing={listing} />
             <TrustSection />
-            <MemberReviews listingId={listing.rawId || listing.id} reviewSummary={listing.reviewSummary} />
+            <MemberReviews
+              listingId={listing.rawId || listing.id}
+              reviewSummary={listing.reviewSummary}
+              hostId={listing.host?.id || listing.hostId}
+              hostName={listing.host?.name || listing.hostName}
+            />
           </Grid>
 
           {/* Right Column — 35% (4 Cols) Sticky Join Sidebar */}
-          <Grid item xs={12} md={4.2}>
+          <Grid size={{ xs: 12, md: 4.2 }}>
             <StickyJoinCard
               listing={listing}
               onJoinClick={() => setJoinModalOpen(true)}

@@ -55,8 +55,11 @@ public class SecurityConfig {
                                 "/api/v1/marketplace/hosts",
                                 "/api/v1/admin/**",
                                 "/api/admin/**",
-                                "/admin/**")
+                                "/admin/**",
+                                "/api/v1/disputes/**",
+                                "/disputes/**")
                         .permitAll()
+
                         .anyRequest()
                         .authenticated())
 

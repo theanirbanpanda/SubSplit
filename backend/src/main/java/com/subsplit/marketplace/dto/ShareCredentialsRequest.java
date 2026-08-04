@@ -12,11 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ShareCredentialsRequest {
 
-    @NotBlank(message = "Username/email is required")
+    private String shareType; // "CREDENTIALS", "INVITATION_LINK", "ACTIVATION_CODE"
     private String username;
-
-    @NotBlank(message = "Password is required")
     private String password;
-
+    private String invitationLink;
+    private String activationCode;
     private String notes;
 }

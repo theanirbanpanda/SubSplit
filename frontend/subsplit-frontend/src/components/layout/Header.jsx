@@ -113,14 +113,13 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
       sx={{
         width: { md: `calc(100% - ${sidebarWidth}px)` },
         ml: { md: `${sidebarWidth}px` },
-        background: 'rgba(9, 9, 11, 0.85)',
-        backdropFilter: 'blur(16px)',
+        background: '#09090b',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         color: '#f3f4f6',
         transition: 'width 0.2s ease, margin 0.2s ease',
       }}
     >
-      <Toolbar sx={{ height: 76, px: { xs: 2, md: 4 }, position: 'relative' }}>
+      <Toolbar sx={{ height: 76, px: { xs: 2.5, md: 4 }, position: 'relative' }}>
         {/* Global Search Input */}
         <Box sx={{ 
           position: 'absolute',

@@ -239,6 +239,10 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.isInitialized = true;
       })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Upload Profile Picture
       .addCase(uploadProfilePicture.pending, (state) => {
         state.error = null;

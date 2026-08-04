@@ -10,11 +10,13 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { ShieldCheck, Heart, Share2, Users, ArrowRight, Zap } from 'lucide-react';
+import { ShieldCheck, Heart, Share2, Users, ArrowRight, Zap, AlertTriangle } from 'lucide-react';
+import RaiseDisputeModal from '../../../disputes/RaiseDisputeModal';
 
 function StickyJoinCard({ listing, onJoinClick }) {
   const [wishlisted, setWishlisted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [raiseDisputeOpen, setRaiseDisputeOpen] = useState(false);
 
   const {
     price,
@@ -136,6 +138,29 @@ function StickyJoinCard({ listing, onJoinClick }) {
         Join Subscription Group
       </Button>
 
+      {/* Report Issue / Dispute button */}
+      <Button
+        fullWidth
+        variant="outlined"
+        size="small"
+        startIcon={<AlertTriangle size={15} />}
+        onClick={() => setRaiseDisputeOpen(true)}
+        sx={{
+          borderRadius: '11px',
+          borderColor: 'rgba(239,68,68,0.35)',
+          color: '#ef4444',
+          background: 'rgba(239,68,68,0.07)',
+          textTransform: 'none',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          py: 0.8,
+          mb: 2,
+          '&:hover': { borderColor: '#ef4444', background: 'rgba(239,68,68,0.15)' },
+        }}
+      >
+        Report Issue / Raise Dispute
+      </Button>
+
       {/* Actions row: Wishlist & Share */}
       <Stack direction="row" spacing={1.5} mb={3}>
         <Button
@@ -201,6 +226,13 @@ function StickyJoinCard({ listing, onJoinClick }) {
           </Typography>
         </Box>
       </Box>
+
+      {/* Raise Dispute Modal */}
+      <RaiseDisputeModal
+        open={raiseDisputeOpen}
+        onClose={() => setRaiseDisputeOpen(false)}
+        listing={listing}
+      />
     </Paper>
   );
 }

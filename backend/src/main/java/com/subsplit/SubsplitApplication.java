@@ -52,7 +52,16 @@ public class SubsplitApplication {
             try {
                 jdbcTemplate.execute("ALTER TABLE join_requests MODIFY COLUMN status VARCHAR(50)");
             } catch (Exception e) {}
-            System.out.println("   [DB Migration] Verified join_requests credentials and proof columns.");
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN share_type VARCHAR(50)");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN invitation_link VARCHAR(1000)");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN activation_code VARCHAR(255)");
+            } catch (Exception e) {}
+            System.out.println("   [DB Migration] Verified join_requests credentials, invitation link, activation code and proof columns.");
 
 
 

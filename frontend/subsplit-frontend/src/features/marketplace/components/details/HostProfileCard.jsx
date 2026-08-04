@@ -1,8 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Grid, Typography, Paper, Stack, Chip, Button, Avatar } from '@mui/material';
 import { ShieldCheck, Star, Clock, Award, Calendar, CheckCircle2 } from 'lucide-react';
 
 function HostProfileCard({ host = {} }) {
+  const navigate = useNavigate();
+
   const {
     name = 'Vikram S.',
     initials = 'VS',
@@ -49,7 +52,6 @@ function HostProfileCard({ host = {} }) {
               {initials}
             </Avatar>
 
-
             <Box>
               <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#ffffff', fontSize: '1.15rem' }}>
@@ -81,6 +83,7 @@ function HostProfileCard({ host = {} }) {
           <Button
             variant="outlined"
             size="small"
+            onClick={() => navigate('/app/profile/reviews')}
             sx={{
               borderRadius: '10px',
               borderColor: '#2A2A30',
@@ -94,7 +97,7 @@ function HostProfileCard({ host = {} }) {
               '&:hover': { borderColor: '#3b82f6', background: 'rgba(59,130,246,0.1)' },
             }}
           >
-            View Host Profile
+            View Host Reviews
           </Button>
         </Stack>
 
@@ -102,14 +105,20 @@ function HostProfileCard({ host = {} }) {
         <Box sx={{ mt: 3, pt: 2.5, borderTop: '1px solid #2A2A30' }}>
           <Grid container spacing={2}>
             <Grid item xs={6} sm={3}>
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                onClick={() => navigate('/app/profile/reviews')}
+                sx={{ cursor: 'pointer', '&:hover': { opacity: 0.85 } }}
+              >
                 <Star size={18} fill="#f59e0b" color="#f59e0b" />
                 <Box>
                   <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#ffffff', lineHeight: 1 }}>
                     {rating}★ Rating
                   </Typography>
-                  <Typography sx={{ fontSize: '0.72rem', color: '#71717A', mt: 0.3 }}>
-                    Super Host Status
+                  <Typography sx={{ fontSize: '0.72rem', color: '#3b82f6', mt: 0.3, fontWeight: 700 }}>
+                    View All Reviews →
                   </Typography>
                 </Box>
               </Stack>

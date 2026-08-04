@@ -38,7 +38,10 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import RaiseDisputeModal from '../disputes/RaiseDisputeModal';
+import { fetchMyDisputesApi } from '../disputes/api/disputeApi';
 import styles from './Settlements.module.scss';
+
 
 
 const PAYMENT_METHODS = [
@@ -56,9 +59,23 @@ function Settlements() {
   const [topUpAmount, setTopUpAmount] = useState('500');
   const [adding, setAdding] = useState(false);
 
+  const [raiseDisputeOpen, setRaiseDisputeOpen] = useState(false);
+  const [disputesList, setDisputesList] = useState([]);
+
   useEffect(() => {
     dispatch(fetchMyWallet());
+    loadDisputes();
   }, [dispatch]);
+
+  const loadDisputes = async () => {
+    try {
+      const data = await fetchMyDisputesApi();
+      setDisputesList(data);
+    } catch (err) {
+      console.error('Failed to load user disputes:', err);
+    }
+  };
+
 
   const handleAddMoneySubmit = async (e) => {
     e.preventDefault();
@@ -102,6 +119,26 @@ function Settlements() {
 
         <div className={styles.headerActions}>
           <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setRaiseDisputeOpen(true)}
+            sx={{
+              borderRadius: '0.75rem',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: '0.875rem',
+              py: 1,
+              px: 2,
+              color: '#ef4444',
+              borderColor: 'rgba(239, 68, 68, 0.4)',
+              background: 'rgba(239,68,68,0.08)',
+              '&:hover': { background: 'rgba(239,68,68,0.18)', borderColor: '#ef4444' },
+            }}
+          >
+            Report Issue / Raise Dispute
+          </Button>
+
+          <Button
             variant="contained"
             size="small"
             startIcon={<Plus size={16} />}
@@ -119,6 +156,7 @@ function Settlements() {
             Add Money
           </Button>
         </div>
+
 
       </div>
 
@@ -179,7 +217,7 @@ function Settlements() {
 
       <Grid container spacing={3} mb={4}>
         {/* Left 65%: Recent Transactions Timeline */}
-        <Grid item xs={12} md={7.8} width="100%">
+        <Grid size={{ xs: 12, md: 7.8 }}>
           <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.15rem' }}>
@@ -272,7 +310,7 @@ function Settlements() {
         </Grid>
 
         {/* Right 35%: SubSplit Escrow Trust Control Card */}
-        <Grid item xs={12} md={4.2}>
+        <Grid size={{ xs: 12, md: 4.2 }}>
           <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Stack direction="row" alignItems="center" spacing={1.25} mb={2.5}>
               <ShieldCheck size={22} color="#22c55e" />
@@ -360,6 +398,85 @@ function Settlements() {
           ))}
         </Grid>
       </Box>
+
+      {/* ─── Row 4: My Disputes & Claims ─── */}
+      <Box sx={{ mb: 4 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
+              My Reported Disputes & Claims
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#9ca3af' }}>
+              Track reported access problems, credential issues, and admin refund resolutions.
+            </Typography>
+          </Box>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => setRaiseDisputeOpen(true)}
+            sx={{ textTransform: 'none', fontWeight: 800, color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', borderRadius: '10px' }}
+          >
+            Raise New Dispute
+          </Button>
+        </Stack>
+
+        <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          {disputesList.length > 0 ? (
+            <Stack spacing={1.5}>
+              {disputesList.map((d) => (
+                <Paper key={d.id} elevation={0} sx={{ p: 2, borderRadius: '12px', background: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f3f4f6' }}>
+                        {d.listingTitle}
+                      </Typography>
+                      <Chip label={`Dispute #${d.id}`} size="small" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 800, background: 'rgba(255,255,255,0.08)', color: '#9ca3af' }} />
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.78rem', color: '#9ca3af', mt: 0.5 }}>
+                      Reason: {d.reason} • {d.description}
+                    </Typography>
+                    {d.resolutionNotes && (
+                      <Typography sx={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 700, mt: 0.5 }}>
+                        Admin Note: {d.resolutionNotes}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Typography sx={{ fontWeight: 900, color: '#22c55e', fontSize: '0.9rem' }}>
+                      ₹{d.amount}
+                    </Typography>
+                    <Chip
+                      label={d.status}
+                      size="small"
+                      sx={{
+                        background: d.status === 'RESOLVED_REFUNDED' ? 'rgba(34,197,94,0.15)' : d.status === 'RESOLVED_REJECTED' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                        color: d.status === 'RESOLVED_REFUNDED' ? '#22c55e' : d.status === 'RESOLVED_REJECTED' ? '#ef4444' : '#f59e0b',
+                        fontWeight: 800,
+                        fontSize: '0.68rem',
+                      }}
+                    />
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 3 }}>
+              <Typography sx={{ color: '#9ca3af', fontSize: '0.88rem' }}>
+                You have not raised any disputes or claims. All your subscriptions are operating cleanly!
+              </Typography>
+            </Box>
+          )}
+        </Paper>
+      </Box>
+
+      {/* Raise Dispute Modal */}
+      <RaiseDisputeModal
+        open={raiseDisputeOpen}
+        onClose={() => setRaiseDisputeOpen(false)}
+        onSuccess={() => loadDisputes()}
+      />
+
 
       {/* Top-up Dialog */}
       <Dialog
