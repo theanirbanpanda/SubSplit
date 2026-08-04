@@ -46,9 +46,9 @@ export const fetchHostJoinRequests = createAsyncThunk(
 
 export const acceptJoinRequest = createAsyncThunk(
   'marketplace/acceptJoinRequest',
-  async ({ requestId, username, password, notes }, { rejectWithValue }) => {
+  async ({ requestId, shareType, username, password, invitationLink, activationCode, notes }, { rejectWithValue }) => {
     try {
-      const response = await acceptJoinRequestApi(requestId, { username, password, notes });
+      const response = await acceptJoinRequestApi(requestId, { shareType, username, password, invitationLink, activationCode, notes });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to share credentials & accept join request');

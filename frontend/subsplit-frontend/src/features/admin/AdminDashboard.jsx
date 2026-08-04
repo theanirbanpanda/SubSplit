@@ -1175,19 +1175,37 @@ function AdminDashboard() {
                     </Typography>
 
                     <Stack spacing={1.5}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#9ca3af' }}>USERNAME / EMAIL</Typography>
-                        <Typography sx={{ fontWeight: 800, color: '#f3f4f6', fontSize: '0.9rem' }}>
-                          {selectedProofModal.credentialsUsername || 'Not shared yet'}
-                        </Typography>
-                      </Box>
+                      {selectedProofModal.shareType === 'ACTIVATION_CODE' || selectedProofModal.activationCode ? (
+                        <Box>
+                          <Typography variant="caption" sx={{ color: '#9ca3af' }}>SHARED ACTIVATION CODE</Typography>
+                          <Typography sx={{ fontWeight: 800, color: '#c084fc', fontSize: '0.95rem', fontFamily: 'monospace' }}>
+                            {selectedProofModal.activationCode || 'Code shared'}
+                          </Typography>
+                        </Box>
+                      ) : selectedProofModal.shareType === 'INVITATION_LINK' || selectedProofModal.invitationLink ? (
+                        <Box>
+                          <Typography variant="caption" sx={{ color: '#9ca3af' }}>SHARED INVITATION LINK</Typography>
+                          <Typography sx={{ fontWeight: 800, color: '#60a5fa', fontSize: '0.9rem', wordBreak: 'break-all' }}>
+                            {selectedProofModal.invitationLink || 'Link shared'}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <>
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#9ca3af' }}>USERNAME / EMAIL</Typography>
+                            <Typography sx={{ fontWeight: 800, color: '#f3f4f6', fontSize: '0.9rem' }}>
+                              {selectedProofModal.credentialsUsername || 'Not shared yet'}
+                            </Typography>
+                          </Box>
 
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#9ca3af' }}>PASSWORD / KEY</Typography>
-                        <Typography sx={{ fontWeight: 800, color: '#f3f4f6', fontSize: '0.9rem' }}>
-                          {selectedProofModal.credentialsPassword || '••••••••'}
-                        </Typography>
-                      </Box>
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#9ca3af' }}>PASSWORD / KEY</Typography>
+                            <Typography sx={{ fontWeight: 800, color: '#f3f4f6', fontSize: '0.9rem' }}>
+                              {selectedProofModal.credentialsPassword || '••••••••'}
+                            </Typography>
+                          </Box>
+                        </>
+                      )}
 
                       <Box>
                         <Typography variant="caption" sx={{ color: '#9ca3af' }}>INSTRUCTIONS / NOTES</Typography>
