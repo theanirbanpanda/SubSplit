@@ -1,21 +1,21 @@
-@import '../styles/marketplaceVariables.scss';
+@use '../styles/marketplaceVariables.scss' as *;
 
 .section {
-  margin-bottom: $spacing-2;
+  margin-bottom: 0;
 }
 
 .title {
   font-size: 1.15rem;
   font-weight: 700;
   color: $text-primary;
-  margin-bottom: $spacing-3;
+  margin-bottom: $gap-heading-body;
 }
 
 .filtersRow {
   display: flex;
   align-items: center;
-  gap: $spacing-2;
-  margin-bottom: $spacing-4;
+  gap: $gap-icon-text;
+  margin-bottom: $gap-heading-body;
   flex-wrap: wrap;
 
   .rightFilters {
@@ -26,7 +26,7 @@
 .filterBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: $gap-icon-text;
   background: transparent;
   border: 1px solid $marketplace-border;
   color: $text-secondary;
@@ -57,8 +57,12 @@
 .listContainer {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: $spacing-4;
-  margin-top: $spacing-3;
+  gap: $gap-grid-cards;
+  margin-top: 0;
+
+  @media (max-width: 48rem) {
+    gap: $gap-grid-cards-mobile;
+  }
 }
 
 .listingCard {

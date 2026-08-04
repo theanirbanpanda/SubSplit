@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
 import Auth from "../features/auth/pages/Auth";
 import Dashboard from "../features/dashboard/Dashboard";
@@ -19,6 +19,18 @@ import PublicRoute from "../components/routes/PublicRoute";
 
 import { useSelector } from "react-redux";
 
+function ScrollToTopOnNavigation() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
+
+  return null;
+}
+
 function AdminRoute() {
   const { user } = useSelector((state) => state.auth || {});
   const isAdmin =
@@ -34,6 +46,7 @@ function AdminRoute() {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
+      <ScrollToTopOnNavigation />
       <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />

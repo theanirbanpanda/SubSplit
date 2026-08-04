@@ -409,9 +409,9 @@ function Profile() {
       </Paper>
 
       {/* ─── Row 1: 4 Reputation Metric Cards ─── */}
-      <Grid container spacing={2.5} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
               Trust Reputation
             </Typography>
@@ -427,8 +427,8 @@ function Profile() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
               Lifetime Savings
             </Typography>
@@ -441,8 +441,8 @@ function Profile() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
               Active Memberships
             </Typography>
@@ -455,8 +455,8 @@ function Profile() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '20px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#9ca3af' }}>
               Host Rating
             </Typography>
@@ -471,11 +471,11 @@ function Profile() {
       </Grid>
 
       {/* ─── Row 2 & 3: Personal Information & Trust Verification ─── */}
-      <Grid container spacing={3} mb={4}>
+      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
         {/* Left: Personal Information Cards */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.15rem' }}>
                 Identity & Contact Details
               </Typography>
@@ -533,9 +533,9 @@ function Profile() {
         </Grid>
 
         {/* Right: Trust & Verification Dashboard */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
-            <Stack direction="row" alignItems="center" spacing={1.25} mb={2.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
               <ShieldCheck size={22} color="#22c55e" />
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.15rem' }}>
                 Trust & Security Verifications
@@ -543,8 +543,6 @@ function Profile() {
             </Stack>
 
             <Stack spacing={2}>
-import KycUploadModal from './components/KycUploadModal';
-
               <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: kycStatus?.isKycVerified ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(245,158,11,0.3)' }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -591,8 +589,6 @@ import KycUploadModal from './components/KycUploadModal';
                 </Stack>
               </Paper>
 
-
-
               <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(34,197,94,0.3)' }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                   <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -638,15 +634,15 @@ import KycUploadModal from './components/KycUploadModal';
       </Grid>
 
       {/* ─── Row 4: Collectible Achievements ─── */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', mb: 2.5, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
+      <Box sx={{ mb: { xs: 3, md: 4 } }}>
+        <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', mb: 2, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
           Collectible Reputation Badges
         </Typography>
 
-        <Grid container spacing={2.5}>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
           {ACHIEVEMENTS_DATA.map(({ title, detail, icon: Icon, color }) => (
-            <Grid item xs={12} sm={6} md={3} key={title}>
-              <Paper elevation={0} sx={{ p: 2.5, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={title}>
+              <Paper elevation={0} sx={{ p: 2.5, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center', height: '100%' }}>
                 <Box sx={{ width: 44, height: 44, borderRadius: '50%', background: `${color}15`, border: `1.5px solid ${color}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mb: 1.5 }}>
                   <Icon size={22} color={color} />
                 </Box>

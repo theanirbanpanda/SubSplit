@@ -5,12 +5,13 @@ function MarketplaceSkeleton({ count = 8 }) {
   return (
     <Grid container spacing={3}>
       {[...Array(count)].map((_, i) => (
-        <Grid item xs={12} sm={6} md={3} key={i}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={i}>
           <Card
             elevation={0}
             sx={{
               borderRadius: '20px',
-              border: '1px solid #e2e8f0',
+              border: '1px solid rgba(255,255,255,0.08)',
+              background: '#14161e',
               p: 1,
             }}
           >

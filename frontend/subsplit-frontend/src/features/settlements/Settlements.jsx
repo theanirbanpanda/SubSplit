@@ -217,7 +217,7 @@ function Settlements() {
 
       <Grid container spacing={3} mb={4}>
         {/* Left 65%: Recent Transactions Timeline */}
-        <Grid item xs={12} md={7.8} width="100%">
+        <Grid size={{ xs: 12, md: 7.8 }}>
           <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.15rem' }}>
@@ -310,7 +310,7 @@ function Settlements() {
         </Grid>
 
         {/* Right 35%: SubSplit Escrow Trust Control Card */}
-        <Grid item xs={12} md={4.2}>
+        <Grid size={{ xs: 12, md: 4.2 }}>
           <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
             <Stack direction="row" alignItems="center" spacing={1.25} mb={2.5}>
               <ShieldCheck size={22} color="#22c55e" />

@@ -1,10 +1,16 @@
+@use '../../styles/abstracts/variables' as *;
+
 // ─── Admin Container ──────────────────────────────────────────────────────────
 .adminContainer {
   width: 100%;
   padding: 0.25rem 0 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: $gap-component-section;
+
+  @media (max-width: 48rem) {
+    gap: $gap-component-section-mobile;
+  }
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
@@ -13,7 +19,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1rem;
+  gap: $gap-heading-subheading;
 
   @media (min-width: 48rem) {
     flex-direction: row;
@@ -34,7 +40,7 @@
 .subtitle {
   color: #64748b;
   font-size: 0.875rem;
-  margin-top: 0.3rem;
+  margin-top: $gap-heading-subheading;
   line-height: 1.5;
 }
 
@@ -43,11 +49,11 @@
   width: 100%;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: $gap-grid-cards-mobile;
 
   @media (min-width: 48rem) {
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
+    gap: $gap-grid-cards;
   }
 
   @media (min-width: 80rem) {
@@ -109,3 +115,4 @@
   width: 100%;
   overflow-x: auto;
 }
+

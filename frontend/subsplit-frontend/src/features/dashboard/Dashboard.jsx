@@ -276,7 +276,7 @@ function Dashboard() {
           </Button>
         </Stack>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, md: 3 }}>
           {activeMemberships.map((mem) => {
             const {
               id,
@@ -305,7 +305,7 @@ function Dashboard() {
             const progress = (filledSeats / totalSeats) * 100;
 
             return (
-              <Grid item xs={12} md={6} key={id}>
+              <Grid size={{ xs: 12, md: 6 }} key={id}>
                 <Paper
                   elevation={0}
                   sx={{
@@ -526,8 +526,8 @@ function Dashboard() {
       </Box>
 
       {/* ─── Section 2: My Group Requests ─── */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
+      <Box sx={{ mb: { xs: 3, md: 4 } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <Send size={20} color="#3b82f6" />
             <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.35rem', letterSpacing: '-0.02em' }}>
@@ -542,7 +542,7 @@ function Dashboard() {
         </Stack>
 
         {myJoinRequests && myJoinRequests.length > 0 ? (
-          <Grid container spacing={2.5}>
+          <Grid container spacing={{ xs: 2, md: 3 }}>
             {myJoinRequests.map((req) => {
               const isApproved = req.status === 'APPROVED';
               const isPending = req.status === 'PENDING';
@@ -569,7 +569,7 @@ function Dashboard() {
               const dateStr = req.createdAt ? new Date(req.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
 
               return (
-                <Grid item xs={12} sm={6} md={4} key={req.id}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={req.id}>
                   <Paper
                     elevation={0}
                     sx={{
@@ -685,19 +685,19 @@ function Dashboard() {
       </Box>
 
       {/* ─── Lower Grid (Renewals, Activity, Quick Actions) ─── */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
         {/* Left Column - Renewals */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <RenewalList />
         </Grid>
 
         {/* Middle Column - Activity */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <ActivityFeed />
         </Grid>
 
         {/* Right Column - Quick Actions */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <QuickActions />
         </Grid>
       </Grid>

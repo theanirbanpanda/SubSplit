@@ -46,9 +46,8 @@ function MainLayout() {
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           pt: 11,
-          width: { xs: '100%', md: `calc(100% - ${sidebarWidth}px)` },
-          transition: 'width 0.2s ease, margin 0.2s ease',
           display: 'flex',
           flexDirection: 'column',
         }}
