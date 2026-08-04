@@ -37,6 +37,15 @@ public class JoinRequest extends BaseEntity {
 
     private String message;
 
+    @Column(name = "share_type")
+    private String shareType; // "CREDENTIALS", "INVITATION_LINK", "ACTIVATION_CODE"
+
+    @Column(name = "invitation_link", length = 1000)
+    private String invitationLink;
+
+    @Column(name = "activation_code")
+    private String activationCode;
+
     @Column(name = "credentials_username")
     private String credentialsUsername;
 

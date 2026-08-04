@@ -24,6 +24,9 @@ public class AdminPendingProofDto {
     private String memberEmail;
     private BigDecimal amount;
     private String status;
+    private String shareType;
+    private String invitationLink;
+    private String activationCode;
     private String credentialsUsername;
     private String credentialsPassword;
     private String credentialsNotes;

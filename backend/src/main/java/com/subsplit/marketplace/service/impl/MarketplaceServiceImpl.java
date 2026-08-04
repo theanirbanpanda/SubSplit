@@ -941,6 +941,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .price(price)
                     .walletBalance(walletBal)
                     .createdAt(req.getCreatedAt())
+                    .shareType(req.getShareType() != null ? req.getShareType() : "CREDENTIALS")
+                    .invitationLink(req.getInvitationLink())
+                    .activationCode(req.getActivationCode())
                     .credentialsUsername(req.getCredentialsUsername())
                     .credentialsPassword(req.getCredentialsPassword())
                     .credentialsNotes(req.getCredentialsNotes())
@@ -985,6 +988,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .hostName(host.getFullName())
                     .price(price)
                     .createdAt(req.getCreatedAt())
+                    .shareType(req.getShareType() != null ? req.getShareType() : "CREDENTIALS")
+                    .invitationLink(req.getInvitationLink())
+                    .activationCode(req.getActivationCode())
                     .credentialsUsername(req.getCredentialsUsername())
                     .credentialsPassword(req.getCredentialsPassword())
                     .credentialsNotes(req.getCredentialsNotes())
@@ -1011,10 +1017,43 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             throw new BadRequestException("Request is already " + joinReq.getStatus());
         }
 
-        // Save credentials & set status to CREDENTIALS_SHARED (Hold escrow funds until member proof verification)
+        // Save credentials, invitation link or activation code & set status to CREDENTIALS_SHARED
         LocalDateTime now = LocalDateTime.now();
-        joinReq.setCredentialsUsername(credentialsRequest.getUsername());
-        joinReq.setCredentialsPassword(credentialsRequest.getPassword());
+        String rawType = credentialsRequest.getShareType() != null ? credentialsRequest.getShareType().toUpperCase() : "CREDENTIALS";
+        String targetShareType = "INVITATION_LINK".equals(rawType) ? "INVITATION_LINK"
+                : "ACTIVATION_CODE".equals(rawType) ? "ACTIVATION_CODE"
+                : "CREDENTIALS";
+
+        if ("INVITATION_LINK".equals(targetShareType)) {
+            if (credentialsRequest.getInvitationLink() == null || credentialsRequest.getInvitationLink().trim().isEmpty()) {
+                throw new BadRequestException("Invitation link is required when sharing an invitation.");
+            }
+            joinReq.setShareType("INVITATION_LINK");
+            joinReq.setInvitationLink(credentialsRequest.getInvitationLink().trim());
+            joinReq.setActivationCode(null);
+            joinReq.setCredentialsUsername(null);
+            joinReq.setCredentialsPassword(null);
+        } else if ("ACTIVATION_CODE".equals(targetShareType)) {
+            if (credentialsRequest.getActivationCode() == null || credentialsRequest.getActivationCode().trim().isEmpty()) {
+                throw new BadRequestException("Activation code is required when sharing an activation code.");
+            }
+            joinReq.setShareType("ACTIVATION_CODE");
+            joinReq.setActivationCode(credentialsRequest.getActivationCode().trim());
+            joinReq.setInvitationLink(null);
+            joinReq.setCredentialsUsername(null);
+            joinReq.setCredentialsPassword(null);
+        } else {
+            if (credentialsRequest.getUsername() == null || credentialsRequest.getUsername().trim().isEmpty()
+                    || credentialsRequest.getPassword() == null || credentialsRequest.getPassword().trim().isEmpty()) {
+                throw new BadRequestException("Username and password are required when sharing credentials.");
+            }
+            joinReq.setShareType("CREDENTIALS");
+            joinReq.setCredentialsUsername(credentialsRequest.getUsername().trim());
+            joinReq.setCredentialsPassword(credentialsRequest.getPassword().trim());
+            joinReq.setInvitationLink(null);
+            joinReq.setActivationCode(null);
+        }
+
         joinReq.setCredentialsNotes(credentialsRequest.getNotes());
         joinReq.setCredentialsSharedAt(now);
         joinReq.setStatus(JoinRequestStatus.CREDENTIALS_SHARED);
@@ -1027,15 +1066,25 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         // Real-time notification to member
         try {
             if (member != null) {
+                String notifTitle = "INVITATION_LINK".equals(targetShareType) ? "Invitation Link Shared 🔗"
+                        : "ACTIVATION_CODE".equals(targetShareType) ? "Activation Code Shared 🔑"
+                        : "Credentials Shared 🔑";
+
+                String notifMsg = "INVITATION_LINK".equals(targetShareType)
+                        ? "Host " + host.getFullName() + " shared an invitation link for '" + listing.getTitle() + "'. Please join and submit proof within 24 hours."
+                        : "ACTIVATION_CODE".equals(targetShareType)
+                        ? "Host " + host.getFullName() + " shared an activation code for '" + listing.getTitle() + "'. Scratch to reveal your code and submit proof within 24 hours."
+                        : "Host " + host.getFullName() + " shared login credentials for '" + listing.getTitle() + "'. Please test login and submit proof within 24 hours.";
+
                 notificationService.createNotification(
                         member,
                         NotificationType.JOIN_REQUEST,
-                        "Credentials Shared 🔑",
-                        "Host " + host.getFullName() + " shared login credentials for '" + listing.getTitle() + "'. Please test login and submit proof within 24 hours."
+                        notifTitle,
+                        notifMsg
                 );
             }
         } catch (Exception e) {
-            log.error("Failed to send notification on credentials shared: ", e);
+            log.error("Failed to send notification on credentials/invitation shared: ", e);
         }
 
         LocalDateTime deadlineAt = now.plusHours(24);
@@ -1050,6 +1099,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .listingTitle(listing.getTitle())
                 .price(listing.getSeatPrice())
                 .createdAt(savedReq.getCreatedAt())
+                .shareType(savedReq.getShareType() != null ? savedReq.getShareType() : "CREDENTIALS")
+                .invitationLink(savedReq.getInvitationLink())
+                .activationCode(savedReq.getActivationCode())
                 .credentialsUsername(savedReq.getCredentialsUsername())
                 .credentialsPassword(savedReq.getCredentialsPassword())
                 .credentialsNotes(savedReq.getCredentialsNotes())
@@ -1083,6 +1135,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .listingTitle(listing != null ? listing.getTitle() : "Group Pass")
                     .price(listing != null ? listing.getSeatPrice() : BigDecimal.ZERO)
                     .createdAt(joinReq.getCreatedAt())
+                    .shareType(joinReq.getShareType() != null ? joinReq.getShareType() : "CREDENTIALS")
+                    .invitationLink(joinReq.getInvitationLink())
+                    .activationCode(joinReq.getActivationCode())
                     .credentialsUsername(joinReq.getCredentialsUsername())
                     .credentialsPassword(joinReq.getCredentialsPassword())
                     .credentialsNotes(joinReq.getCredentialsNotes())
@@ -1165,6 +1220,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .listingTitle(listing != null ? listing.getTitle() : "Group Pass")
                 .price(amount)
                 .createdAt(savedReq.getCreatedAt())
+                .shareType(savedReq.getShareType() != null ? savedReq.getShareType() : "CREDENTIALS")
+                .invitationLink(savedReq.getInvitationLink())
+                .activationCode(savedReq.getActivationCode())
                 .credentialsUsername(savedReq.getCredentialsUsername())
                 .credentialsPassword(savedReq.getCredentialsPassword())
                 .credentialsNotes(savedReq.getCredentialsNotes())
