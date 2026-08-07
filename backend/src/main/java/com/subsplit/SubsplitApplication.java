@@ -32,6 +32,10 @@ public class SubsplitApplication {
                 jdbcTemplate.execute("ALTER TABLE users ADD COLUMN kyc_document_type VARCHAR(100)");
             } catch (Exception e) {}
             try {
+                jdbcTemplate.execute("ALTER TABLE reviews MODIFY COLUMN membership_id BIGINT NULL");
+                System.out.println("   [DB Migration] Altered reviews.membership_id to NULLABLE successfully");
+            } catch (Exception e) {}
+            try {
                 jdbcTemplate.execute("ALTER TABLE notifications MODIFY COLUMN notification_type VARCHAR(50)");
                 System.out.println("   [DB Migration] Altered notifications.notification_type to VARCHAR(50) successfully");
             } catch (Exception e) {}

@@ -14,7 +14,7 @@ import {
 import { X, ShieldCheck, CheckCircle2, ArrowRight, AlertTriangle, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { submitJoinRequest } from '../../marketplaceSlice';
 import { fetchMyWallet } from '../../../settlements/walletSlice';
 import KycUploadModal from '../../../profile/components/KycUploadModal';

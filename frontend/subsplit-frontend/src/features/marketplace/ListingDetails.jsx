@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchListingDetails } from './marketplaceSlice';
+import { fetchListingDetails, checkJoinStatus, fetchMyJoinRequests } from './marketplaceSlice';
 import {
   Box,
   Grid,
@@ -30,14 +30,31 @@ function ListingDetails() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { selectedListing: listing, detailsLoading: loading } = useSelector((state) => state.marketplace);
+  const { user } = useSelector((state) => state.auth || {});
+  const {
+    selectedListing: listing,
+    detailsLoading: loading,
+    joinRequestStatus,
+    myJoinRequests,
+  } = useSelector((state) => state.marketplace);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
       dispatch(fetchListingDetails(id));
+      dispatch(checkJoinStatus(id));
+      dispatch(fetchMyJoinRequests());
     }
   }, [id, dispatch]);
+
+  const hostId = listing?.host?.id || listing?.hostId;
+  const isHost = Boolean(user && hostId && (user.id === hostId || user.email === hostId || user.email === listing?.host?.email));
+
+  const myRequest = (myJoinRequests || []).find(
+    (r) => (String(r.listingId) === String(listing?.id) || String(r.listingId) === String(listing?.rawId)) && r.status !== 'REJECTED' && r.status !== 'CANCELLED'
+  ) || (joinRequestStatus && (String(joinRequestStatus.listingId) === String(listing?.id) || String(joinRequestStatus.listingId) === String(listing?.rawId)) && joinRequestStatus.status !== 'REJECTED' && joinRequestStatus.status !== 'CANCELLED' ? joinRequestStatus : null);
+
+  const isAlreadyJoined = Boolean(isHost || myRequest);
 
   if (loading) {
     return <ListingDetailsSkeleton />;
@@ -126,6 +143,9 @@ function ListingDetails() {
             <StickyJoinCard
               listing={listing}
               onJoinClick={() => setJoinModalOpen(true)}
+              isAlreadyJoined={isAlreadyJoined}
+              isHost={isHost}
+              myRequest={myRequest}
             />
           </Grid>
         </Grid>

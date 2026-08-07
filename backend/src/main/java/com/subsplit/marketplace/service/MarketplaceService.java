@@ -26,7 +26,6 @@ public interface MarketplaceService {
             String sortBy,
             String sortDir);
 
-
     List<ListingResponse> getAllListings();
 
     ListingResponse getListingById(Long id);
@@ -61,12 +60,7 @@ public interface MarketplaceService {
 
     JoinRequestResponse acceptJoinRequest(User host, Long requestId, ShareCredentialsRequest credentialsRequest);
 
-
     JoinRequestResponse submitProofAndSettle(User member, Long requestId, SubmitProofRequest proofRequest);
 
     JoinRequestResponse rejectJoinRequest(User host, Long requestId);
 }
-
-
-
-
