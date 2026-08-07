@@ -44,8 +44,9 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         log.info("Executing database seed data initialization...");
 
-        Role userRole = roleRepository.findByName("USER")
-                .orElseGet(() -> roleRepository.save(Role.builder().name("USER").description("Regular User").build()));
+        if (roleRepository.findByName("USER").isEmpty()) {
+            roleRepository.save(Role.builder().name("USER").description("Regular User").build());
+        }
 
         Role hostRole = roleRepository.findByName("HOST")
                 .orElseGet(() -> roleRepository.save(Role.builder().name("HOST").description("Host User").build()));

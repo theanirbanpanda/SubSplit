@@ -62,24 +62,26 @@ public class AdminServiceImpl implements AdminService {
         List<AdminLog> dynamicLogs = new ArrayList<>();
         List<WalletTransaction> transactions = walletTransactionRepository.findAll();
         for (WalletTransaction tx : transactions) {
-            dynamicLogs.add(AdminLog.builder()
+            AdminLog log = AdminLog.builder()
                     .id(tx.getId())
                     .action("WALLET_TRANSACTION")
                     .description(tx.getRemarks() != null ? tx.getRemarks() : "Wallet transaction processed: ₹" + tx.getAmount())
-                    .createdAt(tx.getCreatedAt() != null ? tx.getCreatedAt() : LocalDateTime.now())
-                    .build());
+                    .build();
+            log.setCreatedAt(tx.getCreatedAt() != null ? tx.getCreatedAt() : LocalDateTime.now());
+            dynamicLogs.add(log);
         }
 
         List<JoinRequest> requests = joinRequestRepository.findAll();
         for (JoinRequest req : requests) {
             if (req.getStatus() == JoinRequestStatus.APPROVED) {
                 String title = req.getListing() != null ? req.getListing().getTitle() : "Subscription Pass";
-                dynamicLogs.add(AdminLog.builder()
+                AdminLog log = AdminLog.builder()
                         .id(req.getId() + 1000)
                         .action("PROOF_VERIFIED")
                         .description("Escrow verified and released for '" + title + "'")
-                        .createdAt(req.getProofSubmittedAt() != null ? req.getProofSubmittedAt() : req.getCreatedAt())
-                        .build());
+                        .build();
+                log.setCreatedAt(req.getProofSubmittedAt() != null ? req.getProofSubmittedAt() : req.getCreatedAt());
+                dynamicLogs.add(log);
             }
         }
 
