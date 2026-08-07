@@ -55,6 +55,12 @@ public class User implements UserDetails {
     @Column(name = "email_verified")
     private Boolean emailVerified;
 
+    @Column(name = "kyc_status")
+    private String kycStatus;
+
+    @Column(name = "kyc_document_type")
+    private String kycDocumentType;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -71,6 +77,10 @@ public class User implements UserDetails {
 
         if (emailVerified == null)
             emailVerified = false;
+
+        if (kycStatus == null || kycStatus.isBlank()) {
+            kycStatus = Boolean.TRUE.equals(emailVerified) ? "VERIFIED" : "PENDING";
+        }
 
         if (fullName == null || fullName.isBlank()) {
             fullName = ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();

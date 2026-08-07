@@ -180,18 +180,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch KYC Status
-      .addCase(fetchKycStatus.fulfilled, (state, action) => {
-        state.kycStatus = action.payload;
-      })
-      // Submit KYC Document
-      .addCase(submitKycDocument.fulfilled, (state, action) => {
-        state.kycStatus = action.payload;
-        if (state.user) {
-          state.user.emailVerified = true;
-        }
-      })
-
       // Fetch Current User
       .addCase(fetchCurrentUser.pending, (state) => {
 
@@ -276,6 +264,31 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.error = action.payload;
+      })
+
+      // KYC Status
+      .addCase(fetchKycStatus.fulfilled, (state, action) => {
+        state.kycStatus = action.payload;
+        if (state.user && action.payload) {
+          state.user = {
+            ...state.user,
+            emailVerified: action.payload.isKycVerified || action.payload.kycStatus === 'VERIFIED',
+            kycStatus: action.payload.kycStatus,
+            kycDocumentType: action.payload.documentType,
+          };
+        }
+      })
+      // Submit KYC Document
+      .addCase(submitKycDocument.fulfilled, (state, action) => {
+        state.kycStatus = action.payload;
+        if (state.user && action.payload) {
+          state.user = {
+            ...state.user,
+            emailVerified: action.payload.isKycVerified || action.payload.kycStatus === 'VERIFIED',
+            kycStatus: action.payload.kycStatus,
+            kycDocumentType: action.payload.documentType,
+          };
+        }
       });
   },
 });

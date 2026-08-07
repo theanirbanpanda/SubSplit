@@ -33,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final NotificationService notificationService;
+    private final com.subsplit.user.service.AiKycVerificationService aiKycVerificationService;
 
     @Override
     public List<User> getAllUsers() {
@@ -137,17 +138,29 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        boolean isVerified = Boolean.TRUE.equals(user.getEmailVerified());
-        String status = isVerified ? "VERIFIED" : "UNVERIFIED";
-        String message = isVerified
-                ? "Your KYC verification is complete. You have full access to group creation and escrow transactions."
-                : "Your KYC verification is pending. Please verify your identity to join or host subscription groups.";
+        String rawStatus = user.getKycStatus();
+        boolean isVerified = Boolean.TRUE.equals(user.getEmailVerified()) || "VERIFIED".equalsIgnoreCase(rawStatus);
+        boolean isVerifying = "VERIFYING".equalsIgnoreCase(rawStatus) || "IN_PROGRESS".equalsIgnoreCase(rawStatus);
+
+        String status = isVerified ? "VERIFIED" : (isVerifying ? "VERIFYING" : "PENDING");
+        String docLabel = (user.getKycDocumentType() != null && !user.getKycDocumentType().isBlank())
+                ? user.getKycDocumentType()
+                : (isVerified ? "Govt ID Verified" : "Identity Document Needed");
+
+        String message;
+        if (isVerified) {
+            message = "Your KYC verification is complete. You have full access to wallet, escrow transactions, and group hosting.";
+        } else if (isVerifying) {
+            message = "SubSplit AI is analyzing your uploaded identity document. Please wait a moment...";
+        } else {
+            message = "Your KYC verification is pending. Please verify your identity to access your wallet and join or host subscription groups.";
+        }
 
         return com.subsplit.user.dto.KycStatusResponse.builder()
                 .userId(userId)
                 .isKycVerified(isVerified)
                 .kycStatus(status)
-                .documentType(isVerified ? "Govt ID Verified" : "Identity Document Needed")
+                .documentType(docLabel)
                 .message(message)
                 .verifiedAt(isVerified ? (user.getCreatedAt() != null ? user.getCreatedAt() : java.time.LocalDateTime.now()) : null)
                 .build();
@@ -158,37 +171,46 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        user.setEmailVerified(true);
-        User savedUser = userRepository.save(user);
+        if ("VERIFYING".equalsIgnoreCase(user.getKycStatus()) || "IN_PROGRESS".equalsIgnoreCase(user.getKycStatus())) {
+            throw new IllegalArgumentException("AI verification is already in progress for your identity document. Please wait until it completes.");
+        }
 
-        // Create user wallet in DB upon successful KYC verification if it doesn't exist
-        walletRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    Wallet newWallet = Wallet.builder()
-                            .user(savedUser)
-                            .balance(BigDecimal.ZERO)
-                            .build();
-                    return walletRepository.save(newWallet);
-                });
+        String docLabel = (documentType != null && !documentType.isBlank()) ? documentType : "Govt ID";
 
-        String docLabel = (documentType != null && !documentType.isBlank()) ? documentType : "Govt ID Verified";
+        user.setKycStatus("VERIFYING");
+        user.setKycDocumentType(docLabel);
+        user.setEmailVerified(false);
+        userRepository.save(user);
 
-        try {
-            notificationService.createNotification(
-                    savedUser,
-                    NotificationType.SYSTEM,
-                    "KYC Verification Approved ✅",
-                    "Your identity document (" + docLabel + ") was verified successfully. SubSplit wallet is active!"
-            );
-        } catch (Exception ignored) {}
+        byte[] fileBytes = null;
+        String originalFilename = null;
+        String contentType = null;
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                fileBytes = file.getBytes();
+                originalFilename = file.getOriginalFilename();
+                contentType = file.getContentType();
+            } catch (IOException e) {
+                fileBytes = new byte[0];
+            }
+        } else {
+            // Simulated upload payload for quick verification
+            fileBytes = "DEMO_GOVT_ID_DOCUMENT_BYTES".getBytes();
+            originalFilename = docLabel.toLowerCase().replace(" ", "_") + ".png";
+            contentType = "image/png";
+        }
+
+        // Trigger async AI verification
+        aiKycVerificationService.verifyDocumentAsync(userId, docLabel, fileBytes, originalFilename, contentType);
 
         return com.subsplit.user.dto.KycStatusResponse.builder()
                 .userId(userId)
-                .isKycVerified(true)
-                .kycStatus("VERIFIED")
+                .isKycVerified(false)
+                .kycStatus("VERIFYING")
                 .documentType(docLabel)
-                .message("Your KYC document has been verified successfully! Wallet has been created for your account.")
-                .verifiedAt(java.time.LocalDateTime.now())
+                .message("SubSplit AI is currently verifying your " + docLabel + ". You will be notified once complete.")
+                .verifiedAt(null)
                 .build();
     }
 }

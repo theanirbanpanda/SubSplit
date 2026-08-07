@@ -36,6 +36,11 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WalletResponse getMyWallet(User user) {
+        boolean isKycVerified = Boolean.TRUE.equals(user.getEmailVerified()) || "VERIFIED".equalsIgnoreCase(user.getKycStatus());
+        if (!isKycVerified) {
+            throw new IllegalArgumentException("KYC_REQUIRED: Identity KYC verification is required to access wallet and escrow funds.");
+        }
+
         Wallet wallet = walletRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
                     Wallet newWallet = Wallet.builder()
@@ -51,6 +56,11 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WalletResponse addMoney(User user, BigDecimal amount) {
+        boolean isKycVerified = Boolean.TRUE.equals(user.getEmailVerified()) || "VERIFIED".equalsIgnoreCase(user.getKycStatus());
+        if (!isKycVerified) {
+            throw new IllegalArgumentException("KYC_REQUIRED: Identity KYC verification is required before adding funds to your wallet.");
+        }
+
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }

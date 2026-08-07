@@ -53,15 +53,10 @@ import {
   Bell,
   Star,
   Camera,
+  Loader2,
+  Bot,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const ACHIEVEMENTS_DATA = [
-  { title: 'Founding Member', detail: 'Joined SubSplit in early 2024', icon: Award, color: '#f59e0b' },
-  { title: 'KYC Verified Host', detail: 'Government ID & Identity Verified', icon: ShieldCheck, color: '#22c55e' },
-  { title: '100+ Escrow Payments', detail: 'Zero dispute record across all groups', icon: ZapIcon, color: '#3b82f6' },
-  { title: '₹10K+ Savings Club', detail: 'Saved over ₹14,880 in subscription fees', icon: TrendingDown, color: '#a855f7' },
-];
 
 function ZapIcon(props) {
   return <Sparkles {...props} />;
@@ -105,6 +100,20 @@ function Profile() {
     dispatch(fetchKycStatus());
   }, [dispatch]);
 
+  // Polling for live AI KYC verification updates
+  useEffect(() => {
+    let interval;
+    if (kycStatus?.kycStatus === 'VERIFYING' || kycStatus?.kycStatus === 'IN_PROGRESS') {
+      interval = setInterval(() => {
+        dispatch(fetchKycStatus());
+        dispatch(fetchCurrentUser());
+      }, 2500);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [dispatch, kycStatus?.kycStatus]);
+
   useEffect(() => {
     if (user) {
       const fn = user.firstName || '';
@@ -132,6 +141,21 @@ function Profile() {
       }
     }
   }, [user]);
+
+  const isKycVerified = Boolean(user?.emailVerified) || kycStatus?.isKycVerified || kycStatus?.kycStatus === 'VERIFIED';
+  const isVerifying = kycStatus?.kycStatus === 'VERIFYING' || kycStatus?.kycStatus === 'IN_PROGRESS';
+
+  const achievementsData = [
+    { title: 'Founding Member', detail: 'Joined SubSplit in early 2024', icon: Award, color: '#f59e0b' },
+    {
+      title: isKycVerified ? 'KYC Verified Host' : (isVerifying ? 'KYC Verifying' : 'KYC Pending'),
+      detail: isKycVerified ? 'Government ID & Identity Verified' : (isVerifying ? 'AI Identity Scan in Progress' : 'Government Identity Needed'),
+      icon: isKycVerified ? ShieldCheck : (isVerifying ? Loader2 : AlertTriangle),
+      color: isKycVerified ? '#22c55e' : (isVerifying ? '#3b82f6' : '#f59e0b'),
+    },
+    { title: '100+ Escrow Payments', detail: 'Zero dispute record across all groups', icon: ZapIcon, color: '#3b82f6' },
+    { title: '₹10K+ Savings Club', detail: 'Saved over ₹14,880 in subscription fees', icon: TrendingDown, color: '#a855f7' },
+  ];
 
   const displayName = `${firstName} ${lastName}`.trim() || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (username || 'User'));
 
@@ -347,10 +371,15 @@ function Profile() {
                   {displayName}
                 </Typography>
                 <Chip
-                  icon={<ShieldCheck size={13} color="#22c55e" />}
-                  label={user?.role ? `${user.role}` : 'Verified'}
+                  icon={isKycVerified ? <ShieldCheck size={13} color="#22c55e" /> : (isVerifying ? <Loader2 size={13} color="#3b82f6" className="animate-spin" /> : <AlertTriangle size={13} color="#f59e0b" />)}
+                  label={isKycVerified ? (user?.role ? `${user.role} • KYC Verified` : 'KYC Verified') : (isVerifying ? 'AI Verifying' : 'KYC Pending')}
                   size="small"
-                  sx={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, border: '1px solid rgba(34,197,94,0.3)' }}
+                  sx={{
+                    background: isKycVerified ? 'rgba(34,197,94,0.15)' : (isVerifying ? 'rgba(59,130,246,0.15)' : 'rgba(245,158,11,0.15)'),
+                    color: isKycVerified ? '#22c55e' : (isVerifying ? '#3b82f6' : '#f59e0b'),
+                    fontWeight: 800,
+                    border: isKycVerified ? '1px solid rgba(34,197,94,0.3)' : (isVerifying ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(245,158,11,0.3)'),
+                  }}
                 />
               </Stack>
 
@@ -521,7 +550,16 @@ function Profile() {
                     <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>Email Address</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#f3f4f6', mt: 0.2 }}>{email}</Typography>
                   </Box>
-                  <Chip label="Verified" size="small" sx={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem' }} />
+                  <Chip
+                    label={isKycVerified ? "Verified" : (isVerifying ? "Verifying..." : "Unverified")}
+                    size="small"
+                    sx={{
+                      background: isKycVerified ? 'rgba(34,197,94,0.15)' : (isVerifying ? 'rgba(59,130,246,0.15)' : 'rgba(245,158,11,0.15)'),
+                      color: isKycVerified ? '#22c55e' : (isVerifying ? '#3b82f6' : '#f59e0b'),
+                      fontWeight: 800,
+                      fontSize: '0.66rem',
+                    }}
+                  />
                 </Stack>
               </Paper>
 
@@ -531,7 +569,16 @@ function Profile() {
                     <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600 }}>Phone Number</Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#f3f4f6', mt: 0.2 }}>{phone}</Typography>
                   </Box>
-                  <Chip label="Verified" size="small" sx={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 800, fontSize: '0.66rem' }} />
+                  <Chip
+                    label={isKycVerified ? "Verified" : (isVerifying ? "Verifying..." : "Unverified")}
+                    size="small"
+                    sx={{
+                      background: isKycVerified ? 'rgba(34,197,94,0.15)' : (isVerifying ? 'rgba(59,130,246,0.15)' : 'rgba(245,158,11,0.15)'),
+                      color: isKycVerified ? '#22c55e' : (isVerifying ? '#3b82f6' : '#f59e0b'),
+                      fontWeight: 800,
+                      fontSize: '0.66rem',
+                    }}
+                  />
                 </Stack>
               </Paper>
 
@@ -561,33 +608,88 @@ function Profile() {
             </Stack>
 
             <Stack spacing={2}>
-              <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: kycStatus?.isKycVerified ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(245,158,11,0.3)' }}>
+              {/* Dynamic KYC Identity Status Box */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2.2,
+                  borderRadius: '16px',
+                  background: '#1c1e24',
+                  border: kycStatus?.isKycVerified
+                    ? '1px solid rgba(34,197,94,0.35)'
+                    : (kycStatus?.kycStatus === 'VERIFYING'
+                        ? '1px solid rgba(59,130,246,0.6)'
+                        : '1px solid rgba(245,158,11,0.35)'),
+                  boxShadow: kycStatus?.kycStatus === 'VERIFYING' ? '0 0 20px rgba(59,130,246,0.15)' : 'none',
+                }}
+              >
                 <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <ShieldCheck size={20} color={kycStatus?.isKycVerified ? "#22c55e" : "#f59e0b"} />
+                    <Box
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: '10px',
+                        background: kycStatus?.isKycVerified
+                          ? 'rgba(34,197,94,0.15)'
+                          : (kycStatus?.kycStatus === 'VERIFYING' ? 'rgba(59,130,246,0.15)' : 'rgba(245,158,11,0.15)'),
+                        border: kycStatus?.isKycVerified
+                          ? '1px solid rgba(34,197,94,0.3)'
+                          : (kycStatus?.kycStatus === 'VERIFYING' ? '1px solid rgba(59,130,246,0.4)' : '1px solid rgba(245,158,11,0.3)'),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {kycStatus?.isKycVerified ? (
+                        <ShieldCheck size={22} color="#22c55e" />
+                      ) : kycStatus?.kycStatus === 'VERIFYING' ? (
+                        <Loader2 size={22} color="#3b82f6" className="animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />
+                      ) : (
+                        <ShieldCheck size={22} color="#f59e0b" />
+                      )}
+                    </Box>
+
                     <Box>
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f3f4f6' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#f3f4f6', lineHeight: 1.2 }}>
                         Government KYC Identity Status
                       </Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af' }}>
-                        {kycStatus?.message || (kycStatus?.isKycVerified ? 'Govt ID Verified (Unlocks Escrow Hosting)' : 'Verification Needed')}
+                      <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af', mt: 0.3 }}>
+                        {kycStatus?.kycStatus === 'VERIFYING'
+                          ? 'SubSplit AI is analyzing your uploaded document...'
+                          : (kycStatus?.message || (kycStatus?.isKycVerified ? 'Govt ID Verified (Wallet & Escrow Unlocked)' : 'Identity Document Needed'))}
                       </Typography>
                     </Box>
                   </Stack>
 
                   <Stack direction="row" alignItems="center" spacing={1}>
-                    <Chip
-                      label={kycStatus?.kycStatus || (user?.emailVerified ? 'VERIFIED' : 'UNVERIFIED')}
-                      size="small"
-                      sx={{
-                        background: kycStatus?.isKycVerified ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)',
-                        color: kycStatus?.isKycVerified ? '#22c55e' : '#f59e0b',
-                        fontWeight: 800,
-                        fontSize: '0.68rem',
-                      }}
-                    />
+                    {kycStatus?.kycStatus === 'VERIFYING' ? (
+                      <Chip
+                        icon={<Loader2 size={12} className="animate-spin" color="#3b82f6" />}
+                        label="AI VERIFYING 🤖 ⚡"
+                        size="small"
+                        sx={{
+                          background: 'rgba(59,130,246,0.18)',
+                          color: '#3b82f6',
+                          fontWeight: 900,
+                          fontSize: '0.68rem',
+                          border: '1px solid rgba(59,130,246,0.5)',
+                        }}
+                      />
+                    ) : (
+                      <Chip
+                        label={kycStatus?.isKycVerified ? 'VERIFIED' : 'PENDING'}
+                        size="small"
+                        sx={{
+                          background: kycStatus?.isKycVerified ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)',
+                          color: kycStatus?.isKycVerified ? '#22c55e' : '#f59e0b',
+                          fontWeight: 800,
+                          fontSize: '0.68rem',
+                        }}
+                      />
+                    )}
 
-                    {!kycStatus?.isKycVerified && (
+                    {!kycStatus?.isKycVerified && kycStatus?.kycStatus !== 'VERIFYING' && (
                       <Button
                         variant="contained"
                         size="small"
@@ -605,6 +707,30 @@ function Profile() {
                     )}
                   </Stack>
                 </Stack>
+
+                {/* Progress bar displayed during active AI verification */}
+                {kycStatus?.kycStatus === 'VERIFYING' && (
+                  <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.75}>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#3b82f6', fontWeight: 700 }}>
+                        OCR scanning & AI biometric authentication in progress...
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#9ca3af' }}>
+                        Live Check
+                      </Typography>
+                    </Stack>
+                    <LinearProgress
+                      sx={{
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: '#14161a',
+                        '& .MuiLinearProgress-bar': {
+                          background: 'linear-gradient(90deg, #2563eb 0%, #38bdf8 50%, #22c55e 100%)',
+                        },
+                      }}
+                    />
+                  </Box>
+                )}
               </Paper>
 
               <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(34,197,94,0.3)' }}>
@@ -658,7 +784,7 @@ function Profile() {
         </Typography>
 
         <Grid container spacing={{ xs: 2, md: 3 }}>
-          {ACHIEVEMENTS_DATA.map(({ title, detail, icon: Icon, color }) => (
+          {achievementsData.map(({ title, detail, icon: Icon, color }) => (
             <Grid size={{ xs: 12, sm: 6, md: 3 }} key={title}>
               <Paper elevation={0} sx={{ p: 2.5, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center', height: '100%' }}>
                 <Box sx={{ width: 44, height: 44, borderRadius: '50%', background: `${color}15`, border: `1.5px solid ${color}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mb: 1.5 }}>

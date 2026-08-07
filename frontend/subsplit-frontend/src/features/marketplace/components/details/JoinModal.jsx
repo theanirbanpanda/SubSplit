@@ -21,7 +21,9 @@ import KycUploadModal from '../../../profile/components/KycUploadModal';
 
 function JoinModal({ open, onClose, listing }) {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { kycStatus } = useSelector((state) => state.auth);
+  const isVerifying = kycStatus?.kycStatus === 'VERIFYING' || kycStatus?.kycStatus === 'IN_PROGRESS';
+
   const [step, setStep] = useState('confirm'); // 'confirm', 'success', or 'insufficient_balance'
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -186,31 +188,54 @@ function JoinModal({ open, onClose, listing }) {
             </Box>
 
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#ffffff', mb: 1 }}>
-              Complete KYC Verification First
+              {isVerifying ? 'AI Verification in Progress 🤖 ⚡' : 'Complete KYC Verification First'}
             </Typography>
 
             <Typography sx={{ fontSize: '0.88rem', color: '#A1A1AA', mb: 3, lineHeight: 1.6 }}>
-              {errorMsg.replace(/^KYC_REQUIRED:\s*/, '') || 'Please complete your identity KYC verification before joining a group listing and accessing escrow payments.'}
+              {isVerifying
+                ? 'SubSplit AI is currently analyzing your uploaded identity document. You will be able to join group listings once verification finishes.'
+                : (errorMsg.replace(/^KYC_REQUIRED:\s*/, '') || 'Please complete your identity KYC verification before joining a group listing and accessing escrow payments.')}
             </Typography>
 
             <Stack spacing={1.5}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<ShieldCheck size={18} />}
-                onClick={handleCompleteKyc}
-                sx={{
-                  fontWeight: 800,
-                  fontSize: '0.95rem',
-                  py: 1.3,
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                  boxShadow: '0 4px 16px rgba(37, 99, 235, 0.35)',
-                }}
-              >
-                Complete KYC Verification
-              </Button>
+              {isVerifying ? (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={() => {
+                    navigate('/app/profile');
+                    onClose();
+                  }}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.95rem',
+                    py: 1.3,
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  }}
+                >
+                  View Status on Profile Page →
+                </Button>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<ShieldCheck size={18} />}
+                  onClick={handleCompleteKyc}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.95rem',
+                    py: 1.3,
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.35)',
+                  }}
+                >
+                  Complete KYC Verification
+                </Button>
+              )}
 
               <Button
                 fullWidth

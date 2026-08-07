@@ -43,6 +43,12 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   useEffect(() => {
     dispatch(fetchMyWallet());
     dispatch(fetchNotifications());
+
+    const notifInterval = setInterval(() => {
+      dispatch(fetchNotifications());
+    }, 3000);
+
+    return () => clearInterval(notifInterval);
   }, [dispatch]);
 
   const balanceDisplay = wallet?.balance != null ? `₹${wallet.balance.toFixed(2)}` : '₹0.00';

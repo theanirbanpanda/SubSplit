@@ -26,6 +26,16 @@ public class SubsplitApplication {
                 // Ignore if already LONGTEXT
             }
             try {
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN kyc_status VARCHAR(50)");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN kyc_document_type VARCHAR(100)");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE notifications MODIFY COLUMN notification_type VARCHAR(50)");
+                System.out.println("   [DB Migration] Altered notifications.notification_type to VARCHAR(50) successfully");
+            } catch (Exception e) {}
+            try {
                 jdbcTemplate.execute("ALTER TABLE wallet_transactions MODIFY COLUMN transaction_type VARCHAR(50)");
                 System.out.println("   [DB Migration] Altered wallet_transactions.transaction_type to VARCHAR(50) successfully");
             } catch (Exception e) {
