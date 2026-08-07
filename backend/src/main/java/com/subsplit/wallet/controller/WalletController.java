@@ -7,7 +7,6 @@ import com.subsplit.wallet.dto.AddMoneyRequest;
 import com.subsplit.wallet.dto.WalletResponse;
 import com.subsplit.wallet.entity.Wallet;
 import com.subsplit.wallet.service.WalletService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/wallets")
