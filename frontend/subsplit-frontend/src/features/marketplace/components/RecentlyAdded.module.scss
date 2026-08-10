@@ -1,7 +1,10 @@
-@import '../styles/marketplaceVariables.scss';
+@use '../styles/marketplaceVariables.scss' as *;
 
 .section {
-  margin-bottom: $spacing-2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .headerRow {
@@ -35,28 +38,35 @@
   gap: $spacing-2;
   overflow-x: auto;
   padding-bottom: $spacing-2;
+  width: 100%;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
   
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 .compactCard {
-  min-width: 180px;
+  flex: 0 0 200px;
+  scroll-snap-align: start;
   background: $marketplace-card-bg;
   border: 1px solid $marketplace-border;
   border-radius: $radius-lg;
   padding: $spacing-2;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   transition: all 0.2s ease;
   cursor: pointer;
+
+  @media (max-width: 600px) {
+    flex: 0 0 180px;
+  }
 
   &:hover {
     transform: translateY(-2px);
     border-color: $marketplace-border-subtle;
-    background: lighten($marketplace-card-bg, 2%);
+    background: #1e222b;
   }
 }
 

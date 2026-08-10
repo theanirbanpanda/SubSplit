@@ -321,10 +321,10 @@ function Profile() {
           overflow: 'hidden',
         }}
       >
-        <Stack direction={{ xs: 'column', md: 'row' }} alignItems="flex-start" justifyContent="space-between" spacing={3}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="flex-start" spacing={3}>
+        <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" spacing={3} sx={{ width: '100%' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="flex-start" spacing={3} sx={{ flex: 1, minWidth: 0, width: '100%' }}>
             {/* Avatar with Glowing Border & Upload Camera Overlay */}
-            <Box sx={{ position: 'relative', display: 'inline-block' }}>
+            <Box sx={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
               <Avatar
                 src={user?.profileImage || undefined}
                 sx={{
@@ -365,8 +365,8 @@ function Profile() {
               </Tooltip>
             </Box>
 
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1.25} mb={0.5}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" spacing={1.25} mb={0.5} flexWrap="wrap" sx={{ gap: 1 }}>
                 <Typography variant="h3" sx={{ fontWeight: 900, fontSize: '1.8rem', color: '#f3f4f6', letterSpacing: '-0.03em' }}>
                   {displayName}
                 </Typography>
@@ -387,12 +387,12 @@ function Profile() {
                 @{username || 'user'} • {email} • {locationDisplay}
               </Typography>
 
-              <Typography sx={{ color: '#f3f4f6', fontSize: '0.88rem', maxWidth: 520, lineHeight: 1.5, mb: 2 }}>
+              <Typography sx={{ color: '#f3f4f6', fontSize: '0.88rem', maxWidth: 700, lineHeight: 1.5, mb: 2 }}>
                 "{bio}"
               </Typography>
 
               {/* Profile Completion Bar */}
-              <Box sx={{ maxWidth: 360 }}>
+              <Box sx={{ maxWidth: 420, width: '100%' }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
                   <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#9ca3af' }}>
                     Profile Reputation Score
@@ -411,7 +411,7 @@ function Profile() {
           </Stack>
 
           {/* Action CTAs */}
-          <Stack direction="row" spacing={1.5}>
+          <Stack direction="row" spacing={1.5} sx={{ flexShrink: 0, alignSelf: { xs: 'flex-start', md: 'center' } }}>
             <Tooltip title={copiedShare ? 'Profile Link Copied!' : 'Share Digital Pass'}>
               <Button
                 variant="outlined"

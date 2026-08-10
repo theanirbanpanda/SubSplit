@@ -75,7 +75,32 @@ public class SubsplitApplication {
             try {
                 jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN activation_code VARCHAR(255)");
             } catch (Exception e) {}
-            System.out.println("   [DB Migration] Verified join_requests credentials, invitation link, activation code and proof columns.");
+            try {
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS conversations (" +
+                        "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                        "participant1_id BIGINT NOT NULL, " +
+                        "participant2_id BIGINT NOT NULL, " +
+                        "listing_id BIGINT NULL, " +
+                        "last_message TEXT NULL, " +
+                        "last_message_at DATETIME NULL, " +
+                        "unread_count_user1 INT DEFAULT 0, " +
+                        "unread_count_user2 INT DEFAULT 0, " +
+                        "created_at DATETIME NULL, " +
+                        "updated_at DATETIME NULL)");
+                System.out.println("   [DB Migration] Verified conversations table.");
+            } catch (Exception e) {}
+            try {
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS messages (" +
+                        "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                        "conversation_id BIGINT NOT NULL, " +
+                        "sender_id BIGINT NOT NULL, " +
+                        "receiver_id BIGINT NOT NULL, " +
+                        "content TEXT NOT NULL, " +
+                        "is_read BOOLEAN DEFAULT FALSE, " +
+                        "created_at DATETIME NULL, " +
+                        "updated_at DATETIME NULL)");
+                System.out.println("   [DB Migration] Verified messages table.");
+            } catch (Exception e) {}
 
 
 

@@ -44,6 +44,8 @@ public interface MarketplaceService {
 
     ListingDetailResponse getListingDetailById(Long id);
 
+    ListingDetailResponse getListingDetailById(User currentUser, Long id);
+
     List<ListingResponse> getSimilarListings(Long listingId);
 
     ListingReviewResponse getListingReviews(Long listingId);

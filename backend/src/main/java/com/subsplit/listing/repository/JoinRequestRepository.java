@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 @Repository
 public interface JoinRequestRepository extends JpaRepository<JoinRequest, Long> {
     Optional<JoinRequest> findByListingIdAndMemberId(Long listingId, Long memberId);
+    Optional<JoinRequest> findByMemberIdAndListingId(Long memberId, Long listingId);
 
     List<JoinRequest> findByListingId(Long listingId);
 

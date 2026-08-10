@@ -63,10 +63,10 @@ import com.subsplit.wallet.repository.WalletTransactionRepository;
 import com.subsplit.notification.service.NotificationService;
 import com.subsplit.common.enums.NotificationType;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MarketplaceServiceImpl implements MarketplaceService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MarketplaceServiceImpl.class);
 
     private final ListingRepository listingRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
@@ -81,6 +81,35 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
     private final NotificationService notificationService;
+
+    public MarketplaceServiceImpl(
+            ListingRepository listingRepository,
+            SubscriptionPlanRepository subscriptionPlanRepository,
+            CategoryRepository categoryRepository,
+            SubscriptionRepository subscriptionRepository,
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder,
+            ReviewRepository reviewRepository,
+            JoinRequestRepository joinRequestRepository,
+            MembershipRepository membershipRepository,
+            WalletRepository walletRepository,
+            WalletTransactionRepository walletTransactionRepository,
+            NotificationService notificationService) {
+        this.listingRepository = listingRepository;
+        this.subscriptionPlanRepository = subscriptionPlanRepository;
+        this.categoryRepository = categoryRepository;
+        this.subscriptionRepository = subscriptionRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.reviewRepository = reviewRepository;
+        this.joinRequestRepository = joinRequestRepository;
+        this.membershipRepository = membershipRepository;
+        this.walletRepository = walletRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
+        this.notificationService = notificationService;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -497,6 +526,12 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @Transactional(readOnly = true)
     public ListingDetailResponse getListingDetailById(Long id) {
+        return getListingDetailById(null, id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListingDetailResponse getListingDetailById(User currentUser, Long id) {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found with id: " + id));
 
@@ -614,12 +649,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Override
     @Transactional(readOnly = true)
-    public ListingDetailResponse getListingDetailById(Long id) {
-        return getListingDetailById(null, id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<ListingResponse> getSimilarListings(Long listingId) {
         Listing listing = listingRepository.findById(listingId).orElse(null);
         if (listing == null) {
@@ -627,9 +656,12 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .stream().map(this::mapToListingResponse).collect(Collectors.toList());
         }
 
-        List<Listing> similar = listingRepository.findBySubscriptionIdAndIdNot(listing.getSubscription().getId(), listingId);
-        if (similar.isEmpty() && listing.getSubscription().getCategory() != null) {
-            similar = listingRepository.findBySubscriptionCategoryIdAndIdNot(listing.getSubscription().getCategory().getId(), listingId);
+        Subscription sub = listing.getPlan() != null ? listing.getPlan().getSubscription() : null;
+        if (sub != null) {
+            similar = listingRepository.findBySubscriptionIdAndIdNot(sub.getId(), listingId);
+            if (similar.isEmpty() && sub.getCategory() != null) {
+                similar = listingRepository.findBySubscriptionCategoryIdAndIdNot(sub.getCategory().getId(), listingId);
+            }
         }
 
         return similar.stream().map(this::mapToListingResponse).collect(Collectors.toList());

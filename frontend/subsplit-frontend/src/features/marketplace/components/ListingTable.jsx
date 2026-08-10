@@ -136,90 +136,92 @@ const ListingTable = () => {
       <h3 className={styles.title}>All Listings</h3>
       
       <div className={styles.filtersRow}>
-        <button 
-          className={styles.filterBtn}
-          onClick={handleResetFilters}
-        >
-          <FilterListIcon /> All Filters
-        </button>
-        <button 
-          className={styles.filterBtn} 
-          onClick={handleCategoryClick}
-          style={filters.category && filters.category !== 'All' ? { background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.3)' } : {}}
-        >
-          {filters.category && filters.category !== 'All' ? filters.category : 'Category'} <KeyboardArrowDownIcon />
-        </button>
-        <Menu
-          anchorEl={categoryAnchorEl}
-          open={Boolean(categoryAnchorEl)}
-          onClose={handleCategoryClose}
-          PaperProps={{
-            sx: {
-              background: '#1a1d24',
-              color: '#f3f4f6',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              mt: 1,
-            }
-          }}
-        >
-          {['OTT', 'Music', 'Productivity', 'Gaming', 'Education'].map((cat) => (
-            <MenuItem 
-              key={cat} 
-              onClick={() => handleCategorySelect(cat)}
-              sx={{
-                fontSize: '0.85rem',
-                '&:hover': { background: 'rgba(255, 255, 255, 0.05)' }
-              }}
-            >
-              {cat}
-            </MenuItem>
-          ))}
-        </Menu>
+        <div className={styles.leftFilters}>
+          <button 
+            className={styles.filterBtn}
+            onClick={handleResetFilters}
+          >
+            <FilterListIcon /> All Filters
+          </button>
+          <button 
+            className={styles.filterBtn} 
+            onClick={handleCategoryClick}
+            style={filters.category && filters.category !== 'All' ? { background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.3)' } : {}}
+          >
+            {filters.category && filters.category !== 'All' ? filters.category : 'Category'} <KeyboardArrowDownIcon />
+          </button>
+          <Menu
+            anchorEl={categoryAnchorEl}
+            open={Boolean(categoryAnchorEl)}
+            onClose={handleCategoryClose}
+            PaperProps={{
+              sx: {
+                background: '#1a1d24',
+                color: '#f3f4f6',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                mt: 1,
+              }
+            }}
+          >
+            {['OTT', 'Music', 'Productivity', 'Gaming', 'Education'].map((cat) => (
+              <MenuItem 
+                key={cat} 
+                onClick={() => handleCategorySelect(cat)}
+                sx={{
+                  fontSize: '0.85rem',
+                  '&:hover': { background: 'rgba(255, 255, 255, 0.05)' }
+                }}
+              >
+                {cat}
+              </MenuItem>
+            ))}
+          </Menu>
 
-        <button 
-          className={`${styles.filterBtn} ${filters.trendingOnly ? styles.active : ''}`}
-          onClick={handleTrendingToggle}
-          style={filters.trendingOnly 
-            ? { background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#fff', borderColor: '#dc2626', fontWeight: 'bold' } 
-            : { color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }
-          }
-        >
-          <WhatshotIcon sx={{ fontSize: '1.2rem', mr: 0.5 }} /> Trending
-        </button>
-
-        <button 
-          className={styles.filterBtn}
-          onClick={handlePriceClick}
-          style={filters.priceRangeString && filters.priceRangeString !== 'All Prices' ? { background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.3)' } : {}}
-        >
-          {filters.priceRangeString && filters.priceRangeString !== 'All Prices' ? filters.priceRangeString : 'Price'} <KeyboardArrowDownIcon />
-        </button>
-        <Menu
-          anchorEl={priceAnchorEl}
-          open={Boolean(priceAnchorEl)}
-          onClose={handlePriceClose}
-          PaperProps={{
-            sx: {
-              background: '#1a1d24',
-              color: '#f3f4f6',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              mt: 1,
+          <button 
+            className={`${styles.filterBtn} ${filters.trendingOnly ? styles.active : ''}`}
+            onClick={handleTrendingToggle}
+            style={filters.trendingOnly 
+              ? { background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#fff', borderColor: '#dc2626', fontWeight: 'bold' } 
+              : { color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }
             }
-          }}
-        >
-          {['All Prices', 'Under ₹100', '₹100 - ₹200', 'Above ₹200'].map((price) => (
-            <MenuItem 
-              key={price} 
-              onClick={() => handlePriceSelect(price)}
-              sx={{
-                fontSize: '0.85rem',
-                '&:hover': { background: 'rgba(255, 255, 255, 0.05)' }
-              }}
-            >
-              {price}
-            </MenuItem>
-          ))}
-        </Menu>
+          >
+            <WhatshotIcon sx={{ fontSize: '1.2rem', mr: 0.5 }} /> Trending
+          </button>
+
+          <button 
+            className={styles.filterBtn}
+            onClick={handlePriceClick}
+            style={filters.priceRangeString && filters.priceRangeString !== 'All Prices' ? { background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.3)' } : {}}
+          >
+            {filters.priceRangeString && filters.priceRangeString !== 'All Prices' ? filters.priceRangeString : 'Price'} <KeyboardArrowDownIcon />
+          </button>
+          <Menu
+            anchorEl={priceAnchorEl}
+            open={Boolean(priceAnchorEl)}
+            onClose={handlePriceClose}
+            PaperProps={{
+              sx: {
+                background: '#1a1d24',
+                color: '#f3f4f6',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                mt: 1,
+              }
+            }}
+          >
+            {['All Prices', 'Under ₹100', '₹100 - ₹200', 'Above ₹200'].map((price) => (
+              <MenuItem 
+                key={price} 
+                onClick={() => handlePriceSelect(price)}
+                sx={{
+                  fontSize: '0.85rem',
+                  '&:hover': { background: 'rgba(255, 255, 255, 0.05)' }
+                }}
+              >
+                {price}
+              </MenuItem>
+            ))}
+          </Menu>
+        </div>
         
         <div className={styles.rightFilters}>
           <button 

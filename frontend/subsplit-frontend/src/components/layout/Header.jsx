@@ -22,12 +22,13 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { Menu as MenuIcon, Bell, Search, Wallet, User as UserIcon, CheckCheck, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
-import { logoutUser } from '../../features/auth/authSlice'; // Ensure this is imported if used
+import { Menu as MenuIcon, Bell, Search, Wallet, User as UserIcon, CheckCheck, ArrowRight, ShieldCheck, Zap, MessageSquare, LogOut, Star, Shield, X } from 'lucide-react';
+import { logoutUser, logout } from '../../features/auth/authSlice';
 import { setFilter } from '../../features/marketplace/marketplaceSlice';
 
 import { fetchMyWallet } from '../../features/settlements/walletSlice';
 import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../../features/notifications/notificationsSlice';
+import { fetchUnreadMessageCount } from '../../features/messages/messageSlice';
 
 function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
@@ -36,17 +37,22 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const { user } = useSelector((state) => state.auth);
   const { wallet } = useSelector((state) => state.wallet);
   const { items: notifications, unreadCount } = useSelector((state) => state.notifications);
+  const { unreadCount: msgUnreadCount = 0 } = useSelector((state) => state.messages || {});
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [notifAnchorEl, setNotifAnchorEl] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
   useEffect(() => {
     dispatch(fetchMyWallet());
     dispatch(fetchNotifications());
+    dispatch(fetchUnreadMessageCount());
 
     const notifInterval = setInterval(() => {
       dispatch(fetchNotifications());
-    }, 3000);
+      dispatch(fetchUnreadMessageCount());
+    }, 4000);
 
     return () => clearInterval(notifInterval);
   }, [dispatch]);
@@ -111,87 +117,198 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
     navigate(destination);
   };
 
+  const handleProfileClick = (event) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileClose = () => {
+    setProfileAnchorEl(null);
+  };
+
+  const handleProfileNavigate = (path) => {
+    handleProfileClose();
+    navigate(path);
+  };
+
+  const handleLogout = (e) => {
+    e?.preventDefault?.();
+    handleProfileClose();
+    dispatch(logout());
+    dispatch(logoutUser());
+    navigate('/auth', { replace: true, state: { mode: 'login' } });
+  };
+
+  const displayName = user?.firstName
+    ? `${user.firstName} ${user.lastName || ''}`.trim()
+    : (user?.name || user?.email?.split('@')[0] || 'SubSplit User');
+
 
   return (
     <AppBar
-      position="fixed"
+      position="static"
       elevation={0}
       sx={{
-        width: { md: `calc(100% - ${sidebarWidth}px)` },
-        ml: { md: `${sidebarWidth}px` },
+        width: '100%',
+        flexShrink: 0,
         background: '#09090b',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         color: '#f3f4f6',
-        transition: 'width 0.2s ease, margin 0.2s ease',
+        zIndex: 10,
       }}
     >
-      <Toolbar sx={{ height: 76, px: { xs: 2.5, md: 4 }, position: 'relative' }}>
-        {/* Global Search Input */}
-        <Box sx={{ 
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
+      <Toolbar
+        sx={{
+          height: 76,
+          px: { xs: 2, sm: 2.5, md: 4 },
+          display: 'grid',
+          gridTemplateColumns: mobileSearchOpen 
+            ? '1fr' 
+            : { xs: 'auto 1fr auto', md: '1fr auto 1fr' },
+          alignItems: 'center',
+          gap: { xs: 1, sm: 2 },
           width: '100%',
-          maxWidth: 420,
-          zIndex: 10,
-          display: { xs: 'none', sm: 'block' } // Hide on very small screens to prevent overlap
-        }}>
-          <TextField
-            fullWidth
-            size="small"
-            value={searchVal}
-            onChange={handleSearchChange}
-            onKeyDown={handleSearchSubmit}
-            placeholder="Search subscriptions, hosts or categories..."
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={16} color="#9ca3af" />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: '8px',
-                background: '#111114',
-                color: '#f3f4f6',
-                fontSize: '0.85rem',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                '& fieldset': { border: 'none' },
-                '&:hover': { borderColor: '#22c55e' },
-                '&.Mui-focused': { borderColor: '#22c55e' },
-              },
-            }}
-          />
-        </Box>
+        }}
+      >
+        {mobileSearchOpen ? (
+          /* Mobile Search Bar Mode (Full Width on Phone) */
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+            <TextField
+              fullWidth
+              autoFocus
+              size="small"
+              value={searchVal}
+              onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearchSubmit(e);
+                  setMobileSearchOpen(false);
+                }
+              }}
+              placeholder="Search subscriptions, hosts, categories..."
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search size={18} color="#22c55e" />
+                  </InputAdornment>
+                ),
+                sx: {
+                  borderRadius: '10px',
+                  background: '#111114',
+                  color: '#f3f4f6',
+                  fontSize: '0.88rem',
+                  border: '1px solid rgba(34, 197, 94, 0.4)',
+                  '& fieldset': { border: 'none' },
+                },
+              }}
+            />
+            <IconButton
+              onClick={() => setMobileSearchOpen(false)}
+              sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6' }, p: 1 }}
+              aria-label="Close search"
+            >
+              <X size={20} />
+            </IconButton>
+          </Box>
+        ) : (
+          <>
+            {/* Column 1 (Left): Mobile Drawer Button / Left Area */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifySelf: 'start' }}>
+              <IconButton
+                color="inherit"
+                aria-label="open navigation drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ display: { md: 'none' }, color: '#9ca3af', '&:hover': { color: '#f3f4f6' } }}
+              >
+                <MenuIcon size={22} />
+              </IconButton>
+            </Box>
 
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ ml: 'auto' }}>
-          {/* Wallet Button */}
-          <Button
-            variant="outlined"
-            onClick={() => navigate('/app/settlements')}
-            sx={{
+            {/* Column 2 (Center): Global Search Input (Permanently Centered, No Overlap) */}
+            <Box sx={{ 
               display: { xs: 'none', sm: 'flex' },
-              alignItems: 'center',
-              gap: 1.5,
-              borderColor: 'rgba(34,197,94,0.3)',
-              borderRadius: '8px',
-              padding: '6px 12px',
-              textTransform: 'none',
-              background: '#111114',
-              '&:hover': {
-                borderColor: '#22c55e',
-                background: 'rgba(34,197,94,0.05)',
-              }
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34,197,94,0.15)', borderRadius: '6px', p: '4px' }}>
-              <Wallet size={16} color="#22c55e" />
+              justifyContent: 'center',
+              width: '100%',
+              maxWidth: 420,
+              mx: 'auto',
+              justifySelf: 'center',
+            }}>
+              <TextField
+                fullWidth
+                size="small"
+                value={searchVal}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearchSubmit}
+                placeholder="Search subscriptions, hosts or categories..."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search size={16} color="#9ca3af" />
+                    </InputAdornment>
+                  ),
+                  sx: {
+                    borderRadius: '8px',
+                    background: '#111114',
+                    color: '#f3f4f6',
+                    fontSize: '0.85rem',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    '& fieldset': { border: 'none' },
+                    '&:hover': { borderColor: '#22c55e' },
+                    '&.Mui-focused': { borderColor: '#22c55e' },
+                  },
+                }}
+              />
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <Typography sx={{ fontSize: '0.65rem', color: '#9ca3af', lineHeight: 1 }}>Wallet balance</Typography>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>{balanceDisplay}</Typography>
-            </Box>
-          </Button>
 
+            {/* Column 3 (Right): Actions Stack (Right Aligned via Grid) */}
+            <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ justifySelf: 'end' }}>
+              {/* Mobile Search Icon Button (Visible on phone/xs) */}
+              <IconButton
+                onClick={() => setMobileSearchOpen(true)}
+                sx={{ display: { xs: 'flex', sm: 'none' }, color: '#9ca3af', '&:hover': { color: '#f3f4f6', background: 'rgba(255, 255, 255, 0.05)' } }}
+                aria-label="Open search"
+              >
+                <Search size={20} />
+              </IconButton>
+
+              {/* Wallet Button */}
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/app/settlements')}
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  alignItems: 'center',
+                  gap: 1.5,
+                  borderColor: 'rgba(34,197,94,0.3)',
+                  borderRadius: '8px',
+                  padding: '6px 12px',
+                  textTransform: 'none',
+                  background: '#111114',
+                  '&:hover': {
+                    borderColor: '#22c55e',
+                    background: 'rgba(34,197,94,0.05)',
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34,197,94,0.15)', borderRadius: '6px', p: '4px' }}>
+                  <Wallet size={16} color="#22c55e" />
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <Typography sx={{ fontSize: '0.65rem', color: '#9ca3af', lineHeight: 1 }}>Wallet balance</Typography>
+                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>{balanceDisplay}</Typography>
+                </Box>
+              </Button>
+
+
+              {/* Messages Navigation */}
+              <IconButton
+                onClick={() => navigate('/app/messages')}
+                sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6', background: 'rgba(255, 255, 255, 0.05)' } }}
+              >
+                <Badge badgeContent={msgUnreadCount} sx={{ '& .MuiBadge-badge': { backgroundColor: '#3b82f6', color: '#fff', fontWeight: 'bold' } }}>
+                  <MessageSquare size={20} />
+                </Badge>
+              </IconButton>
 
           {/* Notifications */}
           <IconButton
@@ -317,10 +434,17 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
             </Box>
           </Menu>
 
-          {/* User Profile Avatar */}
+          {/* User Profile Avatar Button */}
           <IconButton
-            onClick={() => navigate('/app/profile')}
-            sx={{ p: 0.5, border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', '&:hover': { borderColor: '#2563eb' } }}
+            onClick={handleProfileClick}
+            sx={{
+              p: 0.5,
+              border: Boolean(profileAnchorEl) ? '2px solid #2563eb' : '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '50%',
+              transition: 'all 0.2s ease',
+              '&:hover': { borderColor: '#2563eb', transform: 'scale(1.05)' }
+            }}
+            aria-label="User profile menu"
           >
             <Avatar
               src={user?.profileImage || ''}
@@ -330,7 +454,140 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
               {initials}
             </Avatar>
           </IconButton>
+
+          {/* User Profile Dropdown Modal */}
+          <Menu
+            anchorEl={profileAnchorEl}
+            open={Boolean(profileAnchorEl)}
+            onClose={handleProfileClose}
+            PaperProps={{
+              sx: {
+                width: 300,
+                mt: 1.5,
+                borderRadius: '18px',
+                background: '#111114',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#ffffff',
+                boxShadow: '0 16px 40px rgba(0,0,0,0.7)',
+                overflow: 'hidden',
+              },
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            {/* User Details Header */}
+            <Box sx={{ p: 2.2, pb: 1.8, display: 'flex', alignItems: 'center', gap: 1.75, background: 'linear-gradient(180deg, rgba(37,99,235,0.08) 0%, transparent 100%)' }}>
+              <Avatar
+                src={user?.profileImage || ''}
+                alt={user?.firstName || 'User'}
+                sx={{
+                  width: 46,
+                  height: 46,
+                  bgcolor: '#2563eb',
+                  fontWeight: 800,
+                  fontSize: '1.05rem',
+                  border: '2px solid #3b82f6',
+                  boxShadow: '0 0 16px rgba(59,130,246,0.35)',
+                }}
+              >
+                {initials}
+              </Avatar>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {displayName}
+                </Typography>
+                <Typography sx={{ fontSize: '0.78rem', color: '#9ca3af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', mb: 0.5 }}>
+                  {user?.email || 'user@subsplit.in'}
+                </Typography>
+                <Chip
+                  icon={<ShieldCheck size={12} color="#22c55e" />}
+                  label={user?.role === 'ADMIN' ? 'Admin' : (user?.isKycVerified !== false ? 'KYC Verified' : 'Standard Member')}
+                  size="small"
+                  sx={{
+                    height: 20,
+                    fontSize: '0.68rem',
+                    fontWeight: 800,
+                    background: 'rgba(34,197,94,0.12)',
+                    color: '#22c55e',
+                    border: '1px solid rgba(34,197,94,0.25)',
+                  }}
+                />
+              </Box>
+            </Box>
+
+            <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+
+            {/* Menu Items */}
+            <MenuItem
+              onClick={() => handleProfileNavigate('/app/profile')}
+              sx={{
+                py: 1.25,
+                px: 2,
+                gap: 1.5,
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                color: '#f3f4f6',
+                '&:hover': { background: 'rgba(255, 255, 255, 0.05)', color: '#60a5fa' },
+              }}
+            >
+              <UserIcon size={16} color="#9ca3af" />
+              <span>My Profile</span>
+            </MenuItem>
+
+            <MenuItem
+              onClick={() => handleProfileNavigate('/app/profile/reviews')}
+              sx={{
+                py: 1.25,
+                px: 2,
+                gap: 1.5,
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                color: '#f3f4f6',
+                '&:hover': { background: 'rgba(255, 255, 255, 0.05)', color: '#60a5fa' },
+              }}
+            >
+              <Star size={16} color="#9ca3af" />
+              <span>My Reviews</span>
+            </MenuItem>
+
+            <MenuItem
+              onClick={() => handleProfileNavigate('/app/host')}
+              sx={{
+                py: 1.25,
+                px: 2,
+                gap: 1.5,
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                color: '#f3f4f6',
+                '&:hover': { background: 'rgba(255, 255, 255, 0.05)', color: '#60a5fa' },
+              }}
+            >
+              <Shield size={16} color="#9ca3af" />
+              <span>Host Center</span>
+            </MenuItem>
+
+            <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+
+            {/* Logout Item */}
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                py: 1.25,
+                px: 2,
+                gap: 1.5,
+                fontSize: '0.86rem',
+                fontWeight: 700,
+                color: '#f87171',
+                '&:hover': { background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' },
+              }}
+            >
+              <LogOut size={16} color="#ef4444" />
+              <span>Log Out</span>
+            </MenuItem>
+          </Menu>
         </Stack>
+          </>
+        )}
       </Toolbar>
     </AppBar>
   );

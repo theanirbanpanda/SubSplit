@@ -38,10 +38,14 @@ function ListingDetails() {
     myJoinRequests,
   } = useSelector((state) => state.marketplace);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchListingDetails(id));
+      setInitialLoading(true);
+      dispatch(fetchListingDetails(id)).finally(() => {
+        setInitialLoading(false);
+      });
       dispatch(checkJoinStatus(id));
       dispatch(fetchMyJoinRequests());
     }
@@ -56,7 +60,7 @@ function ListingDetails() {
 
   const isAlreadyJoined = Boolean(isHost || myRequest);
 
-  if (loading) {
+  if (loading || initialLoading) {
     return <ListingDetailsSkeleton />;
   }
 

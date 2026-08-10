@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Grid, Typography, Paper, Stack, Chip, Button, Avatar } from '@mui/material';
-import { ShieldCheck, Star, Clock, Award, Calendar, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Star, Clock, Award, Calendar, CheckCircle2, MessageSquare } from 'lucide-react';
 
 function HostProfileCard({ host = {} }) {
   const navigate = useNavigate();
@@ -80,25 +80,47 @@ function HostProfileCard({ host = {} }) {
             </Box>
           </Stack>
 
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => navigate('/app/profile/reviews')}
-            sx={{
-              borderRadius: '10px',
-              borderColor: '#2A2A30',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              textTransform: 'none',
-              px: 2.5,
-              py: 0.9,
-              whiteSpace: 'nowrap',
-              '&:hover': { borderColor: '#3b82f6', background: 'rgba(59,130,246,0.1)' },
-            }}
-          >
-            View Host Reviews
-          </Button>
+          <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" gap={1}>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<MessageSquare size={14} />}
+              onClick={() => navigate(`/app/messages?recipientId=${host?.id || 1}`)}
+              sx={{
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                textTransform: 'none',
+                px: 2.2,
+                py: 0.9,
+                whiteSpace: 'nowrap',
+                '&:hover': { background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)' },
+              }}
+            >
+              Message Host
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => navigate('/app/profile/reviews')}
+              sx={{
+                borderRadius: '10px',
+                borderColor: '#2A2A30',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                textTransform: 'none',
+                px: 2.2,
+                py: 0.9,
+                whiteSpace: 'nowrap',
+                '&:hover': { borderColor: '#3b82f6', background: 'rgba(59,130,246,0.1)' },
+              }}
+            >
+              View Reviews
+            </Button>
+          </Stack>
         </Stack>
 
         {/* Host Stats Row */}

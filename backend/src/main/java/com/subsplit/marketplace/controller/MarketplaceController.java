@@ -64,14 +64,20 @@ public class MarketplaceController {
     }
 
     @GetMapping("/listings/{id}")
-    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingById(@PathVariable Long id) {
-        ListingDetailResponse response = marketplaceService.getListingDetailById(id);
+    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingById(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        ListingDetailResponse response = marketplaceService.getListingDetailById(currentUser, id);
         return ResponseEntity.ok(ApiResponse.success("Listing details retrieved successfully", response));
     }
 
     @GetMapping("/listings/{id}/detail")
-    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingDetailById(@PathVariable Long id) {
-        ListingDetailResponse response = marketplaceService.getListingDetailById(id);
+    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingDetailById(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        ListingDetailResponse response = marketplaceService.getListingDetailById(currentUser, id);
         return ResponseEntity.ok(ApiResponse.success("Listing full details retrieved successfully", response));
     }
 

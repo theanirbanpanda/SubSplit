@@ -5,6 +5,7 @@ import marketplaceReducer from '../features/marketplace/marketplaceSlice';
 import subscriptionsReducer from '../features/groups/subscriptionsSlice';
 import walletReducer from '../features/settlements/walletSlice';
 import notificationsReducer from '../features/notifications/notificationsSlice';
+import messageReducer from '../features/messages/messageSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     subscriptions: subscriptionsReducer,
     wallet: walletReducer,
     notifications: notificationsReducer,
+    messages: messageReducer,
   },
 });
 

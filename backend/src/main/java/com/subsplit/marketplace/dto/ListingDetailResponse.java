@@ -59,4 +59,9 @@ public class ListingDetailResponse {
 
     // Review Summary
     private ListingReviewResponse reviewSummary;
+
+    // Joinee & Host Status Context
+    private Boolean isJoined;
+    private Boolean isHost;
+    private String myRequestStatus;
 }

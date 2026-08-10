@@ -139,8 +139,9 @@ export const fetchListingDetails = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await fetchListingByIdApi(id);
-      if (response.data) {
-        return normalizeListing(response.data);
+      const raw = response?.data !== undefined ? response.data : response;
+      if (raw) {
+        return normalizeListing(raw);
       }
       return null;
     } catch (error) {
