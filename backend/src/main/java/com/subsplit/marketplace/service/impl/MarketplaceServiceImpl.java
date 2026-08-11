@@ -656,11 +656,12 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .stream().map(this::mapToListingResponse).collect(Collectors.toList());
         }
 
+        List<Listing> similar = new ArrayList<>();
         Subscription sub = listing.getPlan() != null ? listing.getPlan().getSubscription() : null;
         if (sub != null) {
-            similar = listingRepository.findBySubscriptionIdAndIdNot(sub.getId(), listingId);
+            similar = listingRepository.findByPlanSubscriptionIdAndIdNot(sub.getId(), listingId);
             if (similar.isEmpty() && sub.getCategory() != null) {
-                similar = listingRepository.findBySubscriptionCategoryIdAndIdNot(sub.getCategory().getId(), listingId);
+                similar = listingRepository.findByPlanSubscriptionCategoryIdAndIdNot(sub.getCategory().getId(), listingId);
             }
         }
 

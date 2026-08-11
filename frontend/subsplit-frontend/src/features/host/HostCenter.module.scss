@@ -1,6 +1,6 @@
 @use '../../styles/abstracts/variables' as *;
 
-// ─── Host Center ─────────────────────────────────────────────────────────────
+// ─── Host Center Container ─────────────────────────────────────────────────────
 .hostContainer {
   width: 100%;
   padding: 0.25rem 0 2.5rem;
@@ -13,245 +13,250 @@
   }
 }
 
-// ─── Header Section ───────────────────────────────────────────────────────────
-.headerSection {
-  width: 100%;
+// ─── Hero Card ────────────────────────────────────────────────────────────────
+.heroCard {
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-2xl;
+  padding: 1.75rem 2rem 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 0;
   gap: 1.25rem;
-
-  @media (min-width: 48rem) {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-.headerInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: $gap-heading-subheading;
-}
-
-.titleRow {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: $gap-icon-text;
-  flex-wrap: wrap;
-}
-
-.pageTitle {
-  font-weight: 900;
-  font-size: clamp(1.5rem, 3.5vw, 2rem);
-  color: #f1f5f9;
-  letter-spacing: -0.03em;
-  margin: 0;
-  line-height: 1.1;
-}
-
-.subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin: 0;
-  max-width: 48rem;
-  line-height: 1.55;
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-
-  @media (min-width: 48rem) {
-    justify-content: flex-end;
-    flex-shrink: 0;
-  }
-}
-
-// ─── Metrics Grid ─────────────────────────────────────────────────────────────
-.metricsGrid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $gap-grid-cards-mobile;
-  margin-bottom: 0;
-
-  @media (min-width: 48rem) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: $gap-grid-cards;
-  }
-
-  @media (min-width: 64rem) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-// ─── Metric Card ──────────────────────────────────────────────────────────────
-.metricCard {
-  background: #14161e;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 18px;
-  padding: 1.375rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;  // LEFT-ALIGNED — not centered
-  text-align: left;
-  gap: 0.375rem;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   position: relative;
   overflow: hidden;
 
+  // Subtle green glow top-right
   &::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.09) 50%, transparent 100%);
+    top: -60px;
+    right: -40px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.14) 0%, transparent 70%);
+    pointer-events: none;
   }
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  }
-}
-
-.metricLabel {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.metricValue {
-  font-weight: 900;
-  font-size: 1.625rem;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
-  color: #f1f5f9;
-}
-
-.metricSubtext {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #94a3b8;
-}
-
-// ─── Split Section ────────────────────────────────────────────────────────────
-.splitSection {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $gap-grid-cards-mobile;
-  margin-bottom: 0;
-
-  @media (min-width: 64rem) {
-    grid-template-columns: 3fr 2fr;
-    gap: $gap-grid-cards;
+  @media (max-width: 38rem) {
+    padding: 1.25rem;
+    gap: 1rem;
   }
 }
 
-// ─── Panel Card ───────────────────────────────────────────────────────────────
-.panelCard {
-  background: #14161e;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 20px;
-  padding: 1.625rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.375rem;
-}
-
-.panelHeader {
+// ─── Hero Top Row ─────────────────────────────────────────────────────────────
+.heroTopRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
+  gap: 1rem;
+  flex-wrap: wrap;
 
-.panelTitle {
-  font-weight: 900;
-  font-size: 1.1rem;
-  color: #f1f5f9;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-// ─── Section Header ───────────────────────────────────────────────────────────
-.sectionHeader {
-  width: 100%;
-  text-align: left;
-  margin-bottom: $gap-heading-body;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: $gap-icon-text;
-}
-
-.sectionTitle {
-  font-weight: 900;
-  font-size: 1.1875rem;
-  color: #f1f5f9;
-  letter-spacing: -0.025em;
-  margin: 0;
-}
-
-// ─── Requests Grid ────────────────────────────────────────────────────────────
-.requestsGrid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $gap-grid-cards-mobile;
-  margin-bottom: 0;
-
-  @media (min-width: 48rem) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: $gap-grid-cards;
+  @media (max-width: 38rem) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 }
 
-// ─── Request Card ─────────────────────────────────────────────────────────────
-.requestCard {
-  background: #14161e;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 18px;
-  padding: 1.375rem;
+// ─── Title group ──────────────────────────────────────────────────────────────
+.heroTitleGroup {
   display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
-
-  &:hover {
-    border-color: rgba(59, 130, 246, 0.25);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-  }
+  align-items: center;
+  gap: 1rem;
 }
 
-// ─── Empty Box ────────────────────────────────────────────────────────────────
-.emptyBox {
-  width: 100%;
-  padding: 3.5rem 1.5rem;
-  border-radius: 18px;
-  background: #14161e;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+.heroIconTile {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, $accent-green 0%, #16a34a 100%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: 0.75rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+
+  @media (max-width: 38rem) {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
 }
 
-.emptyText {
-  color: #64748b;
-  font-size: 0.9rem;
-  font-weight: 600;
+.heroTitleStack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: $accent-green;
+  text-transform: uppercase;
+}
+
+.heroPageTitle {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: $text-primary;
   margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+
+  @media (max-width: 38rem) {
+    font-size: 1.5rem;
+  }
 }
 
+// ─── List New Pass Button ─────────────────────────────────────────────────────
+.heroListBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, $accent-blue 0%, #1d4ed8 100%);
+  color: $text-primary;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+  transition: $transition-default;
+  flex-shrink: 0;
+
+  &:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 6px 28px rgba(37, 99, 235, 0.55);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 38rem) {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+  }
+}
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+.heroDivider {
+  height: 1px;
+  background: $border-subtle;
+}
+
+// ─── Stats Row ────────────────────────────────────────────────────────────────
+.heroStatsRow {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+
+  @media (max-width: 38rem) {
+    gap: 1rem;
+  }
+}
+
+// ─── Stat Chip ────────────────────────────────────────────────────────────────
+.heroStatChip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.heroChipIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &[data-color='green'] {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  &[data-color='blue'] {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+  }
+}
+
+.heroChipText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.heroStatGreen {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: $accent-green;
+  line-height: 1;
+}
+
+.heroStatWhite {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: $text-primary;
+  line-height: 1;
+}
+
+.heroStatLoading {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: $text-muted;
+  line-height: 1;
+}
+
+.heroChipLabel {
+  font-size: 0.7rem;
+  color: $text-secondary;
+  font-weight: 500;
+}
+
+// ─── Needs Review Pill ────────────────────────────────────────────────────────
+.heroNeedsReviewPill {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  color: $accent-amber;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: $transition-default;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(245, 158, 11, 0.2);
+  }
+
+  @media (max-width: 38rem) {
+    margin-left: 0;
+  }
+}
+
+.heroPillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $accent-amber;
+  flex-shrink: 0;
+}
