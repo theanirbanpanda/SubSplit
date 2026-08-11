@@ -18,6 +18,8 @@ import {
   IconButton,
   Switch,
   Tooltip,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   LayoutDashboard,
@@ -34,6 +36,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  X,
 } from 'lucide-react';
 
 const MENU_ITEMS = [
@@ -44,7 +47,6 @@ const MENU_ITEMS = [
   { text: 'Messages', icon: MessageSquare, path: '/app/messages' },
   { text: 'Notifications', icon: Bell, path: '/app/notifications' },
   { text: 'Control Center', icon: Settings, path: '/app/admin', adminOnly: true, highlight: true },
-  { text: 'Profile', icon: User, path: '/app/profile' },
 ];
 
 
@@ -53,6 +55,11 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
   const location = useLocation();
   const dispatch = useDispatch();
   const handleLogoClick = useLogoClick();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // On mobile devices, the temporary drawer must always be expanded with full option names and titles
+  const isEffectiveCollapsed = isMobile ? false : sidebarCollapsed;
 
   const { user } = useSelector((state) => state.auth || {});
   const isAdmin =
@@ -67,6 +74,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
     <Box
       sx={{
         height: '100%',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         background: '#09090b',
@@ -79,14 +87,14 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
       {/* Brand Header */}
       <Toolbar
         sx={{
-          px: sidebarCollapsed ? 1 : 2.5,
+          px: isEffectiveCollapsed ? 1 : 2.5,
           py: 2,
           minHeight: '76px !important',
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: sidebarCollapsed ? 'center' : 'space-between',
-          gap: sidebarCollapsed ? 1 : 0,
+          justifyContent: isEffectiveCollapsed ? 'center' : 'space-between',
+          gap: isEffectiveCollapsed ? 1 : 0,
         }}
       >
         <Box 
@@ -111,7 +119,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
           }}>
             <Shield size={16} fill="currentColor" />
           </Box>
-          {!sidebarCollapsed && (
+          {!isEffectiveCollapsed && (
             <Typography
               sx={{
                 fontWeight: 900,
@@ -126,7 +134,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
           )}
         </Box>
 
-        {/* Sidebar Toggle */}
+        {/* Sidebar Toggle / Mobile Close Button */}
         <IconButton
           onClick={() => {
             if (mobileOpen) {
@@ -142,13 +150,14 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
             p: '4px',
             '&:hover': { background: 'rgba(255,255,255,0.06)', color: '#f3f4f6' },
           }}
+          aria-label={isMobile ? 'Close navigation drawer' : (isEffectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar')}
         >
-          {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {isMobile ? <X size={20} /> : (isEffectiveCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />)}
         </IconButton>
       </Toolbar>
 
       {/* Main Nav Links */}
-      <Box sx={{ overflowY: 'auto', flexGrow: 1, px: sidebarCollapsed ? 1 : 1.5, py: 2, '&::-webkit-scrollbar': { display: 'none' } }}>
+      <Box sx={{ overflowY: 'auto', flexGrow: 1, px: isEffectiveCollapsed ? 1 : 1.5, py: 2, '&::-webkit-scrollbar': { display: 'none' } }}>
         <List disablePadding>
           {MENU_ITEMS.map(({ text, icon: Icon, path, adminOnly, highlight }) => {
             if (adminOnly && !isAdmin) return null;
@@ -181,9 +190,9 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
                 sx={{
                   borderRadius: '8px',
                   py: 1,
-                  px: sidebarCollapsed ? 0 : 1.5,
+                  px: isEffectiveCollapsed ? 0 : 1.5,
                   mb: 0.5,
-                  justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                  justifyContent: isEffectiveCollapsed ? 'center' : 'flex-start',
                   background: getBackground(),
                   color: getColor(),
                   border: highlight ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid transparent',
@@ -197,13 +206,13 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
               >
 
                 <ListItemIcon sx={{ 
-                  minWidth: sidebarCollapsed ? 'auto' : 36, 
+                  minWidth: isEffectiveCollapsed ? 'auto' : 36, 
                   color: 'inherit',
                   justifyContent: 'center'
                 }}>
                   <Icon size={18} />
                 </ListItemIcon>
-                {!sidebarCollapsed && (
+                {!isEffectiveCollapsed && (
                   <ListItemText
                     primary={text}
                     primaryTypographyProps={{
@@ -217,7 +226,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
 
             return (
               <ListItem key={text} disablePadding>
-                {sidebarCollapsed ? (
+                {isEffectiveCollapsed ? (
                   <Tooltip title={text} placement="right" arrow>
                     {buttonContent}
                   </Tooltip>
@@ -229,89 +238,47 @@ function Sidebar({ mobileOpen, handleDrawerToggle, sidebarCollapsed, toggleSideb
           })}
         </List>
       </Box>
-
-      {/* Bottom Actions (Logout) */}
-      <Box sx={{ px: sidebarCollapsed ? 1 : 2, py: 2, mt: 'auto', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-        <ListItem disablePadding>
-          <Tooltip title="Logout" placement="right" arrow disableHoverListener={!sidebarCollapsed}>
-            <ListItemButton
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(logout()); // Synchronously clear state and token
-                dispatch(logoutUser()); // Attempt API logout in background
-                window.location.href = '/'; // Hard reload to clear all React state
-              }}
-              sx={{
-                borderRadius: '8px',
-                py: 1,
-                px: sidebarCollapsed ? 0 : 1.5,
-                justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                color: '#ef4444',
-                transition: 'all 0.15s ease',
-                '&:hover': {
-                  background: 'rgba(239, 68, 68, 0.1)',
-                },
-              }}
-              aria-label="Logout"
-            >
-              <ListItemIcon sx={{ 
-                minWidth: sidebarCollapsed ? 'auto' : 36, 
-                color: 'inherit',
-                justifyContent: 'center'
-              }}>
-                <LogOut size={18} /> 
-              </ListItemIcon>
-              {!sidebarCollapsed && (
-                <ListItemText
-                  primary="Logout"
-                  primaryTypographyProps={{
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                  }}
-                />
-              )}
-            </ListItemButton>
-          </Tooltip>
-        </ListItem>
-      </Box>
     </Box>
   );
 
   return (
-    <Box
-      component="nav"
-      sx={{ width: { md: sidebarWidth }, flexShrink: { md: 0 }, transition: 'width 0.2s ease' }}
-      aria-label="Application Sidebar Navigation"
-    >
-      {/* Mobile Drawer */}
+    <>
+      {/* Mobile Drawer (Temporary overlay modal only on small screens) */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{ keepMounted: true }}
-        sx={{ display: { xs: 'block', md: 'none' } }}
-        PaperProps={{ sx: { width: 240, background: 'transparent', border: 'none' } }}
-      >
-        {drawerContent}
-      </Drawer>
-
-      {/* Desktop Drawer */}
-      <Drawer
-        variant="permanent"
-        open
-        sx={{ display: { xs: 'none', md: 'block' } }}
-        PaperProps={{ 
-          sx: { 
-            width: sidebarWidth, 
-            background: 'transparent', 
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 240,
+            background: '#09090b',
             border: 'none',
-            transition: 'width 0.2s ease'
-          } 
+          },
         }}
       >
         {drawerContent}
       </Drawer>
-    </Box>
+
+      {/* Desktop Navigation (Direct child inside flexbox, 100% contained inside parent) */}
+      <Box
+        component="nav"
+        sx={{
+          width: { xs: 0, md: sidebarWidth },
+          display: { xs: 'none', md: 'block' },
+          flexShrink: 0,
+          height: '100%',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'width 0.2s ease',
+        }}
+        aria-label="Application Sidebar Navigation"
+      >
+        {drawerContent}
+      </Box>
+    </>
   );
 }
 

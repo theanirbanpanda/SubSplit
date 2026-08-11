@@ -158,6 +158,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(role)
                     .isActive(true)
                     .emailVerified(true)
+                    .kycStatus("VERIFIED")
                     .build();
 
             UserProfile profile = UserProfile.builder()
@@ -183,6 +184,7 @@ public class DataInitializer implements CommandLineRunner {
                     .role(role)
                     .isActive(true)
                     .emailVerified(true)
+                    .kycStatus("VERIFIED")
                     .build();
 
             UserProfile profile = UserProfile.builder()

@@ -44,12 +44,12 @@ public class MarketplaceController {
         Long currentUserId = currentUser != null ? currentUser.getId() : null;
 
         PagedResponse<ListingResponse> pagedResponse = marketplaceService.getPagedListings(
-                currentUserId, search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly, page, size,
+                currentUserId, search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly,
+                page, size,
                 sortBy, sortDir);
 
         return ResponseEntity.ok(ApiResponse.success("Marketplace listings fetched successfully", pagedResponse));
     }
-
 
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategories() {
@@ -64,14 +64,20 @@ public class MarketplaceController {
     }
 
     @GetMapping("/listings/{id}")
-    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingById(@PathVariable Long id) {
-        ListingDetailResponse response = marketplaceService.getListingDetailById(id);
+    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingById(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        ListingDetailResponse response = marketplaceService.getListingDetailById(currentUser, id);
         return ResponseEntity.ok(ApiResponse.success("Listing details retrieved successfully", response));
     }
 
     @GetMapping("/listings/{id}/detail")
-    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingDetailById(@PathVariable Long id) {
-        ListingDetailResponse response = marketplaceService.getListingDetailById(id);
+    public ResponseEntity<ApiResponse<ListingDetailResponse>> getListingDetailById(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUserOptional(authentication);
+        ListingDetailResponse response = marketplaceService.getListingDetailById(currentUser, id);
         return ResponseEntity.ok(ApiResponse.success("Listing full details retrieved successfully", response));
     }
 
@@ -118,7 +124,6 @@ public class MarketplaceController {
         return ResponseEntity.ok(ApiResponse.success("Join request status retrieved successfully", response));
     }
 
-
     @GetMapping("/join-requests/my-requests")
     public ResponseEntity<ApiResponse<List<JoinRequestResponse>>> getMyJoinRequests(Authentication authentication) {
         User currentUser = getAuthenticatedUser(authentication);
@@ -162,8 +167,6 @@ public class MarketplaceController {
         return ResponseEntity.ok(ApiResponse.success("Join request rejected successfully", response));
     }
 
-
-
     @GetMapping("/listings/my-listings")
 
     public ResponseEntity<ApiResponse<List<ListingResponse>>> getMyListings(Authentication authentication) {
@@ -175,8 +178,7 @@ public class MarketplaceController {
     @PostMapping("/listings")
     public ResponseEntity<ApiResponse<ListingResponse>> createListing(
             Authentication authentication,
-            @Valid @RequestBody CreateListingRequest request
-    ) {
+            @Valid @RequestBody CreateListingRequest request) {
         User currentUser = getAuthenticatedUserOptional(authentication);
         ListingResponse response = marketplaceService.createListing(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED)

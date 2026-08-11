@@ -20,6 +20,8 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT DISTINCT m.listing.id FROM Membership m WHERE m.member.id = :memberId AND m.listing.id IS NOT NULL")
     List<Long> findListingIdsByMemberId(@org.springframework.data.repository.query.Param("memberId") Long memberId);
+
+    java.util.Optional<Membership> findByMemberIdAndListingId(Long memberId, Long listingId);
 }
 
 

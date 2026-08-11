@@ -45,7 +45,7 @@ import {
 } from './notificationsSlice';
 
 
-const FILTER_CHIPS = ['All', 'JOIN_REQUEST', 'PAYMENT', 'ESCROW', 'RENEWAL', 'SYSTEM'];
+const FILTER_CHIPS = ['All', 'AI', 'JOIN_REQUEST', 'PAYMENT', 'ESCROW', 'RENEWAL', 'SYSTEM'];
 
 function NotificationsCenter() {
   const navigate = useNavigate();
@@ -78,6 +78,9 @@ function NotificationsCenter() {
     const type = item.notificationType?.toUpperCase() || '';
     const text = ((item.title || '') + ' ' + (item.message || '')).toLowerCase();
 
+    if (type === 'AI' || text.includes('kyc') || text.includes('identity') || text.includes('document')) {
+      return '/app/profile';
+    }
     if (text.includes('requested to join your group') || text.includes('new join request received')) {
       return '/app/host';
     }
@@ -86,9 +89,6 @@ function NotificationsCenter() {
     }
     if (type === 'PAYMENT' || type === 'ESCROW' || text.includes('wallet') || text.includes('top-up') || text.includes('payout')) {
       return '/app/settlements';
-    }
-    if (text.includes('kyc') || text.includes('identity') || text.includes('verify')) {
-      return '/app/profile';
     }
     if (type === 'JOIN_REQUEST' || text.includes('join request') || text.includes('approved') || text.includes('declined')) {
       return '/app/dashboard';
@@ -109,9 +109,10 @@ function NotificationsCenter() {
     return item.notificationType === selectedFilter;
   });
 
-
   const getIconForType = (type) => {
     switch (type) {
+      case 'AI':
+        return <Bot size={18} color="#3b82f6" />;
       case 'JOIN_REQUEST':
         return <Tv2 size={18} color="#3b82f6" />;
       case 'PAYMENT':

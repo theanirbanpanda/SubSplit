@@ -22,12 +22,14 @@ function Marketplace() {
   return (
     <div className={styles.marketplacePage}>
       <div className={styles.container}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className={styles.mainFlow}>
           <MarketplaceHero />
           <ListingTable />
         </div>
-        <HostCarousel />
-        <RecentlyAdded />
+        <div className={styles.carouselSection}>
+          <HostCarousel />
+          <RecentlyAdded />
+        </div>
       </div>
 
       <ScrollToTop />

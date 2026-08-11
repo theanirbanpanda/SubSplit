@@ -5,7 +5,9 @@ function AuthLayout({ children }) {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        height: '100vh',
+        width: '100vw',
+        maxHeight: '100vh',
         background: '#0d0e11',
         color: '#f3f4f6',
         display: 'flex',
@@ -13,7 +15,8 @@ function AuthLayout({ children }) {
         justifyContent: 'center',
         position: 'relative',
         p: { xs: 2, sm: 4 },
-        overflow: 'hidden',
+        overflowY: 'auto',
+        overflowX: 'hidden',
       }}
     >
       {/* Background Radial Glow */}

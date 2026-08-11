@@ -40,9 +40,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import RaiseDisputeModal from '../disputes/RaiseDisputeModal';
 import { fetchMyDisputesApi } from '../disputes/api/disputeApi';
+import KycUploadModal from '../profile/components/KycUploadModal';
+import { fetchCurrentUser, fetchKycStatus } from '../auth/authSlice';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import styles from './Settlements.module.scss';
-
-
 
 const PAYMENT_METHODS = [
   { id: 'pm-1', name: 'Google Pay UPI', detail: 'anirban@okaxis', type: 'UPI', isDefault: true, icon: QrCode, color: '#3b82f6' },
@@ -54,7 +55,9 @@ function Settlements() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { wallet } = useSelector((state) => state.wallet);
+  const { user, kycStatus } = useSelector((state) => state.auth);
 
+  const [kycModalOpen, setKycModalOpen] = useState(false);
   const [addMoneyOpen, setAddMoneyOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('500');
   const [adding, setAdding] = useState(false);
@@ -63,9 +66,26 @@ function Settlements() {
   const [disputesList, setDisputesList] = useState([]);
 
   useEffect(() => {
+    dispatch(fetchCurrentUser());
+    dispatch(fetchKycStatus());
     dispatch(fetchMyWallet());
     loadDisputes();
   }, [dispatch]);
+
+  // Polling for live KYC updates if currently verifying
+  useEffect(() => {
+    let interval;
+    if (kycStatus?.kycStatus === 'VERIFYING' || kycStatus?.kycStatus === 'IN_PROGRESS') {
+      interval = setInterval(() => {
+        dispatch(fetchKycStatus());
+        dispatch(fetchCurrentUser());
+        dispatch(fetchMyWallet());
+      }, 2500);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [dispatch, kycStatus?.kycStatus]);
 
   const loadDisputes = async () => {
     try {
@@ -75,7 +95,6 @@ function Settlements() {
       console.error('Failed to load user disputes:', err);
     }
   };
-
 
   const handleAddMoneySubmit = async (e) => {
     e.preventDefault();
@@ -92,6 +111,216 @@ function Settlements() {
       }
     }
   };
+
+  const isKycVerified = Boolean(user?.emailVerified) || kycStatus?.isKycVerified || kycStatus?.kycStatus === 'VERIFIED';
+  const isVerifying = kycStatus?.kycStatus === 'VERIFYING' || kycStatus?.kycStatus === 'IN_PROGRESS';
+
+  // ─── If KYC is NOT verified, restrict wallet page completely ───
+  if (!isKycVerified) {
+    return (
+      <div className={styles.settlementsContainer}>
+        {/* Header */}
+        <div className={styles.headerSection}>
+          <div className={styles.headerInfo}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <h1 className={styles.pageTitle}>Wallet & Escrow Protection</h1>
+              <Chip
+                icon={<Lock size={13} color="#f59e0b" />}
+                label="KYC Required • Wallet Locked"
+                size="small"
+                sx={{
+                  background: 'rgba(245,158,11,0.12)',
+                  color: '#f59e0b',
+                  fontWeight: 800,
+                  border: '1px solid rgba(245,158,11,0.3)',
+                }}
+              />
+            </div>
+            <p className={styles.subtitle}>
+              Access to SubSplit escrow balances, deposits, and settlement payouts is guarded by identity KYC verification.
+            </p>
+          </div>
+        </div>
+
+        {/* Locked Wallet Hero Gate Card */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3.5, sm: 5 },
+            borderRadius: '28px',
+            background: 'linear-gradient(145deg, #14161a 0%, #171a21 100%)',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+            textAlign: 'center',
+            maxWidth: 760,
+            mx: 'auto',
+            my: { xs: 2, sm: 4 },
+          }}
+        >
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: isVerifying ? 'rgba(59,130,246,0.15)' : 'rgba(245,158,11,0.15)',
+              border: isVerifying ? '2px solid #3b82f6' : '2px solid #f59e0b',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 2.5,
+              boxShadow: isVerifying ? '0 0 30px rgba(59,130,246,0.3)' : '0 0 30px rgba(245,158,11,0.3)',
+            }}
+          >
+            {isVerifying ? (
+              <Loader2 size={40} color="#3b82f6" className="animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />
+            ) : (
+              <Lock size={40} color="#f59e0b" />
+            )}
+          </Box>
+
+          <Typography variant="h4" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: { xs: '1.4rem', sm: '1.8rem' }, letterSpacing: '-0.02em', mb: 1 }}>
+            {isVerifying ? 'AI KYC Verification in Progress' : 'SubSplit Wallet is Locked'}
+          </Typography>
+
+          <Typography sx={{ color: '#9ca3af', fontSize: '0.92rem', maxWidth: 580, mx: 'auto', lineHeight: 1.6, mb: 3.5 }}>
+            {isVerifying
+              ? 'SubSplit AI is currently analyzing your uploaded government ID. Your wallet will automatically unlock as soon as verification completes!'
+              : 'To comply with financial escrow regulations, prevent fraudulent access, and protect group funds, you must complete your 1-click government identity (KYC) verification before accessing your wallet.'}
+          </Typography>
+
+          {isVerifying && (
+            <Box sx={{ maxWidth: 440, mx: 'auto', mb: 4 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                <Typography sx={{ fontSize: '0.78rem', color: '#3b82f6', fontWeight: 800 }}>
+                  OCR & AI Biometric Scanning...
+                </Typography>
+                <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af' }}>
+                  Live Status
+                </Typography>
+              </Stack>
+              <LinearProgress
+                sx={{
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: '#1c1e24',
+                  '& .MuiLinearProgress-bar': {
+                    background: 'linear-gradient(90deg, #2563eb 0%, #38bdf8 50%, #22c55e 100%)',
+                  },
+                }}
+              />
+            </Box>
+          )}
+
+          {/* 3 Step Visual Blueprint */}
+          <Grid container spacing={2} sx={{ mb: 4, textAlign: 'left' }}>
+            <Grid item xs={12} sm={4}>
+              <Paper elevation={0} sx={{ p: 2, borderRadius: '16px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.06)', height: '100%' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#f3f4f6', mb: 0.5 }}>
+                  1. Upload Govt ID
+                </Typography>
+                <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af', lineHeight: 1.4 }}>
+                  Aadhaar Card, PAN Card, Passport, or Driving License document photo.
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <Paper elevation={0} sx={{ p: 2, borderRadius: '16px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.06)', height: '100%' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#f3f4f6', mb: 0.5 }}>
+                  2. 5-Sec AI Check
+                </Typography>
+                <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af', lineHeight: 1.4 }}>
+                  Automated OCR text extraction, integrity check, and instant matching.
+                </Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <Paper elevation={0} sx={{ p: 2, borderRadius: '16px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.06)', height: '100%' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#22c55e', mb: 0.5 }}>
+                  3. Full Wallet Access
+                </Typography>
+                <Typography sx={{ fontSize: '0.74rem', color: '#9ca3af', lineHeight: 1.4 }}>
+                  Add funds, join groups, lock escrow protection, and receive payouts.
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+
+          {/* Action CTAs */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+            {isVerifying ? (
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => navigate('/app/profile')}
+                sx={{
+                  py: 1.5,
+                  px: 4,
+                  borderRadius: '14px',
+                  fontWeight: 900,
+                  fontSize: '0.95rem',
+                  textTransform: 'none',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                }}
+              >
+                View AI Verification on Profile →
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<ShieldCheck size={20} />}
+                onClick={() => setKycModalOpen(true)}
+                sx={{
+                  py: 1.5,
+                  px: 4,
+                  borderRadius: '14px',
+                  fontWeight: 900,
+                  fontSize: '0.95rem',
+                  textTransform: 'none',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  boxShadow: '0 8px 25px rgba(37,99,235,0.4)',
+                }}
+              >
+                Complete KYC Verification Now
+              </Button>
+            )}
+
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => navigate('/app/marketplace')}
+              sx={{
+                py: 1.5,
+                px: 3,
+                borderRadius: '14px',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                textTransform: 'none',
+                color: '#9ca3af',
+                borderColor: 'rgba(255,255,255,0.15)',
+                '&:hover': { color: '#ffffff', borderColor: '#ffffff' },
+              }}
+            >
+              Browse Marketplace
+            </Button>
+          </Stack>
+        </Paper>
+
+        {/* KYC Upload Modal */}
+        <KycUploadModal
+          open={kycModalOpen}
+          onClose={() => setKycModalOpen(false)}
+          onSuccess={() => {
+            dispatch(fetchCurrentUser());
+            dispatch(fetchKycStatus());
+            dispatch(fetchMyWallet());
+          }}
+        />
+      </div>
+    );
+  }
 
   const balanceVal = wallet?.balance != null ? wallet.balance : 0;
   const balanceDisplay = `₹${balanceVal.toFixed(2)}`;

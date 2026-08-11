@@ -44,7 +44,7 @@ function MarketplaceCard({ listing }) {
     <Card
       className={styles.card}
       elevation={0}
-      onClick={() => navigate(`/app/marketplace/listing/${id}`)}
+      onClick={() => navigate(`/app/marketplace/${id}`)}
     >
       <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
 

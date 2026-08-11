@@ -36,10 +36,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminServiceImpl.class);
 
     private final AdminLogRepository adminLogRepository;
     private final UserRepository userRepository;

@@ -63,10 +63,10 @@ import com.subsplit.wallet.repository.WalletTransactionRepository;
 import com.subsplit.notification.service.NotificationService;
 import com.subsplit.common.enums.NotificationType;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MarketplaceServiceImpl implements MarketplaceService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MarketplaceServiceImpl.class);
 
     private final ListingRepository listingRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
@@ -82,7 +82,34 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     private final WalletTransactionRepository walletTransactionRepository;
     private final NotificationService notificationService;
 
-
+    public MarketplaceServiceImpl(
+            ListingRepository listingRepository,
+            SubscriptionPlanRepository subscriptionPlanRepository,
+            CategoryRepository categoryRepository,
+            SubscriptionRepository subscriptionRepository,
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder,
+            ReviewRepository reviewRepository,
+            JoinRequestRepository joinRequestRepository,
+            MembershipRepository membershipRepository,
+            WalletRepository walletRepository,
+            WalletTransactionRepository walletTransactionRepository,
+            NotificationService notificationService) {
+        this.listingRepository = listingRepository;
+        this.subscriptionPlanRepository = subscriptionPlanRepository;
+        this.categoryRepository = categoryRepository;
+        this.subscriptionRepository = subscriptionRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.reviewRepository = reviewRepository;
+        this.joinRequestRepository = joinRequestRepository;
+        this.membershipRepository = membershipRepository;
+        this.walletRepository = walletRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
+        this.notificationService = notificationService;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -99,8 +126,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             int page,
             int size,
             String sortBy,
-            String sortDir
-    ) {
+            String sortDir) {
         String validatedSortBy = sanitizeSortField(sortBy);
         Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, validatedSortBy));
@@ -109,20 +135,20 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         if (excludeHostId != null) {
             try {
                 List<Long> joinReqListingIds = joinRequestRepository.findListingIdsByMemberIdNonRejected(excludeHostId);
-                if (joinReqListingIds != null) excludeListingIds.addAll(joinReqListingIds);
+                if (joinReqListingIds != null)
+                    excludeListingIds.addAll(joinReqListingIds);
 
                 List<Long> membershipListingIds = membershipRepository.findListingIdsByMemberId(excludeHostId);
-                if (membershipListingIds != null) excludeListingIds.addAll(membershipListingIds);
+                if (membershipListingIds != null)
+                    excludeListingIds.addAll(membershipListingIds);
             } catch (Exception e) {
                 log.error("Failed to query joinee listing IDs for user exclusion: ", e);
             }
         }
 
         Specification<Listing> spec = ListingSpecification.filterListings(
-                excludeHostId, excludeListingIds, search, category, subscriptionId, minPrice, maxPrice, billingCycle, status, verifiedOnly
-        );
-
-
+                excludeHostId, excludeListingIds, search, category, subscriptionId, minPrice, maxPrice, billingCycle,
+                status, verifiedOnly);
 
         Page<Listing> listingPage = listingRepository.findAll(spec, pageable);
         Page<ListingResponse> responsePage = listingPage.map(this::mapToListingResponse);
@@ -158,7 +184,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                             .lastName("Host")
                             .fullName("Default Host")
                             .passwordHash(passwordEncoder.encode("HostPassword123!"))
-                            .role(roleRepository.findByName("HOST").orElseGet(() -> roleRepository.save(Role.builder().name("HOST").description("Host Role").build())))
+                            .role(roleRepository.findByName("HOST")
+                                    .orElseGet(() -> roleRepository
+                                            .save(Role.builder().name("HOST").description("Host Role").build())))
                             .isActive(true)
                             .emailVerified(true)
                             .build()));
@@ -177,14 +205,15 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             throw new BadRequestException("Total seats must be at least 1");
         }
 
-        Integer availableSeats = request.getAvailableSeats() != null ? request.getAvailableSeats() : request.getTotalSeats();
+        Integer availableSeats = request.getAvailableSeats() != null ? request.getAvailableSeats()
+                : request.getTotalSeats();
         if (availableSeats > request.getTotalSeats()) {
-            throw new BadRequestException("Available seats (" + availableSeats + ") cannot exceed total seats (" + request.getTotalSeats() + ")");
+            throw new BadRequestException("Available seats (" + availableSeats + ") cannot exceed total seats ("
+                    + request.getTotalSeats() + ")");
         }
 
         SubscriptionPlan plan = resolveOrCreateSubscriptionPlan(request);
         BillingCycle cycle = request.getBillingCycle() != null ? request.getBillingCycle() : BillingCycle.MONTHLY;
-
 
         Listing listing = Listing.builder()
                 .host(host)
@@ -210,8 +239,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                         host,
                         NotificationType.SYSTEM,
                         "Group Pass Published 🚀",
-                        "Your subscription pass '" + savedListing.getTitle() + "' is now active on the Marketplace!"
-                );
+                        "Your subscription pass '" + savedListing.getTitle() + "' is now active on the Marketplace!");
             }
         } catch (Exception e) {
             log.error("Failed to send notification on listing creation: ", e);
@@ -219,7 +247,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         return mapToListingResponse(savedListing);
     }
-
 
     @Override
     @Transactional
@@ -315,7 +342,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 UserProfile profile = host.getProfile();
                 String hostName = ((host.getFirstName() != null ? host.getFirstName() : "") +
                         " " + (host.getLastName() != null ? host.getLastName() : "")).trim();
-                if (hostName.isEmpty()) hostName = host.getEmail();
+                if (hostName.isEmpty())
+                    hostName = host.getEmail();
 
                 long hostActiveListings = listings.stream()
                         .filter(item -> item.getHost() != null && Objects.equals(item.getHost().getId(), host.getId()))
@@ -346,15 +374,19 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     private SubscriptionPlan resolveOrCreateSubscriptionPlan(CreateListingRequest request) {
         if (request.getPlanId() != null) {
             return subscriptionPlanRepository.findById(request.getPlanId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found with id: " + request.getPlanId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Subscription plan not found with id: " + request.getPlanId()));
         }
 
         String providerName = (request.getProviderName() != null && !request.getProviderName().isBlank())
-                ? request.getProviderName().trim() : "Custom Subscription";
+                ? request.getProviderName().trim()
+                : "Custom Subscription";
         String catName = (request.getCategoryName() != null && !request.getCategoryName().isBlank())
-                ? request.getCategoryName().trim() : "General";
+                ? request.getCategoryName().trim()
+                : "General";
         String planName = (request.getPlanName() != null && !request.getPlanName().isBlank())
-                ? request.getPlanName().trim() : "Standard Plan";
+                ? request.getPlanName().trim()
+                : "Standard Plan";
 
         Category category = categoryRepository.findAll().stream()
                 .filter(c -> c.getCategoryName().equalsIgnoreCase(catName))
@@ -387,7 +419,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                         .planName(planName)
                         .maxMembers(request.getTotalSeats() != null ? request.getTotalSeats() : 4)
                         .monthlyPrice(request.getSeatPrice() != null ? request.getSeatPrice() : BigDecimal.ZERO)
-                        .yearlyPrice(request.getSeatPrice() != null ? request.getSeatPrice().multiply(BigDecimal.valueOf(10)) : BigDecimal.ZERO)
+                        .yearlyPrice(
+                                request.getSeatPrice() != null ? request.getSeatPrice().multiply(BigDecimal.valueOf(10))
+                                        : BigDecimal.ZERO)
                         .sharingAllowed(true)
                         .active(true)
                         .build()));
@@ -400,7 +434,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     private String sanitizeSortField(String sortBy) {
-        if (sortBy == null) return "createdAt";
+        if (sortBy == null)
+            return "createdAt";
         return switch (sortBy) {
             case "price", "seatPrice" -> "seatPrice";
             case "title" -> "title";
@@ -416,9 +451,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         Category category = subscription != null ? subscription.getCategory() : null;
 
         UserProfile profile = host != null ? host.getProfile() : null;
-        String hostName = host != null ?
-                ((host.getFirstName() != null ? host.getFirstName() : "") +
-                        " " + (host.getLastName() != null ? host.getLastName() : "")).trim()
+        String hostName = host != null ? ((host.getFirstName() != null ? host.getFirstName() : "") +
+                " " + (host.getLastName() != null ? host.getLastName() : "")).trim()
                 : "Verified Host";
 
         if (hostName.isEmpty() && host != null) {
@@ -455,7 +489,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .build();
 
         int savingsPercent = 0;
-        if (plan != null && plan.getMonthlyPrice() != null && plan.getMonthlyPrice().compareTo(BigDecimal.ZERO) > 0 && listing.getSeatPrice() != null) {
+        if (plan != null && plan.getMonthlyPrice() != null && plan.getMonthlyPrice().compareTo(BigDecimal.ZERO) > 0
+                && listing.getSeatPrice() != null) {
             BigDecimal original = plan.getMonthlyPrice();
             BigDecimal seat = listing.getSeatPrice();
             if (original.compareTo(seat) > 0) {
@@ -491,12 +526,20 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @Transactional(readOnly = true)
     public ListingDetailResponse getListingDetailById(Long id) {
+        return getListingDetailById(null, id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListingDetailResponse getListingDetailById(User currentUser, Long id) {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found with id: " + id));
 
         ListingResponse baseResponse = mapToListingResponse(listing);
-        String providerName = (baseResponse.getSubscription() != null && baseResponse.getSubscription().getProviderName() != null)
-                ? baseResponse.getSubscription().getProviderName() : "Subscription";
+        String providerName = (baseResponse.getSubscription() != null
+                && baseResponse.getSubscription().getProviderName() != null)
+                        ? baseResponse.getSubscription().getProviderName()
+                        : "Subscription";
 
         // Generate Specs based on provider
         String quality = resolveQuality(providerName);
@@ -508,49 +551,35 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 "Ad-Free Premium Experience",
                 "Dedicated Private Profile",
                 "Multi-Device Support",
-                "100% Escrow Protection"
-        );
+                "100% Escrow Protection");
 
         List<String> rules = List.of(
                 "Do not share account login credentials with external parties.",
                 "Only log in on approved screens/devices.",
                 "Timely monthly renewals to maintain active slot.",
-                "Respect other group profile settings."
-        );
+                "Respect other group profile settings.");
 
-        // Fetch Occupants
+        // Fetch Occupants (Real database memberships only)
         List<Membership> memberships = membershipRepository.findByListingId(id);
         List<OccupantDto> occupants = new ArrayList<>();
-        int occupiedCount = listing.getTotalSeats() - listing.getAvailableSeats();
-
-        for (int i = 0; i < occupiedCount; i++) {
-            if (i < memberships.size()) {
-                Membership m = memberships.get(i);
-                User mUser = m.getMember();
-                String name = mUser != null ? (mUser.getFirstName() + " " + mUser.getLastName()).trim() : "Member " + (i + 1);
-                String initials = getInitials(name);
-                occupants.add(OccupantDto.builder()
-                        .id(m.getId())
-                        .seatNumber(i + 1)
-                        .memberId(mUser != null ? mUser.getId() : (long) (i + 1))
-                        .memberName(name)
-                        .memberAvatar(mUser != null ? mUser.getProfileImage() : null)
-                        .memberInitials(initials)
-                        .joinedDate(m.getCreatedAt() != null ? m.getCreatedAt().toLocalDate() : LocalDate.now().minusDays(10 * (i + 1)))
-                        .status("ACTIVE")
-                        .build());
-            } else {
-                occupants.add(OccupantDto.builder()
-                        .id((long) (i + 100))
-                        .seatNumber(i + 1)
-                        .memberId((long) (i + 50))
-                        .memberName("Verified Member " + (i + 1))
-                        .memberAvatar(null)
-                        .memberInitials("M" + (i + 1))
-                        .joinedDate(LocalDate.now().minusDays(5 * (i + 1)))
-                        .status("ACTIVE")
-                        .build());
+        for (int i = 0; i < memberships.size(); i++) {
+            Membership m = memberships.get(i);
+            User mUser = m.getMember();
+            String name = mUser != null ? mUser.getFullName() : "Member " + (i + 1);
+            if (name == null || name.isBlank() || name.equalsIgnoreCase("null null")) {
+                name = (mUser != null && mUser.getUsername() != null) ? mUser.getUsername() : "Member " + (i + 1);
             }
+            String initials = getInitials(name);
+            occupants.add(OccupantDto.builder()
+                    .id(m.getId())
+                    .seatNumber(i + 1)
+                    .memberId(mUser != null ? mUser.getId() : null)
+                    .memberName(name)
+                    .memberAvatar(mUser != null ? mUser.getProfileImage() : null)
+                    .memberInitials(initials)
+                    .joinedDate(m.getCreatedAt() != null ? m.getCreatedAt().toLocalDate() : LocalDate.now())
+                    .status(m.getStatus() != null ? m.getStatus().name() : "ACTIVE")
+                    .build());
         }
 
         // Ownership proofs
@@ -563,6 +592,22 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         }
 
         ListingReviewResponse reviews = getListingReviews(id);
+
+        boolean isHost = currentUser != null && listing.getHost() != null && Objects.equals(listing.getHost().getId(), currentUser.getId());
+        boolean isJoined = isHost;
+        String myReqStatus = null;
+
+        if (currentUser != null) {
+            if (membershipRepository.findByMemberIdAndListingId(currentUser.getId(), id).isPresent()) {
+                isJoined = true;
+                myReqStatus = "APPROVED";
+            }
+            JoinRequest myReq = joinRequestRepository.findByMemberIdAndListingId(currentUser.getId(), id).orElse(null);
+            if (myReq != null && myReq.getStatus() != JoinRequestStatus.REJECTED && myReq.getStatus() != JoinRequestStatus.CANCELLED) {
+                isJoined = true;
+                myReqStatus = myReq.getStatus().name();
+            }
+        }
 
         return ListingDetailResponse.builder()
                 .id(baseResponse.getId())
@@ -596,6 +641,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .plan(baseResponse.getPlan())
                 .occupants(occupants)
                 .reviewSummary(reviews)
+                .isJoined(isJoined)
+                .isHost(isHost)
+                .myRequestStatus(myReqStatus)
                 .build();
     }
 
@@ -608,15 +656,12 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     .stream().map(this::mapToListingResponse).collect(Collectors.toList());
         }
 
-        Long catId = (listing.getPlan() != null && listing.getPlan().getSubscription() != null && listing.getPlan().getSubscription().getCategory() != null)
-                ? listing.getPlan().getSubscription().getCategory().getId() : null;
-
-        List<Listing> similar = catId != null
-                ? listingRepository.findTop4ByPlanSubscriptionCategoryIdAndIdNotAndStatus(catId, listingId, ListingStatus.ACTIVE)
-                : listingRepository.findTop4ByIdNotAndStatus(listingId, ListingStatus.ACTIVE);
-
-        if (similar.isEmpty()) {
-            similar = listingRepository.findTop4ByIdNotAndStatus(listingId, ListingStatus.ACTIVE);
+        Subscription sub = listing.getPlan() != null ? listing.getPlan().getSubscription() : null;
+        if (sub != null) {
+            similar = listingRepository.findBySubscriptionIdAndIdNot(sub.getId(), listingId);
+            if (similar.isEmpty() && sub.getCategory() != null) {
+                similar = listingRepository.findBySubscriptionCategoryIdAndIdNot(sub.getCategory().getId(), listingId);
+            }
         }
 
         return similar.stream().map(this::mapToListingResponse).collect(Collectors.toList());
@@ -627,15 +672,23 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     public ListingReviewResponse getListingReviews(Long listingId) {
         Listing listing = listingRepository.findById(listingId).orElse(null);
         List<Review> dbReviews = new ArrayList<>();
-        if (listing != null && listing.getHost() != null) {
-            dbReviews = reviewRepository.findByRevieweeId(listing.getHost().getId());
+        if (listing != null) {
+            dbReviews = reviewRepository.findByListingId(listingId);
+            if (dbReviews.isEmpty() && listing.getHost() != null) {
+                dbReviews = reviewRepository.findByRevieweeId(listing.getHost().getId());
+            }
         }
 
         List<ReviewDto> reviews = new ArrayList<>();
         if (!dbReviews.isEmpty()) {
             for (Review r : dbReviews) {
                 User rev = r.getReviewer();
-                String name = rev != null ? (rev.getFirstName() + " " + rev.getLastName()).trim() : "Anonymous Member";
+                String name = rev != null ? rev.getFullName() : "Verified Member";
+                if (name == null || name.isBlank() || name.equalsIgnoreCase("null null") || name.equalsIgnoreCase("null")) {
+                    name = (rev != null && rev.getUsername() != null && !rev.getUsername().isBlank())
+                            ? rev.getUsername()
+                            : (rev != null && rev.getEmail() != null ? rev.getEmail().split("@")[0] : "Verified Member");
+                }
                 reviews.add(ReviewDto.builder()
                         .id(r.getId())
                         .reviewerId(rev != null ? rev.getId() : null)
@@ -646,55 +699,17 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                         .city("Verified User")
                         .rating(r.getRating() != null ? r.getRating() : 5)
                         .reviewText(r.getReviewText())
-                        .formattedDate(r.getCreatedAt() != null ? r.getCreatedAt().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) : "Recently")
+                        .formattedDate(r.getCreatedAt() != null
+                                ? r.getCreatedAt().format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))
+                                : "Recently")
                         .createdAt(r.getCreatedAt())
                         .isVerifiedMember(true)
-                        .helpfulCount(8)
+                        .helpfulCount(0)
                         .build());
             }
-        } else {
-            // Provide default rich review data
-            reviews.add(ReviewDto.builder()
-                    .id(101L)
-                    .reviewerName("Aarav Mehta")
-                    .reviewerInitials("AM")
-                    .avatarBg("#3b82f6")
-                    .city("Mumbai")
-                    .rating(5)
-                    .reviewText("Super fast access! Credentials worked instantly after escrow deposit. Highly recommended host.")
-                    .formattedDate("2 days ago")
-                    .isVerifiedMember(true)
-                    .helpfulCount(14)
-                    .build());
-
-            reviews.add(ReviewDto.builder()
-                    .id(102L)
-                    .reviewerName("Priya Sharma")
-                    .reviewerInitials("PS")
-                    .avatarBg("#a855f7")
-                    .city("Bengaluru")
-                    .rating(5)
-                    .reviewText("Been using this slot for 3 months now without any issues. Smooth auto-renewals!")
-                    .formattedDate("1 week ago")
-                    .isVerifiedMember(true)
-                    .helpfulCount(9)
-                    .build());
-
-            reviews.add(ReviewDto.builder()
-                    .id(103L)
-                    .reviewerName("Rohan Verma")
-                    .reviewerInitials("RV")
-                    .avatarBg("#10b981")
-                    .city("Delhi")
-                    .rating(4)
-                    .reviewText("Host is very responsive and helpful. Great experience so far.")
-                    .formattedDate("2 weeks ago")
-                    .isVerifiedMember(true)
-                    .helpfulCount(6)
-                    .build());
         }
 
-        double avgRating = reviews.stream().mapToInt(ReviewDto::getRating).average().orElse(4.9);
+        double avgRating = reviews.isEmpty() ? 0.0 : reviews.stream().mapToInt(ReviewDto::getRating).average().orElse(0.0);
         avgRating = Math.round(avgRating * 10.0) / 10.0;
 
         return ListingReviewResponse.builder()
@@ -725,22 +740,31 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         }
 
         // Constraint 3: Plain text only & max 500 characters validation
-        String plainText = request.getReviewText() != null ? request.getReviewText().replaceAll("<[^>]*>", "").trim() : "";
+        String plainText = request.getReviewText() != null ? request.getReviewText().replaceAll("<[^>]*>", "").trim()
+                : "";
         if (plainText.length() < 5 || plainText.length() > 500) {
             throw new BadRequestException("Review comment must be plain text between 5 and 500 characters");
         }
+
+        Membership membership = membershipRepository.findByMemberIdAndListingId(reviewer.getId(), listingId)
+                .orElse(null);
 
         Review review = Review.builder()
                 .reviewer(reviewer)
                 .reviewee(listing.getHost())
                 .listing(listing)
+                .membership(membership)
                 .rating(request.getRating())
                 .reviewText(plainText)
                 .build();
 
         Review saved = reviewRepository.save(review);
-        String name = (reviewer.getFirstName() + " " + reviewer.getLastName()).trim();
-        if (name.isEmpty()) name = reviewer.getEmail();
+        String name = reviewer.getFullName();
+        if (name == null || name.isBlank() || name.equalsIgnoreCase("null null") || name.equalsIgnoreCase("null")) {
+            name = reviewer.getUsername() != null && !reviewer.getUsername().isBlank()
+                    ? reviewer.getUsername()
+                    : (reviewer.getEmail() != null ? reviewer.getEmail().split("@")[0] : "Verified Member");
+        }
 
         return ReviewDto.builder()
                 .id(saved.getId())
@@ -775,16 +799,14 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             throw new BadRequestException("You cannot join your own listing group");
         }
 
-
-
         // 1. Check if user KYC is completed before checking wallet balance
         boolean isKycCompleted = Boolean.TRUE.equals(member.getEmailVerified());
         if (!isKycCompleted) {
-            throw new IllegalArgumentException("KYC_REQUIRED: Please complete your KYC verification before joining a group listing.");
+            throw new IllegalArgumentException(
+                    "KYC_REQUIRED: Please complete your KYC verification before joining a group listing.");
         }
 
         BigDecimal requiredAmount = listing.getSeatPrice() != null ? listing.getSeatPrice() : BigDecimal.ZERO;
-
 
         // Fetch or initialize user wallet
         User finalMember = member;
@@ -796,7 +818,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         // Check if user has enough amount available in wallet
         if (wallet.getBalance().compareTo(requiredAmount) < 0) {
-            throw new IllegalArgumentException("Not enough balance in wallet. Available: ₹" + wallet.getBalance() + ", Required: ₹" + requiredAmount);
+            throw new IllegalArgumentException("Not enough balance in wallet. Available: ₹" + wallet.getBalance()
+                    + ", Required: ₹" + requiredAmount);
         }
 
         // Deduct amount from user wallet
@@ -811,7 +834,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .referenceId(listingId)
                 .remarks("Escrow deposit reserved for joining group: " + listing.getTitle())
                 .build());
-
 
         // Send request to host of the listing
         JoinRequest joinReq = joinRequestRepository.findByListingIdAndMemberId(listingId, member.getId())
@@ -829,7 +851,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         JoinRequest saved = joinRequestRepository.save(joinReq);
         String memberName = (member.getFirstName() + " " + member.getLastName()).trim();
-        if (memberName.isEmpty()) memberName = member.getEmail();
+        if (memberName.isEmpty())
+            memberName = member.getEmail();
 
         // Trigger real notifications
         try {
@@ -838,15 +861,14 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                         listing.getHost(),
                         NotificationType.JOIN_REQUEST,
                         "New Join Request Received 📩",
-                        memberName + " requested to join your group pass '" + listing.getTitle() + "'."
-                );
+                        memberName + " requested to join your group pass '" + listing.getTitle() + "'.");
             }
             notificationService.createNotification(
                     member,
                     NotificationType.JOIN_REQUEST,
                     "Group Join Request Sent 🎉",
-                    "Your request to join '" + listing.getTitle() + "' was sent. ₹" + requiredAmount + " reserved in escrow."
-            );
+                    "Your request to join '" + listing.getTitle() + "' was sent. ₹" + requiredAmount
+                            + " reserved in escrow.");
         } catch (Exception e) {
             log.error("Failed to generate notification for join request: ", e);
         }
@@ -863,11 +885,11 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .build();
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public JoinRequestResponse getJoinRequestStatus(User member, Long listingId) {
-        if (member == null) return null;
+        if (member == null)
+            return null;
 
         return joinRequestRepository.findByListingIdAndMemberId(listingId, member.getId())
                 .map(req -> {
@@ -886,20 +908,29 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     private String resolveQuality(String provider) {
         String p = provider.toLowerCase();
-        if (p.contains("netflix")) return "4K Ultra HD + HDR";
-        if (p.contains("spotify")) return "Very High (320kbps)";
-        if (p.contains("youtube")) return "4K 60fps Ad-Free";
-        if (p.contains("canva")) return "Pro Vector Exports";
-        if (p.contains("chatgpt")) return "GPT-4o & Unlimited Access";
+        if (p.contains("netflix"))
+            return "4K Ultra HD + HDR";
+        if (p.contains("spotify"))
+            return "Very High (320kbps)";
+        if (p.contains("youtube"))
+            return "4K 60fps Ad-Free";
+        if (p.contains("canva"))
+            return "Pro Vector Exports";
+        if (p.contains("chatgpt"))
+            return "GPT-4o & Unlimited Access";
         return "Premium High Definition";
     }
 
     private String resolveDevices(String provider) {
         String p = provider.toLowerCase();
-        if (p.contains("netflix")) return "4 Screens (TV, Phone, Laptop)";
-        if (p.contains("spotify")) return "Unlimited Devices (1 Active Stream)";
-        if (p.contains("youtube")) return "Mobile, Web, Smart TV";
-        if (p.contains("microsoft")) return "5 Devices per User";
+        if (p.contains("netflix"))
+            return "4 Screens (TV, Phone, Laptop)";
+        if (p.contains("spotify"))
+            return "Unlimited Devices (1 Active Stream)";
+        if (p.contains("youtube"))
+            return "Mobile, Web, Smart TV";
+        if (p.contains("microsoft"))
+            return "5 Devices per User";
         return "Multi-Screen Supported";
     }
 
@@ -912,7 +943,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     private String getInitials(String name) {
-        if (name == null || name.isBlank()) return "U";
+        if (name == null || name.isBlank())
+            return "U";
         String[] parts = name.trim().split("\\s+");
         if (parts.length >= 2) {
             return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
@@ -935,9 +967,10 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         return requests.stream().map(req -> {
             Listing listing = req.getListing();
             String listingTitle = (listing != null) ? listing.getTitle() : "Subscription Group";
-            String platform = (listing != null && listing.getPlan() != null && listing.getPlan().getSubscription() != null)
-                    ? listing.getPlan().getSubscription().getProviderName()
-                    : "Pass";
+            String platform = (listing != null && listing.getPlan() != null
+                    && listing.getPlan().getSubscription() != null)
+                            ? listing.getPlan().getSubscription().getProviderName()
+                            : "Pass";
 
             String hostName = (listing != null && listing.getHost() != null)
                     ? listing.getHost().getFullName()
@@ -986,9 +1019,10 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             Listing listing = req.getListing();
             User member = req.getMember();
             String listingTitle = (listing != null) ? listing.getTitle() : "Subscription Group";
-            String platform = (listing != null && listing.getPlan() != null && listing.getPlan().getSubscription() != null)
-                    ? listing.getPlan().getSubscription().getProviderName()
-                    : "Pass";
+            String platform = (listing != null && listing.getPlan() != null
+                    && listing.getPlan().getSubscription() != null)
+                            ? listing.getPlan().getSubscription().getProviderName()
+                            : "Pass";
 
             String memberName = (member != null) ? member.getFullName() : "Member";
             BigDecimal price = (listing != null) ? listing.getSeatPrice() : BigDecimal.ZERO;
@@ -1023,7 +1057,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Override
     @Transactional
-    public JoinRequestResponse acceptJoinRequest(User host, Long requestId, ShareCredentialsRequest credentialsRequest) {
+    public JoinRequestResponse acceptJoinRequest(User host, Long requestId,
+            ShareCredentialsRequest credentialsRequest) {
         JoinRequest joinReq = joinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Join request not found with id: " + requestId));
 
@@ -1036,15 +1071,18 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             throw new BadRequestException("Request is already " + joinReq.getStatus());
         }
 
-        // Save credentials, invitation link or activation code & set status to CREDENTIALS_SHARED
+        // Save credentials, invitation link or activation code & set status to
+        // CREDENTIALS_SHARED
         LocalDateTime now = LocalDateTime.now();
-        String rawType = credentialsRequest.getShareType() != null ? credentialsRequest.getShareType().toUpperCase() : "CREDENTIALS";
+        String rawType = credentialsRequest.getShareType() != null ? credentialsRequest.getShareType().toUpperCase()
+                : "CREDENTIALS";
         String targetShareType = "INVITATION_LINK".equals(rawType) ? "INVITATION_LINK"
                 : "ACTIVATION_CODE".equals(rawType) ? "ACTIVATION_CODE"
-                : "CREDENTIALS";
+                        : "CREDENTIALS";
 
         if ("INVITATION_LINK".equals(targetShareType)) {
-            if (credentialsRequest.getInvitationLink() == null || credentialsRequest.getInvitationLink().trim().isEmpty()) {
+            if (credentialsRequest.getInvitationLink() == null
+                    || credentialsRequest.getInvitationLink().trim().isEmpty()) {
                 throw new BadRequestException("Invitation link is required when sharing an invitation.");
             }
             joinReq.setShareType("INVITATION_LINK");
@@ -1053,7 +1091,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             joinReq.setCredentialsUsername(null);
             joinReq.setCredentialsPassword(null);
         } else if ("ACTIVATION_CODE".equals(targetShareType)) {
-            if (credentialsRequest.getActivationCode() == null || credentialsRequest.getActivationCode().trim().isEmpty()) {
+            if (credentialsRequest.getActivationCode() == null
+                    || credentialsRequest.getActivationCode().trim().isEmpty()) {
                 throw new BadRequestException("Activation code is required when sharing an activation code.");
             }
             joinReq.setShareType("ACTIVATION_CODE");
@@ -1087,20 +1126,22 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             if (member != null) {
                 String notifTitle = "INVITATION_LINK".equals(targetShareType) ? "Invitation Link Shared 🔗"
                         : "ACTIVATION_CODE".equals(targetShareType) ? "Activation Code Shared 🔑"
-                        : "Credentials Shared 🔑";
+                                : "Credentials Shared 🔑";
 
                 String notifMsg = "INVITATION_LINK".equals(targetShareType)
-                        ? "Host " + host.getFullName() + " shared an invitation link for '" + listing.getTitle() + "'. Please join and submit proof within 24 hours."
+                        ? "Host " + host.getFullName() + " shared an invitation link for '" + listing.getTitle()
+                                + "'. Please join and submit proof within 24 hours."
                         : "ACTIVATION_CODE".equals(targetShareType)
-                        ? "Host " + host.getFullName() + " shared an activation code for '" + listing.getTitle() + "'. Scratch to reveal your code and submit proof within 24 hours."
-                        : "Host " + host.getFullName() + " shared login credentials for '" + listing.getTitle() + "'. Please test login and submit proof within 24 hours.";
+                                ? "Host " + host.getFullName() + " shared an activation code for '" + listing.getTitle()
+                                        + "'. Scratch to reveal your code and submit proof within 24 hours."
+                                : "Host " + host.getFullName() + " shared login credentials for '" + listing.getTitle()
+                                        + "'. Please test login and submit proof within 24 hours.";
 
                 notificationService.createNotification(
                         member,
                         NotificationType.JOIN_REQUEST,
                         notifTitle,
-                        notifMsg
-                );
+                        notifMsg);
             }
         } catch (Exception e) {
             log.error("Failed to send notification on credentials/invitation shared: ", e);
@@ -1199,7 +1240,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                         .transactionType(TransactionType.ESCROW_RELEASE)
                         .amount(amount)
                         .referenceId(listing != null ? listing.getId() : null)
-                        .remarks("Escrow payment released for listing: " + (listing != null ? listing.getTitle() : "Group Pass"))
+                        .remarks("Escrow payment released for listing: "
+                                + (listing != null ? listing.getTitle() : "Group Pass"))
                         .build());
             } catch (Exception e) {
                 log.error("Failed to update wallet balance on escrow release: ", e);
@@ -1214,16 +1256,15 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                     member,
                     NotificationType.JOIN_REQUEST,
                     "Subscription Pass Activated 🎉",
-                    "Your login proof for '" + (listing != null ? listing.getTitle() : "Pass") + "' was verified! Pass is active."
-            );
+                    "Your login proof for '" + (listing != null ? listing.getTitle() : "Pass")
+                            + "' was verified! Pass is active.");
 
             if (host != null) {
                 notificationService.createNotification(
                         host,
                         NotificationType.PAYMENT,
                         "Member Verified & Payout Settled 💰",
-                        "₹" + amount + " released from escrow to your wallet for member " + memberName + "."
-                );
+                        "₹" + amount + " released from escrow to your wallet for member " + memberName + ".");
             }
         } catch (Exception e) {
             log.error("Failed to send notification on proof verification: ", e);
@@ -1249,8 +1290,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .proofSubmittedAt(savedReq.getProofSubmittedAt())
                 .build();
     }
-
-
 
     @Override
     @Transactional
@@ -1299,8 +1338,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                         member,
                         NotificationType.JOIN_REQUEST,
                         "Join Request Declined ❌",
-                        "Your request to join '" + listing.getTitle() + "' was declined by the host. ₹" + refundAmount + " has been refunded to your wallet."
-                );
+                        "Your request to join '" + listing.getTitle() + "' was declined by the host. ₹" + refundAmount
+                                + " has been refunded to your wallet.");
             }
         } catch (Exception e) {
             log.error("Failed to send notification on reject join request: ", e);
@@ -1319,6 +1358,3 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .build();
     }
 }
-
-
-

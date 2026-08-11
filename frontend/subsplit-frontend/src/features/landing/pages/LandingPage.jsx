@@ -26,10 +26,15 @@ function LandingPage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        height: '100vh',
+        width: '100vw',
+        maxHeight: '100vh',
+        overflowY: 'auto',
+        overflowX: 'hidden',
         background: '#09090B',
         color: '#ffffff',
-        overflowX: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <PublicNavbar />

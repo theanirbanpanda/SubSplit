@@ -443,7 +443,7 @@ function Groups() {
                       <Button
                         size="small"
                         startIcon={<MessageSquare size={13} />}
-                        onClick={() => setChatHost(host)}
+                        onClick={() => navigate(`/app/messages?recipientId=${host.id || 1}&listingId=${listingId || id}`)}
                         sx={{
                           fontSize: '0.75rem',
                           fontWeight: 700,
