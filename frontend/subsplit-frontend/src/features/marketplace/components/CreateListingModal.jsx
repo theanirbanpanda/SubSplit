@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Dialog } from '@mui/material';
-import { Check, ChevronLeft, ChevronRight, X, Layers } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, X, Layers, ShieldAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import { createNewListing, fetchMyListings } from '../marketplaceSlice';
 
@@ -27,6 +28,7 @@ const STEPS = [
 // ── Initial state ──────────────────────────────────────────────────────────────
 const INITIAL_PLAN = {
   seatsUsed: '1',
+  maxMembers: '',
   renewalDate: '',
   billingCycle: 'MONTHLY',
 };
@@ -48,6 +50,10 @@ const INITIAL_UPLOAD_STATES = {
  */
 function CreateListingModal({ open, onClose }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+  const kycStatus = useSelector((state) => state.auth.kycStatus);
+  const isKycVerified = Boolean(user?.emailVerified) || kycStatus?.isKycVerified || kycStatus?.kycStatus === 'VERIFIED';
 
   // ── Wizard state ─────────────────────────────────────────────────────────────
   const [currentStep,     setCurrentStep]     = useState(0); // 0-indexed
@@ -88,12 +94,24 @@ function CreateListingModal({ open, onClose }) {
 
       case 1: {
         const used = parseInt(plan.seatsUsed, 10);
+        const max = parseInt(plan.maxMembers, 10);
+        
+        let isFutureDate = false;
+        if (plan.renewalDate !== '') {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const renewal = new Date(plan.renewalDate);
+          isFutureDate = renewal > today;
+        }
+
         return (
-          plan.renewalDate !== '' &&
+          isFutureDate &&
           !isNaN(used) &&
+          !isNaN(max) &&
+          max > 1 &&
           used >= 1 &&
           selectedProduct &&
-          used < selectedProduct.maxMembers
+          used < max
         );
       }
 
@@ -143,7 +161,8 @@ function CreateListingModal({ open, onClose }) {
     setPublishError(null);
 
     const seatsUsedNum = parseInt(plan.seatsUsed, 10);
-    const availableSeats = selectedProduct.maxMembers - seatsUsedNum;
+    const maxMembersNum = parseInt(plan.maxMembers, 10);
+    const availableSeats = maxMembersNum - seatsUsedNum;
     const priceNum = parseFloat(price);
 
     // Build accessMethod description line
@@ -156,7 +175,7 @@ function CreateListingModal({ open, onClose }) {
       title:          `${selectedProduct.name} — ${availableSeats} Seat${availableSeats !== 1 ? 's' : ''} Available`,
       description:    accessLine,
       seatPrice:      priceNum,
-      totalSeats:     selectedProduct.maxMembers,
+      totalSeats:     maxMembersNum,
       availableSeats: availableSeats,
       billingCycle:   plan.billingCycle,
       expiryDate:     plan.renewalDate || undefined,
@@ -208,8 +227,49 @@ function CreateListingModal({ open, onClose }) {
         PaperProps={{ className: styles.wizardPaper }}
         scroll="paper"
       >
-        {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className={styles.wizardHeader}>
+        {!isKycVerified ? (
+          <div style={{ padding: '60px 20px', textAlign: 'center', position: 'relative' }}>
+            <button
+              className={styles.closeBtn}
+              onClick={handleClose}
+              aria-label="Close wizard"
+              style={{ position: 'absolute', top: 16, right: 16 }}
+            >
+              <X size={16} />
+            </button>
+            <ShieldAlert size={48} color="#f59e0b" style={{ margin: '0 auto 16px' }} />
+            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: 12, fontWeight: 900 }}>
+              KYC Verification Required
+            </h3>
+            <p style={{ color: '#a1a1aa', fontSize: '0.95rem', maxWidth: '400px', margin: '0 auto 24px', lineHeight: 1.5 }}>
+              To keep our marketplace safe and secure, all hosts must complete identity verification before listing passes.
+            </p>
+            <button
+              onClick={() => {
+                handleClose();
+                navigate('/profile');
+              }}
+              style={{ 
+                background: '#3b82f6', 
+                color: '#fff', 
+                padding: '12px 24px', 
+                borderRadius: '12px', 
+                border: 'none', 
+                fontWeight: 800, 
+                cursor: 'pointer', 
+                transition: 'all 0.2s',
+                fontSize: '0.95rem'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              Go to Profile to Verify
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* ── Header ──────────────────────────────────────────────────────── */}
+            <div className={styles.wizardHeader}>
           <div className={styles.wizardHeaderLeft}>
             <div className={styles.wizardIconTile}>
               <Layers size={22} color="#fff" strokeWidth={2.5} />
@@ -287,7 +347,10 @@ function CreateListingModal({ open, onClose }) {
           {currentStep === 0 && (
             <Step1Product
               selectedProduct={selectedProduct}
-              onSelect={setSelectedProduct}
+              onSelect={(prod) => {
+                setSelectedProduct(prod);
+                setPlan(prev => ({ ...prev, maxMembers: String(prod.maxMembers) }));
+              }}
               onRequestProduct={() => setRequestDialogOpen(true)}
             />
           )}
@@ -323,6 +386,7 @@ function CreateListingModal({ open, onClose }) {
               uploadStates={uploadStates}
               publishLoading={publishLoading}
               publishError={publishError}
+              user={user}
             />
           )}
         </div>
@@ -349,6 +413,8 @@ function CreateListingModal({ open, onClose }) {
             {currentStep < 4 && <ChevronRight size={16} />}
           </button>
         </div>
+          </>
+        )}
       </Dialog>
 
       {/* ── Request Product Dialog ─────────────────────────────────────────── */}

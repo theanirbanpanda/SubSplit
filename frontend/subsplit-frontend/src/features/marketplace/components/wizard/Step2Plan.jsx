@@ -14,12 +14,13 @@ import styles from './CreateListingWizard.module.scss';
  *   onChange: (patch) => void
  */
 function Step2Plan({ product, plan, onChange }) {
-  const { name, category, accessMethod, maxMembers, brandColor, initials } = product;
+  const { name, category, accessMethod, brandColor, initials } = product;
   const isEmail = accessMethod === 'Invite via Email';
   const tileBg = `${brandColor}28`;
 
   const seatsUsedNum = parseInt(plan.seatsUsed, 10) || 0;
-  const availableSeats = maxMembers - seatsUsedNum;
+  const maxMembersNum = parseInt(plan.maxMembers, 10) || 0;
+  const availableSeats = maxMembersNum - seatsUsedNum;
 
   // ── Renewal countdown ───────────────────────────────────────────────────────
   const { daysRemaining, progressPct } = useMemo(() => {
@@ -38,8 +39,22 @@ function Step2Plan({ product, plan, onChange }) {
   }, [plan.renewalDate]);
 
   // ── Validation hints (visual only — actual gating is in parent) ─────────────
-  const seatsError =
-    plan.seatsUsed !== '' && (seatsUsedNum < 1 || seatsUsedNum >= maxMembers);
+  const isMaxEmpty = !plan.maxMembers || String(plan.maxMembers).trim() === '' || String(plan.maxMembers) === 'undefined' || String(plan.maxMembers) === 'null';
+  const maxMembersError = !isMaxEmpty && maxMembersNum < 2;
+
+  const isSeatsEmpty = !plan.seatsUsed || String(plan.seatsUsed).trim() === '' || String(plan.seatsUsed) === 'undefined' || String(plan.seatsUsed) === 'null';
+  const seatsError = !isSeatsEmpty && (seatsUsedNum < 1 || seatsUsedNum >= maxMembersNum);
+
+  // ── Max Renewal Date ────────────────────────────────────────────────────────
+  const maxRenewalDate = useMemo(() => {
+    const d = new Date();
+    if (plan.billingCycle === 'MONTHLY') {
+      d.setMonth(d.getMonth() + 1);
+    } else {
+      d.setFullYear(d.getFullYear() + 1);
+    }
+    return d.toISOString().split('T')[0];
+  }, [plan.billingCycle]);
 
   return (
     <div>
@@ -72,8 +87,32 @@ function Step2Plan({ product, plan, onChange }) {
         </div>
       </div>
 
-      {/* Seats Used + Renewal Date row */}
-      <div className={styles.formRow}>
+      {/* Max Members + Seats Used + Available Seats row */}
+      <div className={styles.formRow3}>
+        <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+          <label className={styles.formLabel} htmlFor="wizard-max-members">
+            Maximum Members
+          </label>
+          <input
+            id="wizard-max-members"
+            type="number"
+            min={2}
+            className={styles.formInput}
+            value={plan.maxMembers}
+            onChange={(e) => onChange({ maxMembers: e.target.value })}
+            placeholder="e.g. 5"
+            style={maxMembersError ? { borderColor: '#EF4444' } : {}}
+          />
+          {maxMembersError && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+              <AlertCircle size={12} color="#EF4444" />
+              <span style={{ fontSize: '0.72rem', color: '#EF4444', fontWeight: 600 }}>
+                Must be at least 2
+              </span>
+            </div>
+          )}
+        </div>
+
         <div className={styles.formGroup} style={{ marginBottom: 0 }}>
           <label className={styles.formLabel} htmlFor="wizard-seats-used">
             Seats Currently Used
@@ -82,7 +121,7 @@ function Step2Plan({ product, plan, onChange }) {
             id="wizard-seats-used"
             type="number"
             min={1}
-            max={maxMembers - 1}
+            max={maxMembersNum - 1}
             className={styles.formInput}
             value={plan.seatsUsed}
             onChange={(e) => onChange({ seatsUsed: e.target.value })}
@@ -93,23 +132,26 @@ function Step2Plan({ product, plan, onChange }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
               <AlertCircle size={12} color="#EF4444" />
               <span style={{ fontSize: '0.72rem', color: '#EF4444', fontWeight: 600 }}>
-                Must be between 1 and {maxMembers - 1}
+                Must be between 1 and {Math.max(1, maxMembersNum - 1)}
               </span>
             </div>
           )}
         </div>
 
         <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-          <label className={styles.formLabel} htmlFor="wizard-renewal-date">
-            Renewal Date
+          <label className={styles.formLabel}>
+            Available Seats
           </label>
           <input
-            id="wizard-renewal-date"
-            type="date"
+            type="text"
             className={styles.formInput}
-            value={plan.renewalDate}
-            onChange={(e) => onChange({ renewalDate: e.target.value })}
-            min={new Date().toISOString().split('T')[0]}
+            value={availableSeats >= 0 ? availableSeats : '—'}
+            readOnly
+            style={{ 
+              color: availableSeats > 0 ? '#22C55E' : '#EF4444', 
+              fontWeight: 800, 
+              backgroundColor: 'rgba(255,255,255,0.02)' 
+            }}
           />
         </div>
       </div>
@@ -139,20 +181,22 @@ function Step2Plan({ product, plan, onChange }) {
         </div>
       </div>
 
-      {/* Max Members + Available Seats tiles */}
-      <div className={styles.metaRow}>
-        <div className={styles.metaTile}>
-          <div className={styles.metaTileLabel}>Maximum Members</div>
-          <div className={styles.metaTileValue}>{maxMembers}</div>
-        </div>
-        <div className={styles.metaTile}>
-          <div className={styles.metaTileLabel}>Available Seats</div>
-          <div
-            className={styles.metaTileValue}
-            style={{ color: availableSeats > 0 ? '#22C55E' : '#EF4444' }}
-          >
-            {availableSeats >= 0 ? availableSeats : '—'}
-          </div>
+      {/* Renewal Date */}
+      <div className={styles.formGroup}>
+        <label className={styles.formLabel} htmlFor="wizard-renewal-date">
+          Renewal Date
+        </label>
+        <input
+          id="wizard-renewal-date"
+          type="date"
+          className={styles.formInput}
+          value={plan.renewalDate}
+          onChange={(e) => onChange({ renewalDate: e.target.value })}
+          min={new Date().toISOString().split('T')[0]}
+          max={maxRenewalDate}
+        />
+        <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#71717A' }}>
+          Date must be within 1 {plan.billingCycle === 'MONTHLY' ? 'month' : 'year'}.
         </div>
       </div>
 

@@ -55,4 +55,12 @@ export const fetchAdminLogsApi = async () => {
   return response.data;
 };
 
+export const fetchAllProductRequestsAdminApi = async () => {
+  const response = await api.get('/product-requests/admin');
+  return response.data;
+};
 
+export const reviewProductRequestAdminApi = async (id, status, adminNotes = '') => {
+  const response = await api.patch(`/product-requests/admin/${id}/review`, { status, adminNotes });
+  return response.data;
+};

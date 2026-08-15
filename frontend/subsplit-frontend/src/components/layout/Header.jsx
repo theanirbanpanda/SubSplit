@@ -34,10 +34,12 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme();
-  const { user } = useSelector((state) => state.auth);
+  const { user, kycStatus } = useSelector((state) => state.auth);
   const { wallet } = useSelector((state) => state.wallet);
   const { items: notifications, unreadCount } = useSelector((state) => state.notifications);
   const { unreadCount: msgUnreadCount = 0 } = useSelector((state) => state.messages || {});
+  
+  const isKycVerified = Boolean(user?.emailVerified) || kycStatus?.isKycVerified || kycStatus?.kycStatus === 'VERIFIED';
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [searchVal, setSearchVal] = useState('');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -271,33 +273,36 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
                 <Search size={20} />
               </IconButton>
 
-              {/* Wallet Button */}
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/app/settlements')}
-                sx={{
-                  display: { xs: 'none', sm: 'flex' },
-                  alignItems: 'center',
-                  gap: 1.5,
-                  borderColor: 'rgba(34,197,94,0.3)',
-                  borderRadius: '8px',
-                  padding: '6px 12px',
-                  textTransform: 'none',
-                  background: '#111114',
-                  '&:hover': {
-                    borderColor: '#22c55e',
-                    background: 'rgba(34,197,94,0.05)',
-                  }
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34,197,94,0.15)', borderRadius: '6px', p: '4px' }}>
-                  <Wallet size={16} color="#22c55e" />
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <Typography sx={{ fontSize: '0.65rem', color: '#9ca3af', lineHeight: 1 }}>Wallet balance</Typography>
-                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>{balanceDisplay}</Typography>
-                </Box>
-              </Button>
+              {/* Wallet Navigation */}
+              {isKycVerified && (
+                <Button
+                  onClick={() => navigate('/app/settlements')}
+                  variant="outlined"
+                  sx={{
+                    display: { xs: 'none', md: 'flex' },
+                    alignItems: 'center',
+                    gap: 1.5,
+                    border: '1px solid #27272a',
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    background: '#111114',
+                    '&:hover': {
+                      borderColor: '#22c55e',
+                      background: 'rgba(34,197,94,0.05)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34,197,94,0.15)', borderRadius: '6px', p: '4px' }}>
+                    <Wallet size={16} color="#22c55e" />
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <Typography sx={{ fontSize: '0.65rem', color: '#9ca3af', lineHeight: 1 }}>Wallet balance</Typography>
+                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>{balanceDisplay}</Typography>
+                  </Box>
+                </Button>
+              )}
 
 
               {/* Messages Navigation */}
@@ -501,7 +506,7 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
                 </Typography>
                 <Chip
                   icon={<ShieldCheck size={12} color="#22c55e" />}
-                  label={user?.role === 'ADMIN' ? 'Admin' : (user?.isKycVerified !== false ? 'KYC Verified' : 'Standard Member')}
+                  label={user?.role === 'ADMIN' ? 'Admin' : (isKycVerified ? 'KYC Verified' : 'Standard Member')}
                   size="small"
                   sx={{
                     height: 20,

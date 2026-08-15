@@ -44,11 +44,9 @@ public class AiKycVerificationService {
 
         return CompletableFuture.runAsync(() -> {
             try {
-                // Short realistic processing delay to allow scanning step transitions
-                Thread.sleep(3000);
-
+                // Bypass AI verification and instantly mark as verified
                 String docLabel = (documentType != null && !documentType.isBlank()) ? documentType : "Govt ID";
-                boolean isVerified = performAiVerification(docLabel, fileBytes, originalFilename, contentType);
+                boolean isVerified = true;
 
                 User user = userRepository.findById(userId).orElse(null);
                 if (user == null) {

@@ -70,6 +70,8 @@ import {
   rejectProofApi,
   fetchAdminAnalyticsApi,
   fetchAdminLogsApi,
+  fetchAllProductRequestsAdminApi,
+  reviewProductRequestAdminApi,
 } from './api/adminApi';
 import { fetchAllDisputesAdminApi, resolveDisputeAdminApi } from '../disputes/api/disputeApi';
 import styles from './AdminDashboard.module.scss';
@@ -111,6 +113,10 @@ function AdminDashboard() {
   const [loadingDisputes, setLoadingDisputes] = useState(false);
   const [selectedDisputeModal, setSelectedDisputeModal] = useState(null);
 
+  // Product Requests state
+  const [productRequests, setProductRequests] = useState([]);
+  const [loadingProductRequests, setLoadingProductRequests] = useState(false);
+
   useEffect(() => {
     loadAllData();
   }, []);
@@ -122,6 +128,34 @@ function AdminDashboard() {
     loadPendingProofs();
     loadLogs();
     loadDisputes();
+    loadProductRequests();
+  };
+
+  const loadProductRequests = async () => {
+    setLoadingProductRequests(true);
+    try {
+      const data = await fetchAllProductRequestsAdminApi();
+      setProductRequests(data);
+    } catch (err) {
+      console.error('Failed to fetch product requests:', err);
+    } finally {
+      setLoadingProductRequests(false);
+    }
+  };
+
+  const handleReviewProductRequest = async (id, status) => {
+    let adminNotes = '';
+    if (status === 'REJECTED') {
+      adminNotes = window.prompt('Enter rejection reason (optional):') || '';
+      if (adminNotes === null) return; // cancelled
+    }
+    try {
+      const updated = await reviewProductRequestAdminApi(id, status, adminNotes);
+      setProductRequests((prev) => prev.map((r) => (r.id === id ? updated : r)));
+      setToast({ open: true, message: `Request #${id} ${status.toLowerCase()}.`, severity: status === 'APPROVED' ? 'success' : 'info' });
+    } catch (err) {
+      setToast({ open: true, message: 'Failed to update request.', severity: 'error' });
+    }
   };
 
   const loadDisputes = async () => {
@@ -441,7 +475,12 @@ function AdminDashboard() {
           <Tab label={`Listings (${listings.length})`} icon={<Layers size={16} />} iconPosition="start" />
           <Tab label={`User Governance (${users.length})`} icon={<Users size={16} />} iconPosition="start" />
           <Tab label={`System Audit Logs (${systemLogs.length})`} icon={<Shield size={16} />} iconPosition="start" />
-
+          <Tab
+            label={`Product Requests (${productRequests.filter(r => r.status === 'PENDING').length} pending)`}
+            icon={<Zap size={16} />}
+            iconPosition="start"
+            id="admin-tab-product-requests"
+          />
         </Tabs>
       </Box>
 
@@ -1134,6 +1173,132 @@ function AdminDashboard() {
                 <Typography sx={{ color: '#9ca3af', textAlign: 'center', py: 4 }}>No system audit logs found.</Typography>
               )}
             </Stack>
+          )}
+        </div>
+      )}
+
+      {/* TAB 6: PRODUCT REQUESTS */}
+      {tabValue === 6 && (
+        <div className={styles.tableCard}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.1rem' }}>
+                Product Requests
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#9ca3af' }}>
+                Users requesting new subscriptions to be added to the catalog
+              </Typography>
+            </Box>
+            <Chip
+              label={`${productRequests.filter(r => r.status === 'PENDING').length} Pending`}
+              size="small"
+              sx={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24', fontWeight: 800, fontSize: '0.72rem' }}
+            />
+          </Stack>
+
+          {loadingProductRequests ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress size={32} sx={{ color: '#f59e0b' }} />
+            </Box>
+          ) : productRequests.length === 0 ? (
+            <Typography sx={{ color: '#9ca3af', textAlign: 'center', py: 6 }}>No product requests yet.</Typography>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {['#', 'User', 'Product', 'Category', 'Website', 'Description', 'Status', 'Date', 'Actions'].map((h) => (
+                      <TableCell key={h} sx={{ color: '#9ca3af', fontWeight: 700, fontSize: '0.75rem', borderColor: 'rgba(255,255,255,0.06)' }}>
+                        {h}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {productRequests.map((req) => (
+                    <TableRow key={req.id} sx={{ '&:hover': { background: 'rgba(255,255,255,0.03)' } }}>
+                      <TableCell sx={{ color: '#9ca3af', fontSize: '0.78rem', borderColor: 'rgba(255,255,255,0.06)' }}>#{req.id}</TableCell>
+                      <TableCell sx={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                        <Typography sx={{ fontSize: '0.82rem', color: '#f3f4f6', fontWeight: 600 }}>{req.userName}</Typography>
+                        <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af' }}>{req.userEmail}</Typography>
+                      </TableCell>
+                      <TableCell sx={{ color: '#f3f4f6', fontWeight: 700, fontSize: '0.85rem', borderColor: 'rgba(255,255,255,0.06)' }}>
+                        {req.productName}
+                      </TableCell>
+                      <TableCell sx={{ color: '#9ca3af', fontSize: '0.78rem', borderColor: 'rgba(255,255,255,0.06)' }}>
+                        {req.category || '—'}
+                      </TableCell>
+                      <TableCell sx={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                        {req.websiteUrl ? (
+                          <a href={req.websiteUrl} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', fontSize: '0.78rem' }}>
+                            Visit
+                          </a>
+                        ) : '—'}
+                      </TableCell>
+                      <TableCell sx={{ color: '#9ca3af', fontSize: '0.78rem', maxWidth: 200, borderColor: 'rgba(255,255,255,0.06)' }}>
+                        <Tooltip title={req.description || ''} arrow>
+                          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>
+                            {req.description || '—'}
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell sx={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                        <Chip
+                          label={req.status}
+                          size="small"
+                          sx={{
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            background:
+                              req.status === 'APPROVED' ? 'rgba(34,197,94,0.12)' :
+                              req.status === 'REJECTED' ? 'rgba(239,68,68,0.12)' :
+                              'rgba(251,191,36,0.12)',
+                            color:
+                              req.status === 'APPROVED' ? '#22c55e' :
+                              req.status === 'REJECTED' ? '#ef4444' :
+                              '#fbbf24',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ color: '#9ca3af', fontSize: '0.75rem', borderColor: 'rgba(255,255,255,0.06)', whiteSpace: 'nowrap' }}>
+                        {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : '—'}
+                      </TableCell>
+                      <TableCell sx={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                        {req.status === 'PENDING' && (
+                          <Stack direction="row" spacing={0.5}>
+                            <Tooltip title="Approve" arrow>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleReviewProductRequest(req.id, 'APPROVED')}
+                                sx={{ color: '#22c55e', '&:hover': { background: 'rgba(34,197,94,0.1)' } }}
+                                id={`approve-product-req-${req.id}`}
+                              >
+                                <Check size={15} />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Reject" arrow>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleReviewProductRequest(req.id, 'REJECTED')}
+                                sx={{ color: '#ef4444', '&:hover': { background: 'rgba(239,68,68,0.1)' } }}
+                                id={`reject-product-req-${req.id}`}
+                              >
+                                <X size={15} />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        )}
+                        {req.status !== 'PENDING' && req.adminNotes && (
+                          <Tooltip title={req.adminNotes} arrow>
+                            <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af', cursor: 'help' }}>Note ℹ</Typography>
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </div>
       )}

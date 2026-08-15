@@ -56,6 +56,8 @@ public class SecurityConfig {
                                 "/api/v1/admin/**",
                                 "/api/admin/**",
                                 "/admin/**",
+                                "/api/v1/product-requests/admin",
+                                "/api/v1/product-requests/admin/**",
                                 "/api/v1/disputes/**",
                                 "/disputes/**")
                         .permitAll()

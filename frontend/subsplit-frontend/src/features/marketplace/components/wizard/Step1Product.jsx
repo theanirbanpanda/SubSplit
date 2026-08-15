@@ -1,37 +1,38 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Check, Mail, Users, ChevronDown } from 'lucide-react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { Search, Check, Mail, Users } from 'lucide-react';
 import { MOCK_CATALOG, CATALOG_CATEGORIES } from '../../data/mockCatalog';
 import styles from './CreateListingWizard.module.scss';
 
-/** Cards shown initially and per progressive-reveal step. */
-const PAGE_SIZE = 8;
-/** One additional row per "More" click (2-column grid). */
-const ROW_SIZE = 2;
+/** How many cards to load per batch (one grid row = 2 cards). */
+const BATCH_SIZE = 8;
+const BATCH_INCREMENT = 2;
 
 /**
  * Step 1 — Select Product
- * Renders the product catalog with search + category filter chips.
+ * Infinite-scroll version: loads BATCH_INCREMENT more cards whenever the
+ * sentinel element at the bottom of the list enters the viewport.
+ *
  * Props:
  *   selectedProduct: object | null — currently selected catalog product
  *   onSelect: (product) => void
  *   onRequestProduct: () => void — opens the Request Product dialog
  */
 function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
-  const [search, setSearch]               = useState('');
+  const [search, setSearch]             = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [visibleCount, setVisibleCount]   = useState(PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
 
-  // Reset pagination whenever the category or search query changes
+  // Reset pagination whenever filter or search changes
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
-    setVisibleCount(PAGE_SIZE);
+    setVisibleCount(BATCH_SIZE);
   };
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
-    setVisibleCount(PAGE_SIZE);
+    setVisibleCount(BATCH_SIZE);
   };
 
-  /** Full filtered list — always searches across the complete 30-product catalog. */
+  /** Full filtered list — searches across the entire catalog. */
   const filtered = useMemo(() => {
     return MOCK_CATALOG.filter((p) => {
       const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
@@ -44,14 +45,31 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
     });
   }, [search, activeCategory]);
 
-  /**
-   * When search is active: show ALL matching results (no page cap).
-   * When browsing a category: progressively reveal up to visibleCount.
-   */
+  // When searching show all results; otherwise paginate
   const isSearching = search.trim().length > 0;
   const visible     = isSearching ? filtered : filtered.slice(0, visibleCount);
   const hasMore     = !isSearching && visibleCount < filtered.length;
-  const moreCount   = Math.min(ROW_SIZE, filtered.length - visibleCount);
+
+  // ── Infinite scroll sentinel ─────────────────────────────────────────────────
+  const sentinelRef = useRef(null);
+
+  const loadMore = useCallback(() => {
+    setVisibleCount((c) => Math.min(c + BATCH_INCREMENT, filtered.length));
+  }, [filtered.length]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore]);
 
   return (
     <div>
@@ -91,36 +109,27 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
 
       {/* Product Grid or Empty State */}
       {filtered.length > 0 ? (
-        <div className={styles.productGrid}>
-          {visible.map((product) => {
-            const isSelected = selectedProduct?.id === product.id;
-            return (
+        <>
+          <div className={styles.productGrid}>
+            {visible.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
-                isSelected={isSelected}
+                isSelected={selectedProduct?.id === product.id}
                 onSelect={onSelect}
               />
-            );
-          })}
-        </div>
+            ))}
+          </div>
+
+          {/* Infinite scroll sentinel — invisible, triggers when scrolled into view */}
+          {hasMore && (
+            <div ref={sentinelRef} className={styles.scrollSentinel} aria-hidden="true" />
+          )}
+        </>
       ) : (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: '#71717A', fontSize: '0.88rem' }}>
+        <div className={styles.emptyState}>
           No matching subscription found.
         </div>
-      )}
-
-      {/* Progressive Reveal — show one extra row at a time */}
-      {hasMore && (
-        <button
-          className={styles.requestProductBtn}
-          onClick={() => setVisibleCount((c) => c + moreCount)}
-          id="wizard-show-more"
-          style={{ marginTop: 12 }}
-        >
-          <ChevronDown size={14} />
-          Show more
-        </button>
       )}
 
       {/* Request Product */}
@@ -139,9 +148,7 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
 function ProductCard({ product, isSelected, onSelect }) {
   const { name, category, accessMethod, subtitle, brandColor, initials } = product;
   const isEmail = accessMethod === 'Invite via Email';
-
-  // Make a lighter bg from the brand color
-  const tileBg = `${brandColor}28`;
+  const tileBg  = `${brandColor}28`;
 
   return (
     <div

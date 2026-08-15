@@ -14,7 +14,7 @@
 }
 
 .wizardHeader {
-  padding: 20px 28px 16px;
+  padding: 20px 28px;
   background: linear-gradient(180deg, rgba(37, 99, 235, 0.1) 0%, transparent 100%);
   border-bottom: 1px solid v.$border-subtle;
   flex-shrink: 0;
@@ -86,9 +86,10 @@
 // ── Stepper ───────────────────────────────────────────────────────────────────
 
 .stepperBar {
-  padding: 18px 28px 0;
+  padding: 20px 28px 16px;
   flex-shrink: 0;
   background: #0d0f14;
+  border-bottom: 1px solid v.$border-subtle;
 }
 
 .stepperTrack {
@@ -181,7 +182,7 @@
 .stepContent {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 28px;
+  padding: 20px 28px 24px;
   scrollbar-width: thin;
   scrollbar-color: v.$border-default transparent;
 
@@ -448,7 +449,7 @@
 
 .requestProductBtn {
   width: 100%;
-  margin-top: 16px;
+  margin-top: 12px;
   padding: 14px;
   border-radius: 14px;
   border: 1.5px dashed v.$border-default;
@@ -469,6 +470,21 @@
     background: rgba(59, 130, 246, 0.05);
   }
 }
+
+// Invisible div at the bottom of the grid that triggers infinite scroll
+.scrollSentinel {
+  height: 20px;
+  margin-top: 4px;
+}
+
+// Empty search / filter state
+.emptyState {
+  text-align: center;
+  padding: 40px 0;
+  color: v.$text-muted;
+  font-size: 0.88rem;
+}
+
 
 // ── Step 2: Plan Details ──────────────────────────────────────────────────────
 
@@ -502,6 +518,17 @@
 .formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formRow3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
 
@@ -549,6 +576,16 @@
   &::-webkit-calendar-picker-indicator {
     filter: invert(0.6);
     cursor: pointer;
+  }
+
+  /* Hide number input spin buttons */
+  &[type="number"] {
+    -moz-appearance: textfield;
+  }
+  &[type="number"]::-webkit-inner-spin-button,
+  &[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 }
 
@@ -740,6 +777,16 @@
     border-color: v.$accent-blue-light;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
+
+  /* Hide number input spin buttons */
+  &[type="number"] {
+    -moz-appearance: textfield;
+  }
+  &[type="number"]::-webkit-inner-spin-button,
+  &[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 .feeBreakdown {
@@ -852,8 +899,8 @@
 .uploadGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 16px;
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
