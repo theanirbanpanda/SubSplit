@@ -1,7 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Check, Mail, Users } from 'lucide-react';
+import { Search, Check, Mail, Users, ChevronDown } from 'lucide-react';
 import { MOCK_CATALOG, CATALOG_CATEGORIES } from '../../data/mockCatalog';
 import styles from './CreateListingWizard.module.scss';
+
+/** Cards shown initially and per progressive-reveal step. */
+const PAGE_SIZE = 8;
+/** One additional row per "More" click (2-column grid). */
+const ROW_SIZE = 2;
 
 /**
  * Step 1 — Select Product
@@ -12,9 +17,21 @@ import styles from './CreateListingWizard.module.scss';
  *   onRequestProduct: () => void — opens the Request Product dialog
  */
 function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch]               = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [visibleCount, setVisibleCount]   = useState(PAGE_SIZE);
 
+  // Reset pagination whenever the category or search query changes
+  const handleCategoryChange = (cat) => {
+    setActiveCategory(cat);
+    setVisibleCount(PAGE_SIZE);
+  };
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  /** Full filtered list — always searches across the complete 30-product catalog. */
   const filtered = useMemo(() => {
     return MOCK_CATALOG.filter((p) => {
       const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
@@ -26,6 +43,15 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
       return matchesCategory && matchesSearch;
     });
   }, [search, activeCategory]);
+
+  /**
+   * When search is active: show ALL matching results (no page cap).
+   * When browsing a category: progressively reveal up to visibleCount.
+   */
+  const isSearching = search.trim().length > 0;
+  const visible     = isSearching ? filtered : filtered.slice(0, visibleCount);
+  const hasMore     = !isSearching && visibleCount < filtered.length;
+  const moreCount   = Math.min(ROW_SIZE, filtered.length - visibleCount);
 
   return (
     <div>
@@ -40,9 +66,9 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
         <Search size={16} />
         <input
           className={styles.searchInput}
-          placeholder="Search product name..."
+          placeholder="Search product name or category..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
           id="wizard-product-search"
           autoComplete="off"
         />
@@ -55,7 +81,7 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
             key={cat}
             className={styles.chip}
             data-active={activeCategory === cat ? 'true' : 'false'}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => handleCategoryChange(cat)}
             id={`wizard-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
           >
             {cat}
@@ -63,10 +89,10 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
         ))}
       </div>
 
-      {/* Product Grid */}
+      {/* Product Grid or Empty State */}
       {filtered.length > 0 ? (
         <div className={styles.productGrid}>
-          {filtered.map((product) => {
+          {visible.map((product) => {
             const isSelected = selectedProduct?.id === product.id;
             return (
               <ProductCard
@@ -80,8 +106,21 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#71717A', fontSize: '0.88rem' }}>
-          No products found for "{search}".
+          No matching subscription found.
         </div>
+      )}
+
+      {/* Progressive Reveal — show one extra row at a time */}
+      {hasMore && (
+        <button
+          className={styles.requestProductBtn}
+          onClick={() => setVisibleCount((c) => c + moreCount)}
+          id="wizard-show-more"
+          style={{ marginTop: 12 }}
+        >
+          <ChevronDown size={14} />
+          Show more
+        </button>
       )}
 
       {/* Request Product */}
