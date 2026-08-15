@@ -1,55 +1,101 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Avatar, Box } from '@mui/material';
-import { Leaf, Armchair } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ShieldCheck, Search, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
 import styles from './DashboardHero.module.scss';
 
-const DashboardHero = () => {
-  const { user } = useSelector((state) => state.auth);
-  const { summaryStats } = useSelector((state) => state.subscriptions);
+const DashboardHero = ({ pendingCount = 0, onNeedsActionClick }) => {
+  const navigate = useNavigate();
+  const { summaryStats, loading } = useSelector((state) => state.subscriptions);
+  const { myJoinRequests } = useSelector((state) => state.marketplace);
 
-  const displayName = user?.firstName || user?.fullName || 'User';
-  const activeCount = summaryStats?.totalActiveSubscriptions ?? 3;
-  const totalSavings = summaryStats?.totalSavings != null ? `₹${summaryStats.totalSavings}` : '₹1,240';
-  const initials = displayName[0]?.toUpperCase() || 'U';
+  // Real data — no fallbacks that could pass as real numbers
+  const monthlySpend = summaryStats?.monthlySpend;
+  const totalSavings = summaryStats?.totalSavings;
+
+  const needsActionCount = (myJoinRequests || []).filter(
+    (r) => r.status === 'PENDING' || r.status === 'CREDENTIALS_SHARED'
+  ).length;
+
+  const formatRs = (val) => (val != null ? `Rs.${Number(val).toLocaleString('en-IN')}` : null);
 
   return (
-    <div className={styles.heroContainer}>
-      <div className={styles.bgDecoration}></div>
-      
-      <div className={styles.textSection} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <Avatar
-          src={user?.profileImage || ''}
-          alt={displayName}
-          sx={{ width: 56, height: 56, bgcolor: '#2563eb', fontWeight: 900, fontSize: '1.2rem', border: '2px solid rgba(255,255,255,0.2)' }}
-        >
-          {initials}
-        </Avatar>
-
-        <div>
-          <h1>Welcome back, {displayName} <span role="img" aria-label="wave">👋</span></h1>
-          <p>You have <strong>{activeCount}</strong> active subscriptions</p>
-          <p>You've saved <strong>{totalSavings}</strong> this month</p>
+    <div className={styles.heroCard}>
+      {/* Top row: icon + title + button */}
+      <div className={styles.topRow}>
+        <div className={styles.titleGroup}>
+          <div className={styles.iconTile}>
+            <ShieldCheck size={26} color="#fff" strokeWidth={2} />
+          </div>
+          <div className={styles.titleStack}>
+            <div className={styles.eyebrow}>
+              <ShieldCheck size={11} color="#3b82f6" />
+              <span>VERIFIED BUYER</span>
+            </div>
+            <h1 className={styles.pageTitle}>Dashboard</h1>
+          </div>
         </div>
+
+        <button
+          className={styles.findPassBtn}
+          onClick={() => navigate('/app/marketplace')}
+          id="dashboard-find-pass-btn"
+        >
+          <Search size={15} strokeWidth={2.5} />
+          <span>Find a Pass</span>
+        </button>
       </div>
 
+      {/* Divider */}
+      <div className={styles.divider} />
 
-      <div className={styles.illustrationSection}>
-        {/* Simple mock illustration using icons and shapes */}
-        <div style={{ position: 'relative' }}>
-          <Leaf size={48} style={{ position: 'absolute', bottom: 10, left: -20 }} />
-          <div style={{ 
-            width: 30, 
-            height: 40, 
-            border: '2px solid rgba(255,255,255,0.1)', 
-            borderTopLeftRadius: 10,
-            borderTopRightRadius: 10,
-            position: 'absolute',
-            bottom: 0,
-            left: -10
-          }}></div>
+      {/* Stats row */}
+      <div className={styles.statsRow}>
+        {/* Spend chip */}
+        <div className={styles.statChip}>
+          <div className={styles.chipIcon} data-color="neutral">
+            <CreditCard size={14} color="#a1a1aa" />
+          </div>
+          <div className={styles.chipText}>
+            {loading && monthlySpend == null ? (
+              <span className={styles.loading}>—</span>
+            ) : monthlySpend != null ? (
+              <strong className={styles.spendValue}>{formatRs(monthlySpend)}</strong>
+            ) : (
+              <span className={styles.noData}>—</span>
+            )}
+            <span className={styles.chipLabel}>spend/mo</span>
+          </div>
         </div>
-        <Armchair size={80} color="rgba(255, 255, 255, 0.4)" strokeWidth={1} />
+
+        {/* Saved chip */}
+        <div className={styles.statChip}>
+          <div className={styles.chipIcon} data-color="green">
+            <TrendingUp size={14} color="#22c55e" />
+          </div>
+          <div className={styles.chipText}>
+            {loading && totalSavings == null ? (
+              <span className={styles.loading}>—</span>
+            ) : totalSavings != null ? (
+              <strong className={styles.savedValue}>{formatRs(totalSavings)}</strong>
+            ) : (
+              <span className={styles.noData}>—</span>
+            )}
+            <span className={styles.chipLabel}>saved</span>
+          </div>
+        </div>
+
+        {/* Needs action pill */}
+        {needsActionCount > 0 && (
+          <button
+            className={styles.needsActionPill}
+            onClick={onNeedsActionClick}
+            id="dashboard-needs-action-pill"
+          >
+            <AlertCircle size={12} color="#f59e0b" />
+            <span>{needsActionCount} needs action</span>
+          </button>
+        )}
       </div>
     </div>
   );

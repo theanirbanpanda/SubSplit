@@ -1,617 +1,370 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Box,
-  Typography,
-  Grid,
-  Paper,
-  TextField,
-  Button,
-  Stack,
-  IconButton,
-  MenuItem,
-  Stepper,
-  Step,
-  StepLabel,
-  CircularProgress,
-  Alert,
-  Chip,
-  InputAdornment,
-} from '@mui/material';
-import {
-  Sparkles,
-  Tv,
-  Music,
-  Bot,
-  Video,
-  Palette,
-  Cloud,
-  Gamepad2,
-  BookOpen,
-  CheckCircle,
-  PlusCircle,
-  X,
-  ShieldCheck,
-  Zap,
-} from 'lucide-react';
-import { createNewListing, fetchMarketplaceListings } from '../marketplaceSlice';
+import { Dialog } from '@mui/material';
+import { Check, ChevronLeft, ChevronRight, X, Layers } from 'lucide-react';
 
-const POPULAR_PLATFORMS = [
-  { name: 'Netflix 4K', category: 'OTT', icon: Tv, color: '#e50914', price: 129, seats: 4 },
-  { name: 'Spotify Family', category: 'Music', icon: Music, color: '#1db954', price: 59, seats: 6 },
-  { name: 'ChatGPT Plus', category: 'AI & Tools', icon: Bot, color: '#10a37f', price: 399, seats: 5 },
-  { name: 'YouTube Premium', category: 'OTT', icon: Video, color: '#ff0000', price: 106, seats: 5 },
-  { name: 'Canva Pro', category: 'Productivity', icon: Palette, color: '#00c4cc', price: 89, seats: 10 },
-  { name: 'Microsoft 365', category: 'Cloud Storage', icon: Cloud, color: '#0078d4', price: 149, seats: 6 },
-  { name: 'PlayStation Plus', category: 'Gaming', icon: Gamepad2, color: '#00439c', price: 249, seats: 3 },
-  { name: 'Udemy Pro', category: 'Learning', icon: BookOpen, color: '#a435f0', price: 199, seats: 5 },
+import { createNewListing, fetchMyListings } from '../marketplaceSlice';
+
+import Step1Product       from './wizard/Step1Product';
+import Step2Plan          from './wizard/Step2Plan';
+import Step3Pricing       from './wizard/Step3Pricing';
+import Step4Verification  from './wizard/Step4Verification';
+import Step5Review        from './wizard/Step5Review';
+import RequestProductDialog from './wizard/RequestProductDialog';
+import PublishSuccessModal  from './wizard/PublishSuccessModal';
+
+import styles from './wizard/CreateListingWizard.module.scss';
+
+// ── Stepper config ─────────────────────────────────────────────────────────────
+const STEPS = [
+  { label: 'Product' },
+  { label: 'Plan' },
+  { label: 'Pricing' },
+  { label: 'Verification' },
+  { label: 'Publish' },
 ];
 
-const CATEGORIES = [
-  'OTT',
-  'Music',
-  'AI & Tools',
-  'Productivity',
-  'Gaming',
-  'Cloud Storage',
-  'Learning',
-  'General',
-];
+// ── Initial state ──────────────────────────────────────────────────────────────
+const INITIAL_PLAN = {
+  seatsUsed: '1',
+  renewalDate: '',
+  billingCycle: 'MONTHLY',
+};
 
-const STEPS = ['Select Platform', 'Listing Details', 'Pricing & Capacity'];
+const INITIAL_UPLOAD_STATES = {
+  invoice: 'idle',
+  billing: 'idle',
+  renewal: 'idle',
+  dashboard: 'idle',
+};
 
+/**
+ * CreateListingModal — 5-step wizard shell.
+ * Replaces the previous 3-step free-text form.
+ *
+ * Props:
+ *   open: boolean
+ *   onClose: () => void
+ */
 function CreateListingModal({ open, onClose }) {
   const dispatch = useDispatch();
-  const [activeStep, setActiveStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
 
-  const [formData, setFormData] = useState({
-    providerName: 'Netflix 4K',
-    categoryName: 'OTT',
-    planName: 'Premium Pass',
-    title: 'Netflix Premium 4K UHD Slot',
-    description: 'Get your dedicated screen slot on an official Netflix 4K UHD account.',
-    seatPrice: '129',
-    totalSeats: '4',
-    availableSeats: '4',
-    billingCycle: 'MONTHLY',
-  });
+  // ── Wizard state ─────────────────────────────────────────────────────────────
+  const [currentStep,     setCurrentStep]     = useState(0); // 0-indexed
+  const [maxReachedStep,  setMaxReachedStep]  = useState(0); // highest step unlocked
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [plan,            setPlan]            = useState(INITIAL_PLAN);
+  const [price,           setPrice]           = useState('');
+  const [uploadStates,    setUploadStates]    = useState(INITIAL_UPLOAD_STATES);
 
-  const handleSelectPlatform = (platform) => {
-    setFormData((prev) => ({
-      ...prev,
-      providerName: platform.name,
-      categoryName: platform.category,
-      title: `${platform.name} Shared Slot`,
-      seatPrice: String(platform.price),
-      totalSeats: String(platform.seats),
-      availableSeats: String(platform.seats),
-    }));
-    setActiveStep(1);
-  };
+  // ── Publish state ────────────────────────────────────────────────────────────
+  const [publishLoading,  setPublishLoading]  = useState(false);
+  const [publishError,    setPublishError]    = useState(null);
+  const [publishedId,     setPublishedId]     = useState(null);
+  const [successOpen,     setSuccessOpen]     = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // ── Dialogs ──────────────────────────────────────────────────────────────────
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
 
-  const validateStep = (step) => {
-    setErrorMsg(null);
-    if (step === 0) {
-      if (!formData.providerName?.trim()) {
-        setErrorMsg('Please select or enter a platform provider name.');
-        return false;
-      }
-    }
-    if (step === 1) {
-      if (!formData.providerName?.trim()) {
-        setErrorMsg('Provider/Platform name is required.');
-        return false;
-      }
-      if (!formData.title?.trim() || formData.title.trim().length < 3) {
-        setErrorMsg('Listing title must be at least 3 characters long.');
-        return false;
-      }
-    }
-    if (step === 2) {
-      const price = parseFloat(formData.seatPrice);
-      if (isNaN(price) || price < 1) {
-        setErrorMsg('Seat price must be a valid amount of at least ₹1.');
-        return false;
-      }
-      if (price > 50000) {
-        setErrorMsg('Seat price cannot exceed ₹50,000.');
-        return false;
-      }
-      const total = parseInt(formData.totalSeats, 10);
-      if (isNaN(total) || total < 1 || total > 50) {
-        setErrorMsg('Total seats must be a number between 1 and 50.');
-        return false;
-      }
-      const avail = parseInt(formData.availableSeats || formData.totalSeats, 10);
-      if (isNaN(avail) || avail < 1 || avail > total) {
-        setErrorMsg(`Available seats (${avail}) cannot be greater than total seats (${total}).`);
-        return false;
-      }
-    }
-    return true;
-  };
+  // ── Reset on close ───────────────────────────────────────────────────────────
+  const handleClose = useCallback(() => {
+    setCurrentStep(0);
+    setMaxReachedStep(0);
+    setSelectedProduct(null);
+    setPlan(INITIAL_PLAN);
+    setPrice('');
+    setUploadStates(INITIAL_UPLOAD_STATES);
+    setPublishLoading(false);
+    setPublishError(null);
+    setPublishedId(null);
+    onClose();
+  }, [onClose]);
 
-  const handleNextStep = () => {
-    if (validateStep(activeStep)) {
-      setActiveStep((prev) => prev + 1);
+  // ── Per-step validation ──────────────────────────────────────────────────────
+  const isStepValid = (stepIndex) => {
+    switch (stepIndex) {
+      case 0:
+        return selectedProduct != null;
+
+      case 1: {
+        const used = parseInt(plan.seatsUsed, 10);
+        return (
+          plan.renewalDate !== '' &&
+          !isNaN(used) &&
+          used >= 1 &&
+          selectedProduct &&
+          used < selectedProduct.maxMembers
+        );
+      }
+
+      case 2:
+        return parseFloat(price) > 0;
+
+      case 3:
+        return Object.values(uploadStates).some((s) => s === 'verified');
+
+      case 4:
+        return true; // Always valid; publish button handles the action
+
+      default:
+        return false;
     }
   };
 
-  const handleSubmit = async () => {
-    if (!validateStep(1) || !validateStep(2)) {
+  // ── Stepper navigation ───────────────────────────────────────────────────────
+  const goToStep = (idx) => {
+    // Can always go backward; can only go forward if already unlocked
+    if (idx < currentStep || idx <= maxReachedStep) {
+      setCurrentStep(idx);
+    }
+  };
+
+  const handleNext = async () => {
+    if (!isStepValid(currentStep)) return;
+
+    if (currentStep === 4) {
+      // Step 5: real publish
+      await handlePublish();
       return;
     }
 
-    setLoading(true);
-    setErrorMsg(null);
+    const nextStep = currentStep + 1;
+    setCurrentStep(nextStep);
+    setMaxReachedStep((prev) => Math.max(prev, nextStep));
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 0) setCurrentStep((prev) => prev - 1);
+  };
+
+  // ── Publish (real backend) ───────────────────────────────────────────────────
+  const handlePublish = async () => {
+    setPublishLoading(true);
+    setPublishError(null);
+
+    const seatsUsedNum = parseInt(plan.seatsUsed, 10);
+    const availableSeats = selectedProduct.maxMembers - seatsUsedNum;
+    const priceNum = parseFloat(price);
+
+    // Build accessMethod description line
+    const accessLine = `Access: ${selectedProduct.accessMethod}`;
 
     const payload = {
-      providerName: formData.providerName || 'Custom Subscription',
-      categoryName: formData.categoryName || 'General',
-      planName: formData.planName || 'Standard Plan',
-      title: formData.title,
-      description: formData.description || 'Shared subscription group slot available.',
-      seatPrice: parseFloat(formData.seatPrice),
-      totalSeats: parseInt(formData.totalSeats, 10),
-      availableSeats: parseInt(formData.availableSeats || formData.totalSeats, 10),
-      billingCycle: formData.billingCycle || 'MONTHLY',
+      providerName:   selectedProduct.name,
+      categoryName:   selectedProduct.category,
+      planName:       selectedProduct.name,
+      title:          `${selectedProduct.name} — ${availableSeats} Seat${availableSeats !== 1 ? 's' : ''} Available`,
+      description:    accessLine,
+      seatPrice:      priceNum,
+      totalSeats:     selectedProduct.maxMembers,
+      availableSeats: availableSeats,
+      billingCycle:   plan.billingCycle,
+      expiryDate:     plan.renewalDate || undefined,
     };
 
     try {
       const resultAction = await dispatch(createNewListing(payload));
       if (createNewListing.fulfilled.match(resultAction)) {
-        setSuccessMsg('🎉 Listing created successfully!');
-        dispatch(fetchMarketplaceListings({ page: 0, size: 20 }));
-        setTimeout(() => {
-          setSuccessMsg(null);
-          setActiveStep(0);
-          onClose();
-        }, 1200);
+        const created = resultAction.payload;
+        setPublishedId(created?.id ?? null);
+        dispatch(fetchMyListings());
+        handleClose();
+        setSuccessOpen(true);
       } else {
-        setErrorMsg(resultAction.payload || 'Failed to create listing');
+        setPublishError(resultAction.payload || 'Failed to create listing. Please try again.');
       }
     } catch (err) {
-      setErrorMsg(err.message || 'An unexpected error occurred');
+      setPublishError(err.message || 'An unexpected error occurred.');
     } finally {
-      setLoading(false);
+      setPublishLoading(false);
     }
   };
 
+  // ── Upload state handler ─────────────────────────────────────────────────────
+  const handleUploadStateChange = useCallback((cardId, state) => {
+    setUploadStates((prev) => ({ ...prev, [cardId]: state }));
+  }, []);
+
+  // ── Stepper node state ───────────────────────────────────────────────────────
+  const getNodeState = (idx) => {
+    if (idx < currentStep) return 'completed';
+    if (idx === currentStep) return 'current';
+    return 'future';
+  };
+
+  const nextLabel = currentStep === 4
+    ? (publishLoading ? 'Publishing…' : 'Publish Listing')
+    : 'Next';
+
+  const canGoNext = isStepValid(currentStep) && !publishLoading;
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '24px',
-          background: '#0e1014',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          color: '#ffffff',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-          overflow: 'hidden',
-        },
-      }}
-    >
-      {/* Header */}
-      <DialogTitle
-        sx={{
-          p: 3,
-          background: 'linear-gradient(180deg, rgba(37,99,235,0.12) 0%, transparent 100%)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
+    <>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ className: styles.wizardPaper }}
+        scroll="paper"
       >
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <PlusCircle size={22} color="#ffffff" />
-          </Box>
-          <Box>
-            <Typography sx={{ fontWeight: 900, fontSize: '1.25rem', color: '#ffffff', lineHeight: 1.2 }}>
-              List Your Subscription
-            </Typography>
-            <Typography sx={{ fontSize: '0.8rem', color: '#9ca3af' }}>
-              Share extra seats and recover up to 80% of your subscription cost
-            </Typography>
-          </Box>
-        </Stack>
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <div className={styles.wizardHeader}>
+          <div className={styles.wizardHeaderLeft}>
+            <div className={styles.wizardIconTile}>
+              <Layers size={22} color="#fff" strokeWidth={2.5} />
+            </div>
+            <div>
+              <div className={styles.wizardTitle}>List a New Pass</div>
+              <div className={styles.wizardSubtitle}>
+                Pick a product from our verified catalog — we'll fill in the details.
+              </div>
+            </div>
+          </div>
 
-        <IconButton size="small" onClick={onClose} sx={{ color: '#9ca3af', '&:hover': { color: '#ffffff' } }}>
-          <X size={20} />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent sx={{ p: 3.5 }}>
-        {/* Stepper */}
-        <Stepper
-          activeStep={activeStep}
-          alternativeLabel
-          sx={{
-            mb: 4,
-            '& .MuiStepLabel-label': { color: '#6b7280', fontSize: '0.78rem', fontWeight: 600 },
-            '& .MuiStepLabel-label.Mui-active': { color: '#3b82f6', fontWeight: 800 },
-            '& .MuiStepLabel-label.Mui-completed': { color: '#22c55e', fontWeight: 700 },
-            '& .MuiStepIcon-root': { color: '#1f2937' },
-            '& .MuiStepIcon-root.Mui-active': { color: '#2563eb' },
-            '& .MuiStepIcon-root.Mui-completed': { color: '#22c55e' },
-          }}
-        >
-          {STEPS.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        {errorMsg && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: '12px', background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>
-            {errorMsg}
-          </Alert>
-        )}
-
-        {successMsg && (
-          <Alert severity="success" sx={{ mb: 3, borderRadius: '12px', background: 'rgba(34,197,94,0.15)', color: '#4ade80' }}>
-            {successMsg}
-          </Alert>
-        )}
-
-        {/* Step 1: Platform Selection */}
-        {activeStep === 0 && (
-          <Box>
-            <Typography sx={{ fontSize: '0.9rem', color: '#9ca3af', mb: 2, fontWeight: 600 }}>
-              Select a popular subscription service to populate defaults:
-            </Typography>
-
-            <Grid container spacing={2}>
-              {POPULAR_PLATFORMS.map((plat) => {
-                const Icon = plat.icon;
-                const isSelected = formData.providerName === plat.name;
-
-                return (
-                  <Grid item xs={6} sm={3} key={plat.name}>
-                    <Paper
-                      elevation={0}
-                      onClick={() => handleSelectPlatform(plat)}
-                      sx={{
-                        p: 2,
-                        borderRadius: '16px',
-                        background: isSelected ? 'rgba(37,99,235,0.15)' : '#14161d',
-                        border: isSelected ? '2px solid #2563eb' : '1px solid rgba(255,255,255,0.08)',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          borderColor: plat.color,
-                          transform: 'translateY(-2px)',
-                        },
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: '12px',
-                          background: `${plat.color}20`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          mx: 'auto',
-                          mb: 1.5,
-                        }}
-                      >
-                        <Icon size={24} color={plat.color} />
-                      </Box>
-
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#ffffff', mb: 0.5 }}>
-                        {plat.name}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: '#6b7280' }}>
-                        {plat.category}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                );
-              })}
-            </Grid>
-
-            <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
-              <Typography sx={{ fontSize: '0.85rem', color: '#9ca3af', mb: 1 }}>
-                Don't see your subscription platform?
-              </Typography>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    providerName: 'Custom Subscription',
-                    categoryName: 'General',
-                  }));
-                  setActiveStep(1);
-                }}
-                sx={{
-                  borderRadius: '10px',
-                  borderColor: 'rgba(255,255,255,0.2)',
-                  color: '#ffffff',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  '&:hover': { borderColor: '#3b82f6', background: 'rgba(59,130,246,0.1)' },
-                }}
-              >
-                Configure Custom Subscription
-              </Button>
-            </Box>
-          </Box>
-        )}
-
-        {/* Step 2: Listing Details */}
-        {activeStep === 1 && (
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Provider / Platform Name *
-              </Typography>
-              <TextField
-                fullWidth
-                name="providerName"
-                value={formData.providerName}
-                onChange={handleChange}
-                placeholder="e.g. Netflix, Spotify, ChatGPT"
-                variant="outlined"
-                sx={inputStyle}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Category *
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                name="categoryName"
-                value={formData.categoryName}
-                onChange={handleChange}
-                variant="outlined"
-                sx={inputStyle}
-              >
-                {CATEGORIES.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Listing Title *
-              </Typography>
-              <TextField
-                fullWidth
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="e.g. Netflix Premium 4K UHD Dedicated Screen"
-                variant="outlined"
-                sx={inputStyle}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Description & Access Instructions
-              </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Specify screen rules, automated invite info, or group guidelines..."
-                variant="outlined"
-                sx={inputStyle}
-              />
-            </Grid>
-          </Grid>
-        )}
-
-        {/* Step 3: Pricing & Capacity */}
-        {activeStep === 2 && (
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Monthly Seat Price (₹) *
-              </Typography>
-              <TextField
-                fullWidth
-                type="number"
-                name="seatPrice"
-                value={formData.seatPrice}
-                onChange={handleChange}
-                placeholder="149"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start" sx={{ color: '#3b82f6', fontWeight: 800 }}>₹</InputAdornment>,
-                }}
-                variant="outlined"
-                sx={inputStyle}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Total Seats in Group *
-              </Typography>
-              <TextField
-                fullWidth
-                type="number"
-                name="totalSeats"
-                value={formData.totalSeats}
-                onChange={handleChange}
-                placeholder="4"
-                variant="outlined"
-                sx={inputStyle}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Available Seats *
-              </Typography>
-              <TextField
-                fullWidth
-                type="number"
-                name="availableSeats"
-                value={formData.availableSeats}
-                onChange={handleChange}
-                placeholder="4"
-                variant="outlined"
-                sx={inputStyle}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#9ca3af', mb: 1 }}>
-                Billing Cycle
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                name="billingCycle"
-                value={formData.billingCycle}
-                onChange={handleChange}
-                variant="outlined"
-                sx={inputStyle}
-              >
-                <MenuItem value="MONTHLY">Monthly</MenuItem>
-                <MenuItem value="YEARLY">Yearly</MenuItem>
-              </TextField>
-            </Grid>
-
-            {/* Live Preview Card */}
-            <Grid item xs={12}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2.5,
-                  borderRadius: '16px',
-                  background: '#14161e',
-                  border: '1px dashed rgba(59,130,246,0.4)',
-                }}
-              >
-                <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-                  <Zap size={18} color="#3b82f6" />
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#3b82f6' }}>
-                    Live Marketplace Preview
-                  </Typography>
-                </Stack>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#ffffff', mb: 0.5 }}>
-                  {formData.title || 'Untitled Listing'}
-                </Typography>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Chip
-                    label={formData.categoryName || 'General'}
-                    size="small"
-                    sx={{ background: 'rgba(37,99,235,0.2)', color: '#60a5fa', fontWeight: 700, fontSize: '0.72rem' }}
-                  />
-                  <Typography sx={{ fontSize: '0.82rem', color: '#22c55e', fontWeight: 800 }}>
-                    ₹{formData.seatPrice || '0'}/mo
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.78rem', color: '#9ca3af' }}>
-                    {formData.availableSeats || '0'} of {formData.totalSeats || '0'} seats left
-                  </Typography>
-                </Stack>
-              </Paper>
-            </Grid>
-          </Grid>
-        )}
-
-        {/* Footer Actions */}
-        <Stack direction="row" spacing={2} justifyContent="space-between" mt={4}>
-          <Button
-            disabled={activeStep === 0 || loading}
-            onClick={() => setActiveStep((prev) => prev - 1)}
-            sx={{ color: '#9ca3af', fontWeight: 700, textTransform: 'none' }}
-          >
-            Back
-          </Button>
-
-          {activeStep < STEPS.length - 1 ? (
-            <Button
-              variant="contained"
-              onClick={handleNextStep}
-              sx={{
-
-                borderRadius: '12px',
-                fontWeight: 800,
-                px: 4,
-                py: 1.2,
-                textTransform: 'none',
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                boxShadow: '0 4px 14px rgba(37,99,235,0.4)',
-              }}
+          <div className={styles.wizardHeaderRight}>
+            <span style={{ opacity: 0.6 }}>Host Center · New Listing</span>
+            <button
+              className={styles.closeBtn}
+              onClick={handleClose}
+              aria-label="Close wizard"
+              id="wizard-close-btn"
             >
-              Continue to {STEPS[activeStep + 1]}
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              disabled={loading}
-              onClick={handleSubmit}
-              sx={{
-                borderRadius: '12px',
-                fontWeight: 800,
-                px: 4,
-                py: 1.2,
-                textTransform: 'none',
-                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                boxShadow: '0 4px 14px rgba(34,197,94,0.4)',
-              }}
-            >
-              {loading ? <CircularProgress size={22} color="inherit" /> : 'Publish Listing Now'}
-            </Button>
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Stepper ─────────────────────────────────────────────────────── */}
+        <div className={styles.stepperBar}>
+          <div className={styles.stepperTrack}>
+            {STEPS.map((step, idx) => {
+              const nodeState = getNodeState(idx);
+              const isLocked  = idx > maxReachedStep;
+              const isLast    = idx === STEPS.length - 1;
+
+              return (
+                <div
+                  key={step.label}
+                  className={styles.stepperItem}
+                  data-locked={isLocked && idx !== currentStep ? 'true' : 'false'}
+                  onClick={() => goToStep(idx)}
+                  id={`wizard-step-nav-${idx}`}
+                  role="button"
+                  tabIndex={!isLocked ? 0 : -1}
+                  aria-label={`Go to step ${idx + 1}: ${step.label}`}
+                  onKeyDown={(e) => { if (!isLocked && (e.key === 'Enter' || e.key === ' ')) goToStep(idx); }}
+                >
+                  {/* Connector line (not after last item) */}
+                  {!isLast && (
+                    <div
+                      className={styles.stepperConnector}
+                      data-completed={nodeState === 'completed' ? 'true' : 'false'}
+                    />
+                  )}
+
+                  {/* Node */}
+                  <div className={styles.stepperNode} data-state={nodeState}>
+                    {nodeState === 'completed' ? (
+                      <Check size={14} strokeWidth={3} color="#fff" />
+                    ) : (
+                      idx + 1
+                    )}
+                  </div>
+
+                  {/* Label */}
+                  <div className={styles.stepperLabel} data-state={nodeState}>
+                    {step.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Step Content ────────────────────────────────────────────────── */}
+        <div className={styles.stepContent}>
+          {currentStep === 0 && (
+            <Step1Product
+              selectedProduct={selectedProduct}
+              onSelect={setSelectedProduct}
+              onRequestProduct={() => setRequestDialogOpen(true)}
+            />
           )}
-        </Stack>
-      </DialogContent>
-    </Dialog>
+
+          {currentStep === 1 && selectedProduct && (
+            <Step2Plan
+              product={selectedProduct}
+              plan={plan}
+              onChange={(patch) => setPlan((prev) => ({ ...prev, ...patch }))}
+            />
+          )}
+
+          {currentStep === 2 && selectedProduct && (
+            <Step3Pricing
+              product={selectedProduct}
+              price={price}
+              onChange={setPrice}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <Step4Verification
+              uploadStates={uploadStates}
+              onUploadStateChange={handleUploadStateChange}
+            />
+          )}
+
+          {currentStep === 4 && selectedProduct && (
+            <Step5Review
+              product={selectedProduct}
+              plan={plan}
+              price={price}
+              uploadStates={uploadStates}
+              publishLoading={publishLoading}
+              publishError={publishError}
+            />
+          )}
+        </div>
+
+        {/* ── Footer ──────────────────────────────────────────────────────── */}
+        <div className={styles.wizardFooter}>
+          <button
+            className={styles.btnPrev}
+            disabled={currentStep === 0 || publishLoading}
+            onClick={handlePrev}
+            id="wizard-prev-btn"
+          >
+            <ChevronLeft size={16} />
+            Previous
+          </button>
+
+          <button
+            className={currentStep === 4 ? styles.btnPublish : styles.btnNext}
+            disabled={!canGoNext}
+            onClick={handleNext}
+            id="wizard-next-btn"
+          >
+            {nextLabel}
+            {currentStep < 4 && <ChevronRight size={16} />}
+          </button>
+        </div>
+      </Dialog>
+
+      {/* ── Request Product Dialog ─────────────────────────────────────────── */}
+      <RequestProductDialog
+        open={requestDialogOpen}
+        onClose={() => setRequestDialogOpen(false)}
+      />
+
+      {/* ── Publish Success Modal ──────────────────────────────────────────── */}
+      <PublishSuccessModal
+        open={successOpen}
+        listingId={publishedId}
+        onClose={() => setSuccessOpen(false)}
+      />
+    </>
   );
 }
-
-const inputStyle = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    background: '#181b22',
-    color: '#ffffff',
-    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
-    '&:hover fieldset': { borderColor: '#3b82f6' },
-    '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
-  },
-  '& .MuiInputBase-input': { fontSize: '0.9rem' },
-};
 
 export default CreateListingModal;

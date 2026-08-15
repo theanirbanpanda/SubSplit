@@ -22,7 +22,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { Menu as MenuIcon, Bell, Search, Wallet, User as UserIcon, CheckCheck, ArrowRight, ShieldCheck, Zap, MessageSquare, LogOut, Star, Shield, X } from 'lucide-react';
+import { Menu as MenuIcon, Bell, Search, Wallet, User as UserIcon, CheckCheck, ArrowRight, ShieldCheck, Zap, MessageSquare, LogOut, Star, X } from 'lucide-react';
 import { logoutUser, logout } from '../../features/auth/authSlice';
 import { setFilter } from '../../features/marketplace/marketplaceSlice';
 
@@ -184,7 +184,7 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
                   setMobileSearchOpen(false);
                 }
               }}
-              placeholder="Search subscriptions, hosts, categories..."
+              placeholder="Search subscriptions..."
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -239,7 +239,7 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
                 value={searchVal}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchSubmit}
-                placeholder="Search subscriptions, hosts or categories..."
+                placeholder="Search subscriptions..."
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -548,22 +548,6 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
             >
               <Star size={16} color="#9ca3af" />
               <span>My Reviews</span>
-            </MenuItem>
-
-            <MenuItem
-              onClick={() => handleProfileNavigate('/app/host')}
-              sx={{
-                py: 1.25,
-                px: 2,
-                gap: 1.5,
-                fontSize: '0.86rem',
-                fontWeight: 600,
-                color: '#f3f4f6',
-                '&:hover': { background: 'rgba(255, 255, 255, 0.05)', color: '#60a5fa' },
-              }}
-            >
-              <Shield size={16} color="#9ca3af" />
-              <span>Host Center</span>
             </MenuItem>
 
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.06)' }} />

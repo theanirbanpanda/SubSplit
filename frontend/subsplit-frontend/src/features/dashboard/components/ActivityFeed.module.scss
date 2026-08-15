@@ -98,3 +98,38 @@
     color: $text-secondary;
   }
 }
+
+.linkCard {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-lg;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.linkIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(161, 161, 170, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.linkText {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $text-secondary;
+}

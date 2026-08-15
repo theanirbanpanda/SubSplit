@@ -93,6 +93,13 @@
   color: $text-primary;
 }
 
+.emptyMsg {
+  font-size: 0.82rem;
+  color: $text-muted;
+  padding: $spacing-2 0;
+  margin: 0;
+}
+
 .actionBtn {
   width: 100%;
   background: rgba(34, 197, 94, 0.1);
