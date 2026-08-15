@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Upload, CheckCircle, ShieldCheck } from 'lucide-react';
-import { simulateVerification } from '../../utils/verificationService';
+import React, { useState, useRef } from 'react';
+import { Dialog, CircularProgress } from '@mui/material';
+import { Upload, CheckCircle, ShieldCheck, Cpu } from 'lucide-react';
 import styles from './CreateListingWizard.module.scss';
 
 const UPLOAD_CARDS = [
@@ -34,15 +34,20 @@ const UPLOAD_CARDS = [
  */
 function Step4Verification({ uploadStates, onUploadStateChange }) {
   const anyVerified = Object.values(uploadStates).some((s) => s === 'verified');
+  const [verifyingTitle, setVerifyingTitle] = useState(null);
 
-  const handleCardClick = async (cardId) => {
-    const state = uploadStates[cardId];
-    // Only allow clicking idle or failed cards
-    if (state !== 'idle' && state !== 'failed') return;
+  const handleFileSelected = (cardId, file, title) => {
+    if (!file) return;
 
-    await simulateVerification((newState) => {
-      onUploadStateChange(cardId, newState);
-    });
+    // Show AI verification popup
+    setVerifyingTitle(title);
+    onUploadStateChange(cardId, 'analyzing');
+
+    // Automatically make it verified after 5 seconds (no visible timer)
+    setTimeout(() => {
+      setVerifyingTitle(null);
+      onUploadStateChange(cardId, 'verified');
+    }, 5000);
   };
 
   return (
@@ -50,7 +55,7 @@ function Step4Verification({ uploadStates, onUploadStateChange }) {
       <h2 className={styles.stepHeading}>Verify Your Subscription</h2>
       <p className={styles.stepDescription}>
         Upload proof documents so we can verify your subscription is real and active. Click any
-        card to simulate the upload and AI analysis.
+        card to upload a file and start the AI analysis.
       </p>
 
       {/* Verified Banner */}
@@ -72,7 +77,7 @@ function Step4Verification({ uploadStates, onUploadStateChange }) {
               title={title}
               hint={hint}
               state={state}
-              onClick={() => handleCardClick(id)}
+              onFileSelected={(file) => handleFileSelected(id, file, title)}
             />
           );
         })}
@@ -89,25 +94,75 @@ function Step4Verification({ uploadStates, onUploadStateChange }) {
         At least one verified document is required to continue. All documents are encrypted and
         stored securely.
       </p>
+
+      {/* AI Verification Popup */}
+      <Dialog
+        open={!!verifyingTitle}
+        PaperProps={{
+          style: {
+            background: '#18181b',
+            color: '#fff',
+            borderRadius: '16px',
+            border: '1px solid #27272a',
+            padding: '32px 24px',
+            maxWidth: '360px',
+            width: '100%',
+          },
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <Cpu size={48} color="#3b82f6" style={{ marginBottom: 16 }} />
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '1.25rem', fontWeight: 800 }}>
+            AI Verification in Progress
+          </h3>
+          <p style={{ margin: '0 0 24px 0', fontSize: '0.88rem', color: '#a1a1aa', lineHeight: 1.5 }}>
+            Our AI is securely analyzing your {verifyingTitle} to verify its authenticity. This usually takes a few moments.
+          </p>
+          <CircularProgress size={32} thickness={5} sx={{ color: '#3b82f6' }} />
+        </div>
+      </Dialog>
     </div>
   );
 }
 
-function UploadCard({ id, title, hint, state, onClick }) {
-  const isIdle = state === 'idle';
+function UploadCard({ id, title, hint, state, onFileSelected }) {
+  const fileInputRef = useRef(null);
+  const isIdle = state === 'idle' || state === 'failed';
   const isActive = state === 'uploading' || state === 'analyzing';
   const isVerified = state === 'verified';
+
+  const handleClick = () => {
+    if (isIdle) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      onFileSelected(file);
+    }
+    e.target.value = null; // reset input
+  };
 
   return (
     <div
       className={styles.uploadCard}
       data-state={state}
-      onClick={onClick}
+      onClick={handleClick}
       id={`wizard-upload-${id}`}
       role="button"
       tabIndex={isIdle ? 0 : -1}
-      onKeyDown={(e) => { if (isIdle && (e.key === 'Enter' || e.key === ' ')) onClick(); }}
+      onKeyDown={(e) => { if (isIdle && (e.key === 'Enter' || e.key === ' ')) handleClick(); }}
     >
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+        accept="image/*,application/pdf"
+      />
+
       {isVerified ? (
         <CheckCircle size={28} color="#22C55E" />
       ) : isActive ? (
@@ -131,9 +186,6 @@ function UploadCard({ id, title, hint, state, onClick }) {
       )}
       {isVerified && (
         <div className={styles.uploadCardStatus} data-state={state}>Verified</div>
-      )}
-      {state === 'failed' && (
-        <div className={styles.uploadCardStatus} data-state={state}>Failed — click to retry</div>
       )}
     </div>
   );

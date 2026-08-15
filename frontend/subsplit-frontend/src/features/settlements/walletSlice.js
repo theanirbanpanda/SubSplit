@@ -42,14 +42,14 @@ const walletSlice = createSlice({
       })
       .addCase(fetchMyWallet.fulfilled, (state, action) => {
         state.loading = false;
-        state.wallet = action.payload;
+        state.wallet = action.payload?.data || action.payload;
       })
       .addCase(fetchMyWallet.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(addMoneyToWallet.fulfilled, (state, action) => {
-        state.wallet = action.payload;
+        state.wallet = action.payload?.data || action.payload;
       })
       .addCase(submitJoinRequest.fulfilled, (state, action) => {
         const payload = action.payload?.data || action.payload;

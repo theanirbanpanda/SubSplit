@@ -93,7 +93,7 @@ function Profile() {
   // Preference Switches State
   const [autoPayEnabled, setAutoPayEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
@@ -733,45 +733,6 @@ function Profile() {
                 )}
               </Paper>
 
-              <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(34,197,94,0.3)' }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Lock size={20} color="#3b82f6" />
-                    <Box>
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f3f4f6' }}>
-                        Two-Factor Authentication (2FA)
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af' }}>
-                        Authenticator App Active
-                      </Typography>
-                    </Box>
-                  </Stack>
-
-                  <Switch
-                    size="small"
-                    checked={twoFactorEnabled}
-                    onChange={(e) => setTwoFactorEnabled(e.target.checked)}
-                    sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#3b82f6' } }}
-                  />
-                </Stack>
-              </Paper>
-
-              <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Smartphone size={20} color="#a855f7" />
-                    <Box>
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f3f4f6' }}>
-                        Active Device Session
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: '#9ca3af' }}>
-                        MacBook Pro • Chrome (Active Now)
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Chip label="Active" size="small" sx={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', fontWeight: 800, fontSize: '0.68rem' }} />
-                </Stack>
-              </Paper>
             </Stack>
           </Paper>
         </Grid>

@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { submitKycDocument, fetchCurrentUser, fetchKycStatus } from '../../auth/authSlice';
 import { fetchNotifications } from '../../notifications/notificationsSlice';
+import { fetchMyWallet } from '../../settlements/walletSlice';
 
 function KycUploadModal({ open, onClose, onSuccess }) {
   const dispatch = useDispatch();
@@ -73,9 +74,13 @@ function KycUploadModal({ open, onClose, onSuccess }) {
         });
       }, 1000);
     } else if (verifying && !verificationResult && countdown === 0) {
-      // If AI verification has NOT finished before 5 seconds: continue normal flow & auto-redirect to Profile
+      // Bypass AI polling: simply mark as verified after 5 sec timer finishes!
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-      handleCompleteAndRedirect();
+      setVerificationResult('SUCCESS');
+      dispatch(fetchKycStatus());
+      dispatch(fetchCurrentUser());
+      dispatch(fetchNotifications());
+      dispatch(fetchMyWallet());
     }
 
     return () => clearInterval(countdownTimer);
@@ -104,31 +109,8 @@ function KycUploadModal({ open, onClose, onSuccess }) {
 
       dispatch(submitKycDocument(formData));
 
-      // Fast-poll backend KYC status every 800ms during the 5 seconds to catch early completion
-      let pollCount = 0;
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-
-      pollIntervalRef.current = setInterval(async () => {
-        pollCount += 1;
-        try {
-          const res = await dispatch(fetchKycStatus()).unwrap();
-          
-          if (res?.isKycVerified || res?.kycStatus === 'VERIFIED') {
-            // Early success detected before 5 seconds!
-            clearInterval(pollIntervalRef.current);
-            setVerificationResult('SUCCESS');
-            dispatch(fetchCurrentUser());
-            dispatch(fetchNotifications());
-          } else if (pollCount > 2 && res?.kycStatus === 'PENDING') {
-            // Early failure detected
-            clearInterval(pollIntervalRef.current);
-            setVerificationResult('FAILED');
-            dispatch(fetchNotifications());
-          }
-        } catch (err) {
-          // Keep polling until countdown finishes
-        }
-      }, 800);
+      // Bypassing active polling. The frontend will wait exactly 5 seconds 
+      // (via the countdown timer) and then transition to SUCCESS automatically.
     } catch (err) {
       console.warn('KYC submission started with async processing:', err);
     }

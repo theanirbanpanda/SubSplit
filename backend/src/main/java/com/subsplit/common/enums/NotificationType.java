@@ -9,6 +9,8 @@ public enum NotificationType {
     ESCROW,
     RENEWAL,
     SYSTEM,
-    AI
+    AI,
+    PRODUCT_REQUEST
 
 }
+

@@ -17,11 +17,12 @@ import styles from './CreateListingWizard.module.scss';
  *   publishLoading: boolean
  *   publishError: string | null
  */
-function Step5Review({ product, plan, price, uploadStates, publishLoading, publishError }) {
+function Step5Review({ product, plan, price, uploadStates, publishLoading, publishError, user }) {
   const priceNum = parseFloat(price) || 0;
   const { earnings } = computeFeeBreakdown(priceNum);
   const seatsUsedNum = parseInt(plan.seatsUsed, 10) || 0;
-  const availableSeats = product.maxMembers - seatsUsedNum;
+  const maxMembersNum = parseInt(plan.maxMembers, 10) || product.maxMembers;
+  const availableSeats = maxMembersNum - seatsUsedNum;
   const anyVerified = Object.values(uploadStates).some((s) => s === 'verified');
 
   // ── Compute countdown display ────────────────────────────────────────────────
@@ -36,6 +37,23 @@ function Step5Review({ product, plan, price, uploadStates, publishLoading, publi
     }
   }
 
+  // ── Compute host info ────────────────────────────────────────────────────────
+  let hostNameStr = 'You';
+  let initialsStr = 'Y';
+  
+  if (user) {
+    if (user.firstName && user.lastName) {
+      hostNameStr = `${user.firstName} ${user.lastName}`;
+      initialsStr = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+    } else if (user.name) {
+      hostNameStr = user.name;
+      initialsStr = user.name.charAt(0).toUpperCase();
+    } else if (user.email) {
+      hostNameStr = user.email.split('@')[0];
+      initialsStr = hostNameStr.charAt(0).toUpperCase();
+    }
+  }
+
   // ── Synthesize a listing object for MarketplaceCard ─────────────────────────
   // MarketplaceCard expects: { id, title, price, seatsLeft, totalSeats,
   //   isVerifiedHost, isEscrowProtected, iconColor, iconBg, host, hostName }
@@ -44,13 +62,13 @@ function Step5Review({ product, plan, price, uploadStates, publishLoading, publi
     title: product.name,
     price: priceNum,
     seatsLeft: availableSeats,
-    totalSeats: product.maxMembers,
+    totalSeats: maxMembersNum,
     isVerifiedHost: anyVerified,
     isEscrowProtected: true,
     iconColor: product.brandColor,
     iconBg: `${product.brandColor}28`,
-    hostName: 'You',
-    host: { initials: 'Y', avatarBg: '#2563EB', responseTime: '< 5m' },
+    hostName: hostNameStr,
+    host: { initials: initialsStr, avatarBg: '#2563EB', responseTime: '< 5m' },
   };
 
   const billingLabel = plan.billingCycle === 'MONTHLY' ? 'Monthly' : 'Yearly';
