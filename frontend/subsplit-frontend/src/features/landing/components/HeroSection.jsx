@@ -62,7 +62,7 @@ function HeroSection() {
       <div className={styles.container}>
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
           {/* ── Left Column ── */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={5} lg={5}>
             {/* Eyebrow badge */}
             <div className={styles.eyebrow}>
               <span className={styles.eyebrowIcon}>
@@ -114,8 +114,11 @@ function HeroSection() {
             </div>
           </Grid>
 
+          {/* ── Middle Spacer ── */}
+          <Grid item xs={0} md={1} lg={2} sx={{ display: { xs: 'none', md: 'block' } }} />
+
           {/* ── Right Column — Comparison Widget ── */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} lg={5}>
             <div className={styles.comparisonWidget}>
               {/* Tab Switcher */}
               <div className={styles.widgetTabs}>

@@ -67,6 +67,9 @@ public class Listing extends BaseEntity {
 
     @Column(name = "expiry_date")
     private LocalDate expiryDate;
+    @Column(name = "renewal_proof_url", columnDefinition = "TEXT")
+    private String renewalProofUrl;
+
 
     @OneToMany(mappedBy = "listing")
     @Builder.Default

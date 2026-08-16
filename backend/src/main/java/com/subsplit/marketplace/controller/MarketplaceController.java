@@ -192,6 +192,16 @@ public class MarketplaceController {
         return user;
     }
 
+    @PostMapping("/listings/{id}/renew")
+    public ResponseEntity<ApiResponse<ListingResponse>> renewListing(
+            Authentication authentication,
+            @PathVariable Long id,
+            @Valid @RequestBody RenewListingRequest request) {
+        User currentUser = getAuthenticatedUser(authentication);
+        ListingResponse response = marketplaceService.renewListing(currentUser, id, request);
+        return ResponseEntity.ok(ApiResponse.success("Listing renewed successfully", response));
+    }
+
     @PutMapping("/listings/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> updateListing(
             Authentication authentication,

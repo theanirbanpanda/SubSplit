@@ -27,6 +27,8 @@ public interface JoinRequestRepository extends JpaRepository<JoinRequest, Long> 
     List<Long> findListingIdsByMemberIdNonRejected(@Param("memberId") Long memberId);
 
     boolean existsByListingIdAndMemberId(Long listingId, Long memberId);
+
+    boolean existsByListingIdAndStatusIn(Long listingId, List<com.subsplit.common.enums.JoinRequestStatus> statuses);
 }
 
 

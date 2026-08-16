@@ -20,5 +20,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     boolean existsByReviewerIdAndRevieweeId(Long reviewerId, Long revieweeId);
 
     long countByRevieweeId(Long revieweeId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT r FROM Review r WHERE r.reviewee.id = :userId OR (r.listing IS NOT NULL AND r.listing.host.id = :userId) ORDER BY r.createdAt DESC")
+    List<Review> findAllUserRelatedReviewsOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("userId") Long userId);
 }
 

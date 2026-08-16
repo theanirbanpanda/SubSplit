@@ -44,7 +44,9 @@ public class SecurityConfig {
                                 "/api/v1/marketplace/**",
                                 "/api/marketplace/**",
                                 "/api/v1/catalog/**",
-                                "/api/catalog/**")
+                                "/api/catalog/**",
+                                "/api/v1/reviews/**",
+                                "/api/reviews/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/marketplace/listings",

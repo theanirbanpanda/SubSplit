@@ -250,6 +250,25 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Override
     @Transactional
+    public ListingResponse renewListing(User host, Long id, RenewListingRequest request) {
+        Listing listing = listingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Listing not found with id: " + id));
+
+        validateOwnership(listing, host);
+
+        if (request.getNewExpiryDate() != null) {
+            listing.setExpiryDate(request.getNewExpiryDate());
+        }
+        if (request.getProofImage() != null && !request.getProofImage().isBlank()) {
+            listing.setRenewalProofUrl(request.getProofImage());
+        }
+        
+        listing = listingRepository.save(listing);
+        return mapToListingResponse(listing);
+    }
+
+    @Override
+    @Transactional
     public ListingResponse updateListing(User host, Long id, UpdateListingRequest request) {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found with id: " + id));
@@ -291,6 +310,20 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         validateOwnership(listing, host);
 
+        boolean hasActiveOrPendingMembers = joinRequestRepository.existsByListingIdAndStatusIn(
+                id,
+                java.util.List.of(
+                        com.subsplit.common.enums.JoinRequestStatus.PENDING,
+                        com.subsplit.common.enums.JoinRequestStatus.CREDENTIALS_SHARED,
+                        com.subsplit.common.enums.JoinRequestStatus.PROOF_SUBMITTED,
+                        com.subsplit.common.enums.JoinRequestStatus.APPROVED
+                )
+        );
+
+        if (hasActiveOrPendingMembers) {
+            throw new IllegalStateException("Cannot delete listing. There are active members or pending payments for this listing.");
+        }
+
         listing.setStatus(ListingStatus.CANCELLED);
         listingRepository.save(listing);
     }
@@ -302,6 +335,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             return List.of();
         }
         return listingRepository.findByHostId(host.getId()).stream()
+                .filter(l -> l.getStatus() != ListingStatus.CANCELLED)
                 .map(this::mapToListingResponse)
                 .collect(Collectors.toList());
     }
