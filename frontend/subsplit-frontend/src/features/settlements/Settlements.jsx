@@ -67,7 +67,6 @@ function Settlements() {
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
-    dispatch(fetchKycStatus());
     dispatch(fetchMyWallet());
     loadDisputes();
   }, [dispatch]);

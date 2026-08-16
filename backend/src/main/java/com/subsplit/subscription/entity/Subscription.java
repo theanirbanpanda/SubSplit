@@ -38,6 +38,10 @@ public class Subscription extends BaseEntity {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Lob
+    @Column(name = "logo_data", columnDefinition = "LONGBLOB")
+    private byte[] logoData;
+
     @Column(name = "official_website")
     private String officialWebsite;
 
@@ -59,6 +63,7 @@ public class Subscription extends BaseEntity {
 
     @OneToMany(mappedBy = "subscription")
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<SubscriptionPlan> plans = new ArrayList<>();
 
     @PrePersist

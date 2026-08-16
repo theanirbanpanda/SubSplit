@@ -278,9 +278,17 @@ const ListingTable = () => {
             >
               <div 
                 className={styles.cardCover} 
-                style={{ backgroundColor: listing.iconBg || 'rgba(37,99,235,0.12)' }}
+                style={{ backgroundColor: listing.iconBg || 'rgba(37,99,235,0.12)', overflow: 'hidden' }}
               >
-                <SubscriptionsIcon className={styles.coverIcon} style={{ color: listing.iconColor || '#2563eb' }} />
+                {listing.logoUrl ? (
+                  <img
+                    src={listing.logoUrl}
+                    alt={listing.title}
+                    style={{ width: '50%', height: '50%', objectFit: 'contain', margin: 'auto', display: 'block', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block'; }}
+                  />
+                ) : null}
+                <SubscriptionsIcon className={styles.coverIcon} style={{ color: listing.iconColor || '#2563eb', display: listing.logoUrl ? 'none' : 'block' }} />
                 <div className={styles.categoryBadge}>{listing.category}</div>
                 <div className={styles.seatsBadge}>{listing.seatsLeft} slots left</div>
               </div>

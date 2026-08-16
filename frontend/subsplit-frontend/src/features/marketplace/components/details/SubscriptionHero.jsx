@@ -23,6 +23,7 @@ function SubscriptionHero({ listing }) {
     isEscrowProtected,
     iconColor = '#3b82f6',
     iconBg = 'rgba(59,130,246,0.12)',
+    logoUrl,
     createdAt,
     memberCount = 2,
     host = {},
@@ -171,9 +172,26 @@ function SubscriptionHero({ listing }) {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: `0 8px 24px ${iconColor}25`,
+              overflow: 'hidden',
             }}
           >
-            <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: iconColor, lineHeight: 1 }}>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={platform}
+                style={{ width: 40, height: 40, objectFit: 'contain' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+              />
+            ) : null}
+            <Typography
+              sx={{
+                display: logoUrl ? 'none' : 'flex',
+                fontWeight: 900,
+                fontSize: '1.6rem',
+                color: iconColor,
+                lineHeight: 1,
+              }}
+            >
               {platform.charAt(0)}
             </Typography>
           </Box>

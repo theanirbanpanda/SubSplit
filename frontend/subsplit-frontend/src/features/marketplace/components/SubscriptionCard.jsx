@@ -20,7 +20,9 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
     totalSeats,
     isAiVerified,
     iconBg,
-    iconColor
+    iconColor,
+    logoUrl,
+    platform,
   } = listing;
 
   const filledSeats = (totalSeats || 4) - (seatsLeft || 1);
@@ -40,9 +42,20 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
 
       <div 
         className={`${styles.logoContainer} ${variant === 'small' ? styles.small : ''}`}
-        style={{ backgroundColor: iconBg || 'rgba(37,99,235,0.12)' }}
+        style={{ backgroundColor: iconBg || 'rgba(37,99,235,0.12)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <SubscriptionsIcon className={styles.fallbackIcon} style={{ color: iconColor || '#2563eb' }} />
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={platform || title}
+            style={{ width: '60%', height: '60%', objectFit: 'contain' }}
+            onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+          />
+        ) : null}
+        <SubscriptionsIcon
+          className={styles.fallbackIcon}
+          style={{ color: iconColor || '#2563eb', display: logoUrl ? 'none' : undefined }}
+        />
       </div>
 
       <h3 className={styles.title}>{title}</h3>
@@ -71,8 +84,8 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
         <div className={styles.seatsInfo}>
           <span className={styles.seatsText}>{seatsLeft} seats left</span>
           <div className={styles.progressBar}>
-            <div 
-              className={styles.progressFill} 
+            <div
+              className={styles.progressFill}
               style={{ width: `${progressPercent}%` }}
             ></div>
           </div>

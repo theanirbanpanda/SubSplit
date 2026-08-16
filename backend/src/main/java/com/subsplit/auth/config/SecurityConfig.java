@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/marketplace/**",
                                 "/api/marketplace/**",
+                                "/api/v1/catalog/**",
                                 "/api/catalog/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,

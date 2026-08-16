@@ -6,13 +6,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { createNewListing, fetchMyListings } from '../marketplaceSlice';
 
-import Step1Product       from './wizard/Step1Product';
-import Step2Plan          from './wizard/Step2Plan';
-import Step3Pricing       from './wizard/Step3Pricing';
-import Step4Verification  from './wizard/Step4Verification';
-import Step5Review        from './wizard/Step5Review';
+import Step1Product from './wizard/Step1Product';
+import Step2Plan from './wizard/Step2Plan';
+import Step3Pricing from './wizard/Step3Pricing';
+import Step4Verification from './wizard/Step4Verification';
+import Step5Review from './wizard/Step5Review';
 import RequestProductDialog from './wizard/RequestProductDialog';
-import PublishSuccessModal  from './wizard/PublishSuccessModal';
+import PublishSuccessModal from './wizard/PublishSuccessModal';
 
 import styles from './wizard/CreateListingWizard.module.scss';
 
@@ -56,18 +56,18 @@ function CreateListingModal({ open, onClose }) {
   const isKycVerified = Boolean(user?.emailVerified) || kycStatus?.isKycVerified || kycStatus?.kycStatus === 'VERIFIED';
 
   // ── Wizard state ─────────────────────────────────────────────────────────────
-  const [currentStep,     setCurrentStep]     = useState(0); // 0-indexed
-  const [maxReachedStep,  setMaxReachedStep]  = useState(0); // highest step unlocked
+  const [currentStep, setCurrentStep] = useState(0); // 0-indexed
+  const [maxReachedStep, setMaxReachedStep] = useState(0); // highest step unlocked
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [plan,            setPlan]            = useState(INITIAL_PLAN);
-  const [price,           setPrice]           = useState('');
-  const [uploadStates,    setUploadStates]    = useState(INITIAL_UPLOAD_STATES);
+  const [plan, setPlan] = useState(INITIAL_PLAN);
+  const [price, setPrice] = useState('');
+  const [uploadStates, setUploadStates] = useState(INITIAL_UPLOAD_STATES);
 
   // ── Publish state ────────────────────────────────────────────────────────────
-  const [publishLoading,  setPublishLoading]  = useState(false);
-  const [publishError,    setPublishError]    = useState(null);
-  const [publishedId,     setPublishedId]     = useState(null);
-  const [successOpen,     setSuccessOpen]     = useState(false);
+  const [publishLoading, setPublishLoading] = useState(false);
+  const [publishError, setPublishError] = useState(null);
+  const [publishedId, setPublishedId] = useState(null);
+  const [successOpen, setSuccessOpen] = useState(false);
 
   // ── Dialogs ──────────────────────────────────────────────────────────────────
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
@@ -95,7 +95,7 @@ function CreateListingModal({ open, onClose }) {
       case 1: {
         const used = parseInt(plan.seatsUsed, 10);
         const max = parseInt(plan.maxMembers, 10);
-        
+
         let isFutureDate = false;
         if (plan.renewalDate !== '') {
           const today = new Date();
@@ -169,16 +169,16 @@ function CreateListingModal({ open, onClose }) {
     const accessLine = `Access: ${selectedProduct.accessMethod}`;
 
     const payload = {
-      providerName:   selectedProduct.name,
-      categoryName:   selectedProduct.category,
-      planName:       selectedProduct.name,
-      title:          `${selectedProduct.name} — ${availableSeats} Seat${availableSeats !== 1 ? 's' : ''} Available`,
-      description:    accessLine,
-      seatPrice:      priceNum,
-      totalSeats:     maxMembersNum,
+      providerName: selectedProduct.name,
+      categoryName: selectedProduct.category,
+      planName: selectedProduct.name,
+      title: `${selectedProduct.name} — ${availableSeats} Seat${availableSeats !== 1 ? 's' : ''} Available`,
+      description: accessLine,
+      seatPrice: priceNum,
+      totalSeats: maxMembersNum,
       availableSeats: availableSeats,
-      billingCycle:   plan.billingCycle,
-      expiryDate:     plan.renewalDate || undefined,
+      billingCycle: plan.billingCycle,
+      expiryDate: plan.renewalDate || undefined,
     };
 
     try {
@@ -249,14 +249,14 @@ function CreateListingModal({ open, onClose }) {
                 handleClose();
                 navigate('/profile');
               }}
-              style={{ 
-                background: '#3b82f6', 
-                color: '#fff', 
-                padding: '12px 24px', 
-                borderRadius: '12px', 
-                border: 'none', 
-                fontWeight: 800, 
-                cursor: 'pointer', 
+              style={{
+                background: '#3b82f6',
+                color: '#fff',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                border: 'none',
+                fontWeight: 800,
+                cursor: 'pointer',
                 transition: 'all 0.2s',
                 fontSize: '0.95rem'
               }}
@@ -270,149 +270,149 @@ function CreateListingModal({ open, onClose }) {
           <>
             {/* ── Header ──────────────────────────────────────────────────────── */}
             <div className={styles.wizardHeader}>
-          <div className={styles.wizardHeaderLeft}>
-            <div className={styles.wizardIconTile}>
-              <Layers size={22} color="#fff" strokeWidth={2.5} />
-            </div>
-            <div>
-              <div className={styles.wizardTitle}>List a New Pass</div>
-              <div className={styles.wizardSubtitle}>
-                Pick a product from our verified catalog — we'll fill in the details.
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.wizardHeaderRight}>
-            <span style={{ opacity: 0.6 }}>Host Center · New Listing</span>
-            <button
-              className={styles.closeBtn}
-              onClick={handleClose}
-              aria-label="Close wizard"
-              id="wizard-close-btn"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* ── Stepper ─────────────────────────────────────────────────────── */}
-        <div className={styles.stepperBar}>
-          <div className={styles.stepperTrack}>
-            {STEPS.map((step, idx) => {
-              const nodeState = getNodeState(idx);
-              const isLocked  = idx > maxReachedStep;
-              const isLast    = idx === STEPS.length - 1;
-
-              return (
-                <div
-                  key={step.label}
-                  className={styles.stepperItem}
-                  data-locked={isLocked && idx !== currentStep ? 'true' : 'false'}
-                  onClick={() => goToStep(idx)}
-                  id={`wizard-step-nav-${idx}`}
-                  role="button"
-                  tabIndex={!isLocked ? 0 : -1}
-                  aria-label={`Go to step ${idx + 1}: ${step.label}`}
-                  onKeyDown={(e) => { if (!isLocked && (e.key === 'Enter' || e.key === ' ')) goToStep(idx); }}
-                >
-                  {/* Connector line (not after last item) */}
-                  {!isLast && (
-                    <div
-                      className={styles.stepperConnector}
-                      data-completed={nodeState === 'completed' ? 'true' : 'false'}
-                    />
-                  )}
-
-                  {/* Node */}
-                  <div className={styles.stepperNode} data-state={nodeState}>
-                    {nodeState === 'completed' ? (
-                      <Check size={14} strokeWidth={3} color="#fff" />
-                    ) : (
-                      idx + 1
-                    )}
-                  </div>
-
-                  {/* Label */}
-                  <div className={styles.stepperLabel} data-state={nodeState}>
-                    {step.label}
+              <div className={styles.wizardHeaderLeft}>
+                <div className={styles.wizardIconTile}>
+                  <Layers size={22} color="#fff" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <div className={styles.wizardTitle}>List a New Pass</div>
+                  <div className={styles.wizardSubtitle}>
+                    Pick a product from our verified catalog — we'll fill in the details.
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
 
-        {/* ── Step Content ────────────────────────────────────────────────── */}
-        <div className={styles.stepContent}>
-          {currentStep === 0 && (
-            <Step1Product
-              selectedProduct={selectedProduct}
-              onSelect={(prod) => {
-                setSelectedProduct(prod);
-                setPlan(prev => ({ ...prev, maxMembers: String(prod.maxMembers) }));
-              }}
-              onRequestProduct={() => setRequestDialogOpen(true)}
-            />
-          )}
+              <div className={styles.wizardHeaderRight}>
+                <span style={{ opacity: 0.6 }}>Host Center · New Listing</span>
+                <button
+                  className={styles.closeBtn}
+                  onClick={handleClose}
+                  aria-label="Close wizard"
+                  id="wizard-close-btn"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
 
-          {currentStep === 1 && selectedProduct && (
-            <Step2Plan
-              product={selectedProduct}
-              plan={plan}
-              onChange={(patch) => setPlan((prev) => ({ ...prev, ...patch }))}
-            />
-          )}
+            {/* ── Stepper ─────────────────────────────────────────────────────── */}
+            <div className={styles.stepperBar}>
+              <div className={styles.stepperTrack}>
+                {STEPS.map((step, idx) => {
+                  const nodeState = getNodeState(idx);
+                  const isLocked = idx > maxReachedStep;
+                  const isLast = idx === STEPS.length - 1;
 
-          {currentStep === 2 && selectedProduct && (
-            <Step3Pricing
-              product={selectedProduct}
-              price={price}
-              onChange={setPrice}
-            />
-          )}
+                  return (
+                    <div
+                      key={step.label}
+                      className={styles.stepperItem}
+                      data-locked={isLocked && idx !== currentStep ? 'true' : 'false'}
+                      onClick={() => goToStep(idx)}
+                      id={`wizard-step-nav-${idx}`}
+                      role="button"
+                      tabIndex={!isLocked ? 0 : -1}
+                      aria-label={`Go to step ${idx + 1}: ${step.label}`}
+                      onKeyDown={(e) => { if (!isLocked && (e.key === 'Enter' || e.key === ' ')) goToStep(idx); }}
+                    >
+                      {/* Connector line (not after last item) */}
+                      {!isLast && (
+                        <div
+                          className={styles.stepperConnector}
+                          data-completed={nodeState === 'completed' ? 'true' : 'false'}
+                        />
+                      )}
 
-          {currentStep === 3 && (
-            <Step4Verification
-              uploadStates={uploadStates}
-              onUploadStateChange={handleUploadStateChange}
-            />
-          )}
+                      {/* Node */}
+                      <div className={styles.stepperNode} data-state={nodeState}>
+                        {nodeState === 'completed' ? (
+                          <Check size={14} strokeWidth={3} color="#fff" />
+                        ) : (
+                          idx + 1
+                        )}
+                      </div>
 
-          {currentStep === 4 && selectedProduct && (
-            <Step5Review
-              product={selectedProduct}
-              plan={plan}
-              price={price}
-              uploadStates={uploadStates}
-              publishLoading={publishLoading}
-              publishError={publishError}
-              user={user}
-            />
-          )}
-        </div>
+                      {/* Label */}
+                      <div className={styles.stepperLabel} data-state={nodeState}>
+                        {step.label}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-        {/* ── Footer ──────────────────────────────────────────────────────── */}
-        <div className={styles.wizardFooter}>
-          <button
-            className={styles.btnPrev}
-            disabled={currentStep === 0 || publishLoading}
-            onClick={handlePrev}
-            id="wizard-prev-btn"
-          >
-            <ChevronLeft size={16} />
-            Previous
-          </button>
+            {/* ── Step Content ────────────────────────────────────────────────── */}
+            <div className={styles.stepContent}>
+              {currentStep === 0 && (
+                <Step1Product
+                  selectedProduct={selectedProduct}
+                  onSelect={(prod) => {
+                    setSelectedProduct(prod);
+                    setPlan(prev => ({ ...prev, maxMembers: String(prod.maxMembers) }));
+                  }}
+                  onRequestProduct={() => setRequestDialogOpen(true)}
+                />
+              )}
 
-          <button
-            className={currentStep === 4 ? styles.btnPublish : styles.btnNext}
-            disabled={!canGoNext}
-            onClick={handleNext}
-            id="wizard-next-btn"
-          >
-            {nextLabel}
-            {currentStep < 4 && <ChevronRight size={16} />}
-          </button>
-        </div>
+              {currentStep === 1 && selectedProduct && (
+                <Step2Plan
+                  product={selectedProduct}
+                  plan={plan}
+                  onChange={(patch) => setPlan((prev) => ({ ...prev, ...patch }))}
+                />
+              )}
+
+              {currentStep === 2 && selectedProduct && (
+                <Step3Pricing
+                  product={selectedProduct}
+                  price={price}
+                  onChange={setPrice}
+                />
+              )}
+
+              {currentStep === 3 && (
+                <Step4Verification
+                  uploadStates={uploadStates}
+                  onUploadStateChange={handleUploadStateChange}
+                />
+              )}
+
+              {currentStep === 4 && selectedProduct && (
+                <Step5Review
+                  product={selectedProduct}
+                  plan={plan}
+                  price={price}
+                  uploadStates={uploadStates}
+                  publishLoading={publishLoading}
+                  publishError={publishError}
+                  user={user}
+                />
+              )}
+            </div>
+
+            {/* ── Footer ──────────────────────────────────────────────────────── */}
+            <div className={styles.wizardFooter}>
+              <button
+                className={styles.btnPrev}
+                disabled={currentStep === 0 || publishLoading}
+                onClick={handlePrev}
+                id="wizard-prev-btn"
+              >
+                <ChevronLeft size={16} />
+                Previous
+              </button>
+
+              <button
+                className={currentStep === 4 ? styles.btnPublish : styles.btnNext}
+                disabled={!canGoNext}
+                onClick={handleNext}
+                id="wizard-next-btn"
+              >
+                {nextLabel}
+                {currentStep < 4 && <ChevronRight size={16} />}
+              </button>
+            </div>
           </>
         )}
       </Dialog>

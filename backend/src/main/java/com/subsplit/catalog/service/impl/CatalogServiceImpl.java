@@ -18,4 +18,11 @@ public class CatalogServiceImpl implements CatalogService {
     public List<Subscription> getAllSubscriptions() {
         return subscriptionRepository.findAll();
     }
+
+    @Override
+    public byte[] getSubscriptionLogo(Long id) {
+        return subscriptionRepository.findById(id)
+                .map(Subscription::getLogoData)
+                .orElse(null);
+    }
 }

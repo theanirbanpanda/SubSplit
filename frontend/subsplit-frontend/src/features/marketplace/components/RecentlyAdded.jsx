@@ -15,7 +15,7 @@ const RecentlyAdded = () => {
     if (user?.id && (listing.hostId === user.id || listing.host?.id === user.id)) return false;
     const isJoinee = myJoinRequests.some(
       (req) => (req.listingId === listing.id || req.listing?.id === listing.id) &&
-               req.status !== 'REJECTED' && req.status !== 'CANCELLED'
+        req.status !== 'REJECTED' && req.status !== 'CANCELLED'
     );
     if (isJoinee) return false;
     const isSubscribed = subscriptions.some(
@@ -43,8 +43,16 @@ const RecentlyAdded = () => {
             style={{ cursor: 'pointer' }}
           >
             <div className={styles.logoRow}>
-              <div className={styles.logo} style={{ backgroundColor: listing.iconBg || 'rgba(37,99,235,0.12)' }}>
-                <SubscriptionsIcon style={{ color: listing.iconColor || '#2563eb' }} />
+              <div className={styles.logo} style={{ backgroundColor: listing.iconBg || 'rgba(37,99,235,0.12)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {listing.logoUrl ? (
+                  <img
+                    src={listing.logoUrl}
+                    alt={listing.title}
+                    style={{ width: '60%', height: '60%', objectFit: 'contain' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                  />
+                ) : null}
+                <SubscriptionsIcon style={{ color: listing.iconColor || '#2563eb', display: listing.logoUrl ? 'none' : undefined }} />
               </div>
             </div>
 

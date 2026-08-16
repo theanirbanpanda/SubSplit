@@ -21,6 +21,7 @@ public class SubscriptionPlan extends BaseEntity {
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="subscription_id")
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Subscription subscription;
 
     @Column(name="plan_name")

@@ -7,5 +7,6 @@ import java.util.List;
 public interface CatalogService {
 
     List<Subscription> getAllSubscriptions();
+    byte[] getSubscriptionLogo(Long id);
 
 }
