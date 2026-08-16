@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { Search, Check, Mail, Users } from 'lucide-react';
 import { MOCK_CATALOG, CATALOG_CATEGORIES } from '../../data/mockCatalog';
+import { getBrandLogoUrl } from '../../utils/brandLogos';
 import styles from './CreateListingWizard.module.scss';
 
 /** How many cards to load per batch (one grid row = 2 cards). */
@@ -18,9 +19,37 @@ const BATCH_INCREMENT = 2;
  *   onRequestProduct: () => void — opens the Request Product dialog
  */
 function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
-  const [search, setSearch]             = useState('');
+  const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const [dbLogosMap, setDbLogosMap] = useState([]);
+
+  useEffect(() => {
+    const fetchDbCatalog = async () => {
+      try {
+        const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+        const apiUrl = rawApiUrl.replace(/\/v1\/?$/, '');
+        const response = await fetch(`${apiUrl}/catalog/subscriptions`);
+        if (response.ok) {
+          const data = await response.json();
+          // Create map of { providerName: logoUrl }
+          const map = data.map(sub => ({
+            keyword: sub.providerName.toLowerCase().replace(' business', '').replace(' premium', '').trim(),
+            logoUrl: `${apiUrl}/catalog/subscriptions/${sub.id}/logo`
+          }));
+          
+          // Add some manual aliases for tricky mock catalog names
+          map.push({ keyword: 'adobe', logoUrl: map.find(m => m.keyword.includes('adobe'))?.logoUrl });
+          map.push({ keyword: 'google workspace', logoUrl: map.find(m => m.keyword.includes('google'))?.logoUrl });
+          
+          setDbLogosMap(map);
+        }
+      } catch (err) {
+        console.error("Failed to fetch DB logos:", err);
+      }
+    };
+    fetchDbCatalog();
+  }, []);
 
   // Reset pagination whenever filter or search changes
   const handleCategoryChange = (cat) => {
@@ -47,8 +76,8 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
 
   // When searching show all results; otherwise paginate
   const isSearching = search.trim().length > 0;
-  const visible     = isSearching ? filtered : filtered.slice(0, visibleCount);
-  const hasMore     = !isSearching && visibleCount < filtered.length;
+  const visible = isSearching ? filtered : filtered.slice(0, visibleCount);
+  const hasMore = !isSearching && visibleCount < filtered.length;
 
   // ── Infinite scroll sentinel ─────────────────────────────────────────────────
   const sentinelRef = useRef(null);
@@ -111,14 +140,15 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
       {filtered.length > 0 ? (
         <>
           <div className={styles.productGrid}>
-            {visible.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                isSelected={selectedProduct?.id === product.id}
-                onSelect={onSelect}
-              />
-            ))}
+            {visible.map((p) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              isSelected={selectedProduct?.id === p.id}
+              onSelect={onSelect}
+              dbLogosMap={dbLogosMap}
+            />
+          ))}
           </div>
 
           {/* Infinite scroll sentinel — invisible, triggers when scrolled into view */}
@@ -145,10 +175,15 @@ function Step1Product({ selectedProduct, onSelect, onRequestProduct }) {
   );
 }
 
-function ProductCard({ product, isSelected, onSelect }) {
+function ProductCard({ product, isSelected, onSelect, dbLogosMap }) {
   const { name, category, accessMethod, subtitle, brandColor, initials } = product;
   const isEmail = accessMethod === 'Invite via Email';
-  const tileBg  = `${brandColor}28`;
+  const tileBg = `${brandColor}28`;
+  
+  // Find matching DB logo
+  const productNameLower = name.toLowerCase();
+  const dbLogoMatch = dbLogosMap.find(m => m.keyword && productNameLower.includes(m.keyword));
+  const finalLogoUrl = dbLogoMatch ? dbLogoMatch.logoUrl : getBrandLogoUrl(name);
 
   return (
     <div
@@ -167,8 +202,18 @@ function ProductCard({ product, isSelected, onSelect }) {
       )}
 
       <div className={styles.productCardHeader}>
-        <div className={styles.logoTile} style={{ background: tileBg, color: brandColor }}>
-          {initials}
+        <div className={styles.logoTile} style={{ background: tileBg, color: brandColor, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {finalLogoUrl ? (
+            <img 
+              src={finalLogoUrl} 
+              alt={name}
+              style={{ width: '60%', height: '60%', objectFit: 'contain' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+            />
+          ) : null}
+          <div style={{ display: finalLogoUrl ? 'none' : 'flex' }}>
+            {initials}
+          </div>
         </div>
         <div className={styles.productInfo}>
           <div className={styles.productName}>{name}</div>

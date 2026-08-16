@@ -34,6 +34,7 @@ function MarketplaceCard({ listing }) {
     isEscrowProtected,
     iconColor = '#3b82f6',
     iconBg = 'rgba(59,130,246,0.12)',
+    logoUrl,
     host = {},
   } = listing;
 
@@ -66,19 +67,53 @@ function MarketplaceCard({ listing }) {
           />
         </Stack>
 
-        {/* Title */}
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 800,
-            fontSize: '1rem',
-            color: '#ffffff',
-            lineHeight: 1.3,
-            mb: 1.25,
-          }}
-        >
-          {title}
-        </Typography>
+        {/* Logo & Title */}
+        <Stack direction="row" alignItems="center" spacing={1.5} mb={1.25}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: '8px',
+              backgroundColor: iconBg,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              overflow: 'hidden',
+            }}
+          >
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={title}
+                style={{ width: 20, height: 20, objectFit: 'contain' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+              />
+            ) : null}
+            <Typography
+              sx={{
+                fontWeight: 900,
+                fontSize: '1.2rem',
+                color: iconColor,
+                lineHeight: 1,
+                display: logoUrl ? 'none' : 'flex'
+              }}
+            >
+              {title.charAt(0)}
+            </Typography>
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 800,
+              fontSize: '1rem',
+              color: '#ffffff',
+              lineHeight: 1.3,
+            }}
+          >
+            {title}
+          </Typography>
+        </Stack>
 
         {/* Price & Savings */}
         <Stack direction="row" alignItems="baseline" justifyContent="space-between" mb={2}>

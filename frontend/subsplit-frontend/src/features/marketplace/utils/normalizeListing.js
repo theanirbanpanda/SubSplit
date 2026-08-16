@@ -12,6 +12,8 @@ const PROVIDER_THEMES = {
 export const normalizeListing = (backendItem) => {
   if (!backendItem) return null;
 
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+
   const providerName = backendItem.subscription?.providerName || 'Subscription';
   const themeKey = providerName.toLowerCase();
   const theme = PROVIDER_THEMES[themeKey] || { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' };
@@ -33,7 +35,7 @@ export const normalizeListing = (backendItem) => {
     savingsPercent = Math.round(((monthlyPrice - seatPrice) / monthlyPrice) * 100);
   }
 
-  return {
+  const normalized = {
     id: String(backendItem.id),
     rawId: backendItem.id,
     title: backendItem.title || `${providerName} Family Slot`,
@@ -88,5 +90,15 @@ export const normalizeListing = (backendItem) => {
       bio: backendItem.host?.bio || 'Verified SubSplit super host managing active family subscription groups.',
     },
   };
+  
+  // Use DB binary logo endpoint if subscription ID is present, fallback to CDN URL
+  if (backendItem.subscription?.id) {
+    const catalogBaseUrl = apiUrl.replace(/\/v1\/?$/, '');
+    normalized.logoUrl = `${catalogBaseUrl}/catalog/subscriptions/${backendItem.subscription.id}/logo`;
+  } else {
+    normalized.logoUrl = backendItem.subscription?.logoUrl;
+  }
+  
+  return normalized;
 };
 

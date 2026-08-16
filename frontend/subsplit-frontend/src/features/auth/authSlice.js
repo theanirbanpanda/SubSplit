@@ -91,6 +91,7 @@ export const registerUser = createAsyncThunk(
       if (response?.data?.accessToken) {
         localStorage.setItem('token', response.data.accessToken);
         dispatch(fetchCurrentUser());
+        dispatch(fetchKycStatus());
       }
       return response;
     } catch (err) {
@@ -118,6 +119,7 @@ export const loginUser = createAsyncThunk(
       if (response?.data?.accessToken) {
         localStorage.setItem('token', response.data.accessToken);
         dispatch(fetchCurrentUser());
+        dispatch(fetchKycStatus());
       }
       return response;
     } catch (err) {

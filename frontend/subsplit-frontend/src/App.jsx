@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AppRoutes from "./app/router";
-import { fetchCurrentUser, logout } from "./features/auth/authSlice";
+import { fetchCurrentUser, fetchKycStatus, logout } from "./features/auth/authSlice";
 import { isTokenValid } from "./utils/tokenUtils";
 
 function App() {
@@ -12,6 +12,7 @@ function App() {
     if (token) {
       if (isTokenValid(token)) {
         dispatch(fetchCurrentUser());
+        dispatch(fetchKycStatus());
       } else {
         dispatch(logout());
       }

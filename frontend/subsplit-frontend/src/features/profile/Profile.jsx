@@ -97,7 +97,6 @@ function Profile() {
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
-    dispatch(fetchKycStatus());
   }, [dispatch]);
 
   // Polling for live AI KYC verification updates
