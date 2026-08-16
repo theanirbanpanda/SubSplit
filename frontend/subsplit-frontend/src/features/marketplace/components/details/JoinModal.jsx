@@ -21,6 +21,7 @@ import KycUploadModal from '../../../profile/components/KycUploadModal';
 
 function JoinModal({ open, onClose, listing }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { kycStatus } = useSelector((state) => state.auth);
   const isVerifying = kycStatus?.kycStatus === 'VERIFYING' || kycStatus?.kycStatus === 'IN_PROGRESS';
 
@@ -50,8 +51,10 @@ function JoinModal({ open, onClose, listing }) {
         setStep('kyc_required');
       } else if (message.toLowerCase().includes('own listing') || message.toLowerCase().includes('own group')) {
         setStep('own_listing_error');
-      } else {
+      } else if (message.toLowerCase().includes('balance') || message.toLowerCase().includes('wallet')) {
         setStep('insufficient_balance');
+      } else {
+        setStep('generic_error');
       }
     }
   };
@@ -366,6 +369,51 @@ function JoinModal({ open, onClose, listing }) {
                 Back
               </Button>
             </Stack>
+          </Box>
+        )}
+
+        {step === 'generic_error' && (
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '2px solid #ef4444',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 2,
+              }}
+            >
+              <AlertTriangle size={34} color="#ef4444" />
+            </Box>
+
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#ffffff', mb: 1 }}>
+              Transaction Failed
+            </Typography>
+
+            <Typography sx={{ fontSize: '0.88rem', color: '#ef4444', mb: 3, lineHeight: 1.6, fontWeight: 'bold' }}>
+              {errorMsg}
+            </Typography>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => setStep('confirm')}
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                py: 1,
+                borderRadius: '12px',
+                textTransform: 'none',
+                borderColor: '#2A2A30',
+                color: '#A1A1AA',
+              }}
+            >
+              Try Again
+            </Button>
           </Box>
         )}
 

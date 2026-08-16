@@ -11,13 +11,12 @@ import { Search, X } from 'lucide-react';
 
 const CATEGORIES = [
   'All',
-  'OTT',
-  'Music',
-  'AI',
+  'Design & Creative',
   'Productivity',
-  'Gaming',
-  'Education',
   'Cloud Storage',
+  'Security & Privacy',
+  'Developer Tools',
+  'Multimedia',
 ];
 
 function SearchBar({ searchQuery, setSearchQuery, selectedCategory, setSelectedCategory }) {

@@ -72,12 +72,33 @@ export const normalizeListing = (backendItem) => {
     savingsPercent = Math.round(((originalPrice - seatPrice) / originalPrice) * 100);
   }
 
+  // Map raw or legacy category names to the exact 6 master categories
+  const rawCat = backendItem.subscription?.categoryName || backendItem.category || '';
+  let normalizedCategory = 'Multimedia';
+  const lowerCat = rawCat.toLowerCase().trim();
+
+  if (lowerCat === 'design' || lowerCat === 'design & creative') {
+    normalizedCategory = 'Design & Creative';
+  } else if (lowerCat === 'productivity' || lowerCat === 'education' || lowerCat === 'learning') {
+    normalizedCategory = 'Productivity';
+  } else if (lowerCat === 'cloud storage' || lowerCat === 'cloud') {
+    normalizedCategory = 'Cloud Storage';
+  } else if (lowerCat === 'security' || lowerCat === 'security & privacy' || lowerCat === 'privacy') {
+    normalizedCategory = 'Security & Privacy';
+  } else if (lowerCat === 'developer tools' || lowerCat === 'dev tools' || lowerCat === 'ai') {
+    normalizedCategory = 'Developer Tools';
+  } else if (lowerCat === 'multimedia' || lowerCat === 'multimedia & entertainment' || lowerCat === 'ott' || lowerCat === 'music' || lowerCat === 'gaming' || lowerCat === 'entertainment') {
+    normalizedCategory = 'Multimedia';
+  } else if (rawCat) {
+    normalizedCategory = rawCat;
+  }
+
   const normalized = {
     id: String(backendItem.id),
     rawId: backendItem.id,
     title: backendItem.title || `${providerName} Family Slot`,
     platform: providerName,
-    category: backendItem.subscription?.categoryName || 'OTT',
+    category: normalizedCategory,
     price: seatPrice,
     originalPrice: originalPrice > seatPrice ? Number(originalPrice) : null,
     savingsPercent: savingsPercent || 0,

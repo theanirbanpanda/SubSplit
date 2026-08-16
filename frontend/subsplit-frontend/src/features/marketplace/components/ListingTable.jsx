@@ -13,6 +13,15 @@ import styles from './ListingTable.module.scss';
 
 const PAGE_SIZE = 8;
 
+const MARKETPLACE_CATEGORIES = [
+  'Design & Creative',
+  'Productivity',
+  'Cloud Storage',
+  'Security & Privacy',
+  'Developer Tools',
+  'Multimedia',
+];
+
 const ListingTable = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -99,7 +108,19 @@ const ListingTable = () => {
 
     // Category Filter
     if (filters.category && filters.category !== 'All') {
-      if (listing.category !== filters.category) return false;
+      const selected = filters.category.toLowerCase().trim();
+      const listingCat = (listing.category || '').toLowerCase().trim();
+
+      const isMatch =
+        listingCat === selected ||
+        (selected === 'design & creative' && (listingCat === 'design' || listingCat === 'design & creative')) ||
+        (selected === 'security & privacy' && (listingCat === 'security' || listingCat === 'security & privacy')) ||
+        (selected === 'multimedia' && (listingCat === 'multimedia' || listingCat === 'multimedia & entertainment' || listingCat === 'ott' || listingCat === 'music' || listingCat === 'gaming' || listingCat === 'entertainment')) ||
+        (selected === 'productivity' && (listingCat === 'productivity' || listingCat === 'education' || listingCat === 'learning')) ||
+        (selected === 'developer tools' && (listingCat === 'developer tools' || listingCat === 'dev tools' || listingCat === 'ai' || listingCat === 'developer')) ||
+        (selected === 'cloud storage' && (listingCat === 'cloud storage' || listingCat === 'cloud'));
+
+      if (!isMatch) return false;
     }
     
     // Price Filter
@@ -235,12 +256,25 @@ const ListingTable = () => {
               }
             }}
           >
-            {['OTT', 'Music', 'Productivity', 'Gaming', 'Education'].map((cat) => (
+            <MenuItem 
+              onClick={() => handleCategorySelect('All')}
+              sx={{
+                fontSize: '0.85rem',
+                fontWeight: !filters.category || filters.category === 'All' ? 700 : 400,
+                color: !filters.category || filters.category === 'All' ? '#4ade80' : 'inherit',
+                '&:hover': { background: 'rgba(255, 255, 255, 0.05)' }
+              }}
+            >
+              All Categories
+            </MenuItem>
+            {MARKETPLACE_CATEGORIES.map((cat) => (
               <MenuItem 
                 key={cat} 
                 onClick={() => handleCategorySelect(cat)}
                 sx={{
                   fontSize: '0.85rem',
+                  fontWeight: filters.category === cat ? 700 : 400,
+                  color: filters.category === cat ? '#4ade80' : 'inherit',
                   '&:hover': { background: 'rgba(255, 255, 255, 0.05)' }
                 }}
               >

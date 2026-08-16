@@ -55,6 +55,11 @@ export const submitListingReviewApi = async (id, reviewData) => {
   return response.data;
 };
 
+export const deleteListingReviewApi = async (listingId, reviewId) => {
+  const response = await api.delete(`/marketplace/listings/${listingId}/reviews/${reviewId}`);
+  return response.data;
+};
+
 export const fetchUserReviewsApi = async (userId) => {
   const response = await api.get(`/reviews/user/${userId}`);
   return response.data;

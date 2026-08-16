@@ -48,7 +48,7 @@ import DashboardHero from './components/DashboardHero';
 import RenewalList from './components/RenewalList';
 import ActivityFeed from './components/ActivityFeed';
 import TrustRail from './components/TrustRail';
-import ProtectionBanner from '../marketplace/components/ProtectionBanner';
+import SubscriptionCard from '../marketplace/components/SubscriptionCard';
 
 import styles from './Dashboard.module.scss';
 
@@ -755,7 +755,7 @@ function Dashboard() {
       </Paper>
 
       {/* ── Protection Banner ────────────────────────────────────────────────── */}
-      <ProtectionBanner />
+
 
       {/* ── Host Chat Dialog ─────────────────────────────────────────────────── */}
       <Dialog

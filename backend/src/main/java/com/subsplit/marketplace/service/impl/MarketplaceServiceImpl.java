@@ -1358,4 +1358,15 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .createdAt(savedReq.getCreatedAt())
                 .build();
     }
+
+    @Override
+    public void deleteListingReview(User user, Long listingId, Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new com.subsplit.common.exception.ResourceNotFoundException("Review not found"));
+        if (review.getReviewer() == null || !review.getReviewer().getId().equals(user.getId())) {
+            throw new com.subsplit.common.exception.UnauthorizedException("You can only delete your own reviews");
+        }
+        reviewRepository.delete(review);
+    }
+
 }

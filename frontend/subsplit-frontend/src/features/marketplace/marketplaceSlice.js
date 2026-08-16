@@ -10,6 +10,7 @@ import {
   fetchSimilarListingsApi,
   fetchListingReviewsApi,
   submitListingReviewApi,
+  deleteListingReviewApi,
   fetchUserReviewsApi,
   submitJoinRequestApi,
   checkJoinStatusApi,
@@ -213,6 +214,19 @@ export const submitListingReview = createAsyncThunk(
   }
 );
 
+export const deleteListingReview = createAsyncThunk(
+  'marketplace/deleteListingReview',
+  async ({ listingId, reviewId }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deleteListingReviewApi(listingId, reviewId);
+      dispatch(fetchListingReviews(listingId));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete review');
+    }
+  }
+);
+
 export const fetchUserReviews = createAsyncThunk(
   'marketplace/fetchUserReviews',
   async (userId, { rejectWithValue }) => {
@@ -296,6 +310,11 @@ const marketplaceSlice = createSlice({
     setSelectedListing: (state, action) => {
       state.selectedListing = action.payload;
     },
+    removeListingReviewLocal: (state, action) => {
+      if (state.currentReviews) {
+        state.currentReviews = state.currentReviews.filter(r => r.id !== action.payload);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -324,6 +343,7 @@ const marketplaceSlice = createSlice({
       // fetchListingDetails
       .addCase(fetchListingDetails.pending, (state) => {
         state.detailsLoading = true;
+        state.currentReviews = null; // Clear stale reviews for new listing
       })
       .addCase(fetchListingDetails.fulfilled, (state, action) => {
         state.detailsLoading = false;
@@ -400,6 +420,6 @@ const marketplaceSlice = createSlice({
 
 
 
-export const { setFilter, resetFilters, setSelectedListing } = marketplaceSlice.actions;
+export const { setFilter, resetFilters, setSelectedListing, removeListingReviewLocal } = marketplaceSlice.actions;
 export default marketplaceSlice.reducer;
 

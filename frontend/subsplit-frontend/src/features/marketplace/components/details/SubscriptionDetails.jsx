@@ -1,84 +1,120 @@
-import React from 'react';
-import { Box, Typography, Grid, Paper } from '@mui/material';
-import { Tv, Monitor, ShieldAlert, Calendar, Globe, Key, UserCheck, HelpCircle, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from '@mui/material';
+import { AlignJustify, ChevronRight } from 'lucide-react';
 
 function SubscriptionDetails({ listing }) {
+  const [expanded, setExpanded] = useState(false);
+
   const {
-    platform = 'Netflix',
-    quality = '4K Ultra HD + HDR',
-    devices = '4 Screens (TV, Phone, Laptop)',
+    platform = '',
     billingCycle = 'Monthly',
-    renewalDate = 'Next Month',
-    region = 'India (en-IN)',
-    accessMethod = 'Instant Email Invite / PIN',
-    accountType = 'Legitimate Family Shared',
-    supportAvailability = '24/7 Priority Resolution',
+    accessMethod = 'Email Invite',
+    renewalDate = '',
+    seatsLeft = 0,
+    totalSeats = 4,
+    memberCount = 0,
   } = listing || {};
 
-  const SPECS = [
-    { label: 'Platform', value: platform, icon: Sparkles, color: '#3b82f6' },
-    { label: 'Plan Type', value: `${billingCycle} Family Tier`, icon: Calendar, color: '#a855f7' },
-    { label: 'Screen Quality', value: quality, icon: Tv, color: '#ef4444' },
-    { label: 'Supported Devices', value: devices, icon: Monitor, color: '#22c55e' },
-    { label: 'Region', value: region, icon: Globe, color: '#06b6d4' },
-    { label: 'Next Renewal Date', value: renewalDate, icon: Calendar, color: '#f59e0b' },
-    { label: 'Access Method', value: accessMethod, icon: Key, color: '#10b981' },
-    { label: 'Account Type', value: accountType, icon: UserCheck, color: '#3b82f6' },
-    { label: 'Support Availability', value: supportAvailability, icon: HelpCircle, color: '#ec4899' },
-  ];
+  const filledSeats = totalSeats - seatsLeft;
+  const expectedJoinTime = '< 2 minutes';
 
+  const facts = [
+    { label: 'Platform', value: platform },
+    { label: 'Plan type', value: `${billingCycle} subscription` },
+    { label: 'Access method', value: accessMethod },
+    { label: 'Billing cycle', value: billingCycle },
+    { label: 'Seats available', value: `${seatsLeft} of ${totalSeats}` },
+    { label: 'Renewal date', value: renewalDate || 'Next billing cycle' },
+    { label: 'Expected join time', value: expectedJoinTime },
+    { label: 'Members joined', value: String(memberCount || filledSeats) },
+  ].filter((f) => f.value && f.value !== '' && f.value !== 'undefined');
 
   return (
-    <Box sx={{ mb: 4 }}>
-      <Typography variant="h5" sx={{ fontWeight: 900, color: '#ffffff', mb: 2, fontSize: '1.35rem', letterSpacing: '-0.02em' }}>
-        Subscription Specs & Details
-      </Typography>
-
-      <Grid container spacing={2}>
-        {SPECS.map(({ label, value, icon: Icon, color }) => (
-          <Grid item xs={12} sm={6} md={4} key={label}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.25,
-                borderRadius: '16px',
-                background: '#111114',
-                border: '1px solid #2A2A30',
-                height: '100%',
-                transition: 'transform 0.2s ease, border-color 0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  borderColor: color,
-                },
+    <Box sx={{ mb: 3 }}>
+      <Accordion
+        expanded={expanded}
+        onChange={(_, isExpanded) => setExpanded(isExpanded)}
+        elevation={0}
+        disableGutters
+        sx={{
+          background: '#111114',
+          border: '1px solid #2A2A30',
+          borderRadius: '14px !important',
+          '&:before': { display: 'none' },
+          overflow: 'hidden',
+        }}
+      >
+        <AccordionSummary
+          sx={{
+            px: 2.5,
+            py: 0.5,
+            minHeight: 52,
+            '& .MuiAccordionSummary-content': { my: 0 },
+          }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="space-between" width="100%">
+            <Stack direction="row" alignItems="center" spacing={1.25}>
+              <AlignJustify size={17} color="#A1A1AA" />
+              <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#ffffff' }}>
+                Listing Details
+              </Typography>
+            </Stack>
+            <ChevronRight
+              size={18}
+              color="#A1A1AA"
+              style={{
+                transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease',
               }}
-            >
-              <Box
+            />
+          </Stack>
+        </AccordionSummary>
+
+        <AccordionDetails
+          sx={{
+            px: 2.5,
+            pt: 0,
+            pb: 2.5,
+            borderTop: '1px solid #2A2A30',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: '0px 24px',
+              mt: 2,
+            }}
+          >
+            {facts.map(({ label, value }) => (
+              <Stack
+                key={label}
+                direction="row"
+                justifyContent="space-between"
+                alignItems="baseline"
                 sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '10px',
-                  background: `${color}15`,
-                  border: `1px solid ${color}33`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 1.5,
+                  py: 1.1,
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
                 }}
               >
-                <Icon size={18} color={color} />
-              </Box>
-
-              <Typography sx={{ fontSize: '0.74rem', fontWeight: 600, color: '#A1A1AA', mb: 0.3 }}>
-                {label}
-              </Typography>
-
-              <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.3 }}>
-                {value}
-              </Typography>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+                <Typography sx={{ fontSize: '0.82rem', color: '#71717A', fontWeight: 500, flexShrink: 0, mr: 1 }}>
+                  {label}
+                </Typography>
+                <Typography sx={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: 700, textAlign: 'right' }}>
+                  {value}
+                </Typography>
+              </Stack>
+            ))}
+          </Box>
+        </AccordionDetails>
+      </Accordion>
     </Box>
   );
 }

@@ -3,13 +3,13 @@ import { Grid } from '@mui/material';
 import { Sparkles, CheckCircle2, ArrowRight, TrendingDown, ArrowLeftRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { COMPARISON_CURRENT, COMPARISON_SUBSPLIT } from '../data/subscriptions';
-import { NetflixLogo, SpotifyLogo, YouTubeLogo } from './ServiceLogos';
+import { ZohoLogo, SpotifyLogo, YouTubeLogo } from './ServiceLogos';
 import styles from './HeroSection.module.scss';
 
 const TRUST_CHECK_ITEMS = ['Verified Hosts', 'Secure Payments', 'Instant Access'];
 
 const SERVICE_LOGOS = {
-  Netflix: NetflixLogo,
+  Zoho: ZohoLogo,
   Spotify: SpotifyLogo,
   YouTube: YouTubeLogo,
 };
@@ -81,8 +81,8 @@ function HeroSection() {
 
             {/* Subtitle */}
             <p className={styles.subtitle}>
-              Join verified subscription groups for Netflix, Spotify,
-              ChatGPT, Prime Video and more. Pay only your share.
+              Join verified subscription groups for Zoho, Spotify,
+              YouTube, Prime Video and more. Pay only your share.
             </p>
 
             {/* CTA Buttons */}

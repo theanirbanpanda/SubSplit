@@ -6,31 +6,7 @@ import { fetchMarketplaceListings, fetchCategories } from '../../marketplace/mar
 import { ServiceLogo } from './ServiceLogos';
 import styles from './MarketplacePreview.module.scss';
 
-const SubscriptionCard = React.memo(function SubscriptionCard({
-  title, subtitle, price, original, seatsLeft, rating, logoKey, onClick,
-}) {
-  return (
-    <article className={styles.subCard} onClick={onClick} tabIndex={0} role="link">
-      <div className={styles.subLogo}>
-        <ServiceLogo logoKey={logoKey} size={40} />
-      </div>
-      <h3 className={styles.subTitle}>{title}</h3>
-      <p className={styles.subSubtitle}>{subtitle}</p>
-      <div className={styles.subPriceRow}>
-        <span className={styles.subPrice}>₹{price}</span>
-        <span className={styles.subPriceUnit}>/month</span>
-        <span className={styles.subOriginal}>₹{original}</span>
-      </div>
-      <div className={styles.subFooter}>
-        <span className={styles.subSeats}>{seatsLeft} seats left</span>
-        <span className={styles.subRating}>
-          <Star size={12} fill="#f59e0b" color="#f59e0b" />
-          {rating}
-        </span>
-      </div>
-    </article>
-  );
-});
+import SubscriptionCard from '../../marketplace/components/SubscriptionCard';
 
 function MarketplacePreview() {
   const navigate = useNavigate();
@@ -64,21 +40,9 @@ function MarketplacePreview() {
     navigate(`/app/marketplace/${id}`);
   }, [navigate]);
 
-  const categoryOptions = useMemo(() => {
-    const defaultCategories = [{ id: 'all', name: 'All' }];
-    if (!categories || categories.length === 0) return defaultCategories;
-    return [
-      ...defaultCategories,
-      ...categories.map(c => ({ id: c.name.toLowerCase(), name: c.name }))
-    ];
-  }, [categories]);
-
   const filteredSubs = useMemo(() => {
-    if (activeFilter === 'all') return listings.slice(0, 6);
-    return listings
-      .filter((s) => s.category?.toLowerCase() === activeFilter.toLowerCase())
-      .slice(0, 6);
-  }, [activeFilter, listings]);
+    return listings.slice(0, 6);
+  }, [listings]);
 
   return (
     <section
@@ -104,26 +68,8 @@ function MarketplacePreview() {
           </button>
         </div>
 
-        {/* ── Category Filters ── */}
-        <div className={styles.filterRow} role="tablist" aria-label="Filter subscriptions">
-          {categoryOptions.map(({ id, name }) => (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={activeFilter === id}
-              className={`${styles.filterChip} ${
-                activeFilter === id ? styles.filterChipActive : ''
-              }`}
-              onClick={() => setActiveFilter(id)}
-              type="button"
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-
         {/* ── Cards Grid ── */}
-        <div className={styles.cardsGrid}>
+        <div className={styles.cardsGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginTop: '32px' }}>
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', width: '100%' }}>
               Loading listings...
@@ -133,20 +79,40 @@ function MarketplacePreview() {
               No listings found for this category.
             </div>
           ) : (
-            filteredSubs.map((sub) => (
+            filteredSubs.map((sub, index) => (
               <SubscriptionCard
                 key={sub.id}
-                title={sub.title}
-                subtitle={sub.description ? (sub.description.length > 40 ? sub.description.substring(0, 40) + '...' : sub.description) : 'Verified Plan'}
-                price={sub.price}
-                original={sub.originalPrice}
-                seatsLeft={sub.seatsLeft}
-                rating={sub.host?.rating || 4.9}
-                logoKey={sub.platform ? sub.platform.toLowerCase() : 'default'}
-                onClick={() => handleCardClick(sub.id)}
+                listing={sub}
+                variant="small"
+                isBlurred={index === 5}
               />
             ))
           )}
+        </div>
+
+        {/* ── Login to See More ── */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '48px', color: '#9ca3af', fontSize: '1rem' }}>
+          <span>
+            ...and hundreds more.{' '}
+            <button
+              onClick={() => navigate('/auth')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#3b82f6',
+                textDecoration: 'underline',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                padding: 0,
+                fontFamily: 'inherit',
+                fontWeight: 500,
+              }}
+              onMouseOver={(e) => e.currentTarget.style.color = '#60a5fa'}
+              onMouseOut={(e) => e.currentTarget.style.color = '#3b82f6'}
+            >
+              Sign in to see all
+            </button>
+          </span>
         </div>
       </div>
     </section>

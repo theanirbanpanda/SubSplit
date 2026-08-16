@@ -14,10 +14,10 @@
 
 export const CATALOG_CATEGORIES = [
   'All',
-  'Design',
+  'Design & Creative',
   'Productivity',
   'Cloud Storage',
-  'Security',
+  'Security & Privacy',
   'Developer Tools',
   'Multimedia',
 ];
@@ -27,7 +27,7 @@ export const MOCK_CATALOG = [
   {
     id: 'canva-business',
     name: 'Canva Business',
-    category: 'Design',
+    category: 'Design & Creative',
     description: 'Design & branding suite with premium brand kit and collaboration for teams.',
     logo: null,
     accessMethod: 'Invite via Email',
@@ -42,7 +42,7 @@ export const MOCK_CATALOG = [
   {
     id: 'adobe-cc-standard-teams',
     name: 'Adobe Creative Cloud Standard for Teams',
-    category: 'Design',
+    category: 'Design & Creative',
     description: 'Full Creative Cloud app suite (Photoshop, Illustrator, Premiere Pro) for teams.',
     logo: null,
     accessMethod: 'Invite via Email',
@@ -57,7 +57,7 @@ export const MOCK_CATALOG = [
   {
     id: 'adobe-express-teams',
     name: 'Adobe Express for Teams',
-    category: 'Design',
+    category: 'Design & Creative',
     description: 'Quick-create marketing content, social posts and branded assets for teams.',
     logo: null,
     accessMethod: 'Invite via Email',
@@ -72,7 +72,7 @@ export const MOCK_CATALOG = [
   {
     id: 'figma',
     name: 'Figma',
-    category: 'Design',
+    category: 'Design & Creative',
     description: 'Collaborative interface design, prototyping and developer handoff in the browser.',
     logo: null,
     accessMethod: 'Invite via Email',
@@ -87,7 +87,7 @@ export const MOCK_CATALOG = [
   {
     id: 'miro-business',
     name: 'Miro Business',
-    category: 'Design',
+    category: 'Design & Creative',
     description: 'Infinite whiteboard for brainstorming, planning and cross-team workshops.',
     logo: null,
     accessMethod: 'Invite via Email',
@@ -258,7 +258,7 @@ export const MOCK_CATALOG = [
   {
     id: '1password-families',
     name: '1Password Families',
-    category: 'Security',
+    category: 'Security & Privacy',
     description: 'Unlimited passwords, secure vaults and admin console for up to 5 family members.',
     logo: null,
     accessMethod: 'Invite via Email',
@@ -273,7 +273,7 @@ export const MOCK_CATALOG = [
   {
     id: 'bitwarden-families',
     name: 'Bitwarden Families',
-    category: 'Security',
+    category: 'Security & Privacy',
     description: 'Open-source end-to-end encrypted password manager for up to 6 members.',
     logo: null,
     accessMethod: 'Invite via Email',
@@ -288,7 +288,7 @@ export const MOCK_CATALOG = [
   {
     id: 'bitdefender-family',
     name: 'Bitdefender Family',
-    category: 'Security',
+    category: 'Security & Privacy',
     description: 'Antivirus and parental controls for up to 15 devices across the family.',
     logo: null,
     accessMethod: 'Shared Login',
@@ -303,7 +303,7 @@ export const MOCK_CATALOG = [
   {
     id: 'norton-360-deluxe',
     name: 'Norton 360 Deluxe',
-    category: 'Security',
+    category: 'Security & Privacy',
     description: 'Antivirus, VPN, dark-web monitoring and 50 GB backup for up to 5 devices.',
     logo: null,
     accessMethod: 'Shared Login',
@@ -318,7 +318,7 @@ export const MOCK_CATALOG = [
   {
     id: 'kaspersky-premium',
     name: 'Kaspersky Premium',
-    category: 'Security',
+    category: 'Security & Privacy',
     description: 'Real-time threat protection, VPN, parental controls and identity protection.',
     logo: null,
     accessMethod: 'Shared Login',

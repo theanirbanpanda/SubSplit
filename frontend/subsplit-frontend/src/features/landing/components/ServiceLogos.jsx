@@ -1,4 +1,5 @@
 import React from 'react';
+import ZohoImg from '../../../assets/images/zoho_logo.png';
 
 /* ── Netflix ── */
 export function NetflixLogo({ size = 32 }) {
@@ -67,6 +68,11 @@ export function MicrosoftLogo({ size = 32 }) {
   );
 }
 
+/* ── Zoho ── */
+export function ZohoLogo({ size = 32 }) {
+  return <img src={ZohoImg} width={size} height={size} alt="Zoho" style={{ objectFit: 'contain', display: 'block' }} />;
+}
+
 /* ── Logo map for data-driven rendering ── */
 const LOGO_MAP = {
   netflix: NetflixLogo,
@@ -75,6 +81,7 @@ const LOGO_MAP = {
   chatgpt: ChatGPTLogo,
   prime: PrimeLogo,
   microsoft: MicrosoftLogo,
+  zoho: ZohoLogo,
 };
 
 export function ServiceLogo({ logoKey, size = 32 }) {

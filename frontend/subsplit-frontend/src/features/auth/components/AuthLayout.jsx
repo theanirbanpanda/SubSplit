@@ -1,64 +1,71 @@
 import React from 'react';
 import { Box } from '@mui/material';
+import LandingPage from '../../landing/pages/LandingPage';
 
 function AuthLayout({ children }) {
   return (
     <Box
       sx={{
+        position: 'relative',
         height: '100vh',
         width: '100vw',
-        maxHeight: '100vh',
-        background: '#0d0e11',
-        color: '#f3f4f6',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        p: { xs: 2, sm: 4 },
-        overflowY: 'auto',
-        overflowX: 'hidden',
+        overflow: 'hidden',
       }}
     >
-      {/* Background Radial Glow */}
+      {/* Background Layer: Landing Page */}
       <Box
-        aria-hidden="true"
         sx={{
           position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: { xs: '300px', md: '700px' },
-          height: { xs: '300px', md: '700px' },
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Faint Abstract Mesh Grid */}
-      <Box
-        aria-hidden="true"
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.08) 0.75px, transparent 0.75px)',
-          backgroundSize: '24px 24px',
-          opacity: 0.25,
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* ── CENTERED AUTHENTICATION CARD (Focal Point — Max 500px) ── */}
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: 500,
-          mx: 'auto',
-          position: 'relative',
-          zIndex: 10,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 0,
+          pointerEvents: 'none', // Prevent interaction with landing page elements
         }}
       >
-        {children}
+        <LandingPage />
+      </Box>
+
+      {/* Blur Overlay */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1,
+          backdropFilter: 'blur(12px)',
+          backgroundColor: 'rgba(9, 9, 11, 0.65)', // Tasteful dark overlay
+        }}
+      />
+
+      {/* Foreground Layer: Auth Card Container */}
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 2,
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: { xs: 2, sm: 4 },
+          overflowY: 'auto',
+        }}
+      >
+        {/* ── CENTERED AUTHENTICATION CARD (Focal Point) ── */}
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 420,
+            mx: 'auto',
+            transform: 'translateY(-5%)', // Slight upward shift for flying effect
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );

@@ -10,9 +10,7 @@ const CATEGORIES = [
   'Cloud Storage',
   'Security & Privacy',
   'Developer Tools',
-  'Multimedia & Entertainment',
-  'Education & Learning',
-  'AI & Productivity Tools',
+  'Multimedia',
   'Other',
 ];
 

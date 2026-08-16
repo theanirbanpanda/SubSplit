@@ -162,47 +162,72 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
         sx={{
           height: 76,
           px: { xs: 2, sm: 2.5, md: 4 },
-          display: 'grid',
-          gridTemplateColumns: mobileSearchOpen
-            ? '1fr'
-            : { xs: 'auto 1fr auto', md: '1fr auto 1fr' },
+          display: 'flex',
           alignItems: 'center',
-          gap: { xs: 1, sm: 2 },
+          justifyContent: 'space-between',
+          position: 'relative',
           width: '100%',
         }}
       >
         {mobileSearchOpen ? (
           /* Mobile Search Bar Mode (Full Width on Phone) */
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
-            <TextField
-              fullWidth
-              autoFocus
-              size="small"
-              value={searchVal}
-              onChange={handleSearchChange}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearchSubmit(e);
-                  setMobileSearchOpen(false);
-                }
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexGrow: 1,
+                height: 42,
+                background: '#111114',
+                border: '1px solid rgba(34, 197, 94, 0.4)',
+                borderRadius: '10px',
+                px: 1.5,
+                gap: 1.25,
               }}
-              placeholder="Search subscriptions..."
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search size={18} color="#22c55e" />
-                  </InputAdornment>
-                ),
-                sx: {
-                  borderRadius: '10px',
-                  background: '#111114',
+            >
+              <Search size={18} strokeWidth={2.2} color="#22c55e" style={{ flexShrink: 0 }} />
+              <Box
+                component="input"
+                autoFocus
+                type="text"
+                value={searchVal}
+                onChange={handleSearchChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearchSubmit(e);
+                    setMobileSearchOpen(false);
+                  }
+                }}
+                placeholder="Search subscriptions..."
+                sx={{
+                  flexGrow: 1,
+                  minWidth: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
                   color: '#f3f4f6',
                   fontSize: '0.88rem',
-                  border: '1px solid rgba(34, 197, 94, 0.4)',
-                  '& fieldset': { border: 'none' },
-                },
-              }}
-            />
+                  fontFamily: 'inherit',
+                  '&::placeholder': {
+                    color: '#9ca3af',
+                    opacity: 0.8,
+                  },
+                }}
+              />
+              {searchVal && (
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setSearchVal('');
+                    dispatch(setFilter({ search: '', trendingOnly: false }));
+                  }}
+                  sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6' }, p: 0.25, flexShrink: 0 }}
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </IconButton>
+              )}
+            </Box>
             <IconButton
               onClick={() => setMobileSearchOpen(false)}
               sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6' }, p: 1 }}
@@ -213,8 +238,8 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
           </Box>
         ) : (
           <>
-            {/* Column 1 (Left): Mobile Drawer Button / Left Area */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifySelf: 'start' }}>
+            {/* Left: Mobile Drawer Button */}
+            <Box sx={{ display: 'flex', alignItems: 'center', zIndex: 2 }}>
               <IconButton
                 color="inherit"
                 aria-label="open navigation drawer"
@@ -226,44 +251,76 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
               </IconButton>
             </Box>
 
-            {/* Column 2 (Center): Global Search Input (Permanently Centered, No Overlap) */}
-            <Box sx={{
-              display: { xs: 'none', sm: 'flex' },
-              justifyContent: 'center',
-              width: '100%',
-              maxWidth: 420,
-              mx: 'auto',
-              justifySelf: 'center',
-            }}>
-              <TextField
-                fullWidth
-                size="small"
+            {/* Center: Global Search Input (Custom Spotlight Design) */}
+            <Box
+              sx={{
+                display: { xs: 'none', sm: 'flex' },
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: { sm: 260, md: 320, lg: 380, xl: 440 },
+                maxWidth: 'calc(100% - 460px)',
+                height: 42,
+                alignItems: 'center',
+                background: '#111114',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '12px',
+                px: 1.5,
+                gap: 1.25,
+                zIndex: 1,
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.22)',
+                  background: '#141418',
+                },
+                '&:focus-within': {
+                  borderColor: '#22c55e',
+                  boxShadow: '0 0 0 3px rgba(34, 197, 94, 0.15), 0 4px 16px rgba(0, 0, 0, 0.35)',
+                  background: '#141418',
+                },
+              }}
+            >
+              <Search size={18} strokeWidth={2.2} color="#22c55e" style={{ flexShrink: 0 }} />
+              <Box
+                component="input"
+                type="text"
                 value={searchVal}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchSubmit}
                 placeholder="Search subscriptions..."
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search size={16} color="#9ca3af" />
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    borderRadius: '8px',
-                    background: '#111114',
-                    color: '#f3f4f6',
-                    fontSize: '0.85rem',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    '& fieldset': { border: 'none' },
-                    '&:hover': { borderColor: '#22c55e' },
-                    '&.Mui-focused': { borderColor: '#22c55e' },
+                sx={{
+                  flexGrow: 1,
+                  minWidth: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#f3f4f6',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  '&::placeholder': {
+                    color: '#9ca3af',
+                    opacity: 0.8,
                   },
                 }}
               />
+              {searchVal && (
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setSearchVal('');
+                    dispatch(setFilter({ search: '', trendingOnly: false }));
+                  }}
+                  sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6' }, p: 0.25, flexShrink: 0 }}
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </IconButton>
+              )}
             </Box>
 
-            {/* Column 3 (Right): Actions Stack (Right Aligned via Grid) */}
-            <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ justifySelf: 'end' }}>
+            {/* Right: Actions Stack */}
+            <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ ml: 'auto', zIndex: 2 }}>
               {/* Mobile Search Icon Button (Visible on phone/xs) */}
               <IconButton
                 onClick={() => setMobileSearchOpen(true)}
@@ -281,39 +338,29 @@ function Header({ handleDrawerToggle, toggleSidebar, sidebarWidth }) {
                   sx={{
                     display: { xs: 'none', md: 'flex' },
                     alignItems: 'center',
-                    gap: 1.5,
-                    border: '1px solid #27272a',
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: '8px',
+                    gap: 1,
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    px: 1.25,
+                    py: 0.6,
+                    height: 38,
+                    borderRadius: '10px',
                     textTransform: 'none',
-                    background: '#111114',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    transition: 'all 0.2s ease',
                     '&:hover': {
                       borderColor: '#22c55e',
-                      background: 'rgba(34,197,94,0.05)',
+                      background: 'rgba(34, 197, 94, 0.08)',
                     }
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34,197,94,0.15)', borderRadius: '6px', p: '4px' }}>
-                    <Wallet size={16} color="#22c55e" />
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34, 197, 94, 0.15)', borderRadius: '6px', p: '4px' }}>
+                    <Wallet size={15} color="#22c55e" />
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <Typography sx={{ fontSize: '0.65rem', color: '#9ca3af', lineHeight: 1 }}>Wallet balance</Typography>
-                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#22c55e', lineHeight: 1, mt: 0.2 }}>{balanceDisplay}</Typography>
-                  </Box>
+                  <Typography sx={{ fontSize: '0.86rem', fontWeight: 700, color: '#22c55e', letterSpacing: '0.2px' }}>
+                    {balanceDisplay}
+                  </Typography>
                 </Button>
               )}
-
-
-              {/* Messages Navigation */}
-              <IconButton
-                onClick={() => navigate('/app/messages')}
-                sx={{ color: '#9ca3af', '&:hover': { color: '#f3f4f6', background: 'rgba(255, 255, 255, 0.05)' } }}
-              >
-                <Badge badgeContent={msgUnreadCount} sx={{ '& .MuiBadge-badge': { backgroundColor: '#3b82f6', color: '#fff', fontWeight: 'bold' } }}>
-                  <MessageSquare size={20} />
-                </Badge>
-              </IconButton>
 
               {/* Notifications */}
               <IconButton

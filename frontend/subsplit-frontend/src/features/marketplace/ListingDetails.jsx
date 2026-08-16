@@ -13,8 +13,6 @@ import { AlertCircle, ArrowLeft } from 'lucide-react';
 import SubscriptionHero from './components/details/SubscriptionHero';
 import StickyJoinCard from './components/details/StickyJoinCard';
 import SubscriptionDetails from './components/details/SubscriptionDetails';
-import HostProfileCard from './components/details/HostProfileCard';
-import OccupancyCard from './components/details/OccupancyCard';
 import TrustSection from './components/details/TrustSection';
 import MemberReviews from './components/details/MemberReviews';
 import RelatedListings from './components/details/RelatedListings';
@@ -22,8 +20,9 @@ import JoinModal from './components/details/JoinModal';
 import ListingDetailsSkeleton from './components/details/ListingDetailsSkeleton';
 import ScrollToTop from '../landing/components/ScrollToTop';
 
-
-
+// HostProfileCard and OccupancyCard are intentionally omitted from this page:
+// - Host info is now surfaced inline in the identity meta line (SubscriptionHero)
+// - Seat info lives in the Listing Details accordion + the buy panel "N seats remaining" line
 
 function ListingDetails() {
   const { id } = useParams();
@@ -52,13 +51,35 @@ function ListingDetails() {
   }, [id, dispatch]);
 
   const hostId = listing?.host?.id || listing?.hostId;
-  const isHost = Boolean(user && hostId && (user.id === hostId || user.email === hostId || user.email === listing?.host?.email));
+  const isHost = Boolean(
+    user &&
+      hostId &&
+      (user.id === hostId || user.email === hostId || user.email === listing?.host?.email)
+  );
 
-  const myRequest = (myJoinRequests || []).find(
-    (r) => (String(r.listingId) === String(listing?.id) || String(r.listingId) === String(listing?.rawId)) && r.status !== 'REJECTED' && r.status !== 'CANCELLED'
-  ) || (joinRequestStatus && (String(joinRequestStatus.listingId) === String(listing?.id) || String(joinRequestStatus.listingId) === String(listing?.rawId)) && joinRequestStatus.status !== 'REJECTED' && joinRequestStatus.status !== 'CANCELLED' ? joinRequestStatus : null);
+  const myRequest =
+    (myJoinRequests || []).find(
+      (r) =>
+        (String(r.listingId) === String(listing?.id) ||
+          String(r.listingId) === String(listing?.rawId)) &&
+        r.status !== 'REJECTED' &&
+        r.status !== 'CANCELLED'
+    ) ||
+    (joinRequestStatus &&
+    (String(joinRequestStatus.listingId) === String(listing?.id) ||
+      String(joinRequestStatus.listingId) === String(listing?.rawId)) &&
+    joinRequestStatus.status !== 'REJECTED' &&
+    joinRequestStatus.status !== 'CANCELLED'
+      ? joinRequestStatus
+      : null);
 
   const isAlreadyJoined = Boolean(isHost || myRequest);
+
+  // Gate the write-review form: only users who have been accepted as members
+  const isConfirmedMember =
+    myRequest?.status === 'APPROVED' ||
+    myRequest?.status === 'CREDENTIALS_SHARED' ||
+    myRequest?.status === 'ACCEPTED';
 
   if (loading || initialLoading) {
     return <ListingDetailsSkeleton />;
@@ -112,7 +133,7 @@ function ListingDetails() {
                 px: 3.5,
                 py: 1.2,
                 textTransform: 'none',
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
               }}
             >
               Back to Marketplace
@@ -127,22 +148,22 @@ function ListingDetails() {
     <Box sx={{ color: '#ffffff', overflowX: 'hidden' }}>
       <Box sx={{ width: '100%', mx: 'auto', pt: 1, pb: 4 }}>
         <Grid container spacing={{ xs: 3, md: 4 }}>
-          {/* Left Column — 65% (8 Cols) */}
+          {/* Left Column — scrollable content */}
           <Grid size={{ xs: 12, md: 7.8 }}>
             <SubscriptionHero listing={listing} />
-            <SubscriptionDetails listing={listing} />
-            <HostProfileCard host={listing.host} />
-            <OccupancyCard listing={listing} />
-            <TrustSection />
             <MemberReviews
               listingId={listing.rawId || listing.id}
               reviewSummary={listing.reviewSummary}
               hostId={listing.host?.id || listing.hostId}
               hostName={listing.host?.name || listing.hostName}
+              isConfirmedMember={isConfirmedMember}
             />
+            <SubscriptionDetails listing={listing} />
+            {/* TrustSection returns null — included for import compatibility */}
+            <TrustSection />
           </Grid>
 
-          {/* Right Column — 35% (4 Cols) Sticky Join Sidebar */}
+          {/* Right Column — sticky buy panel */}
           <Grid size={{ xs: 12, md: 4.2 }}>
             <StickyJoinCard
               listing={listing}
@@ -154,7 +175,7 @@ function ListingDetails() {
           </Grid>
         </Grid>
 
-        {/* Related Subscriptions Section */}
+        {/* Related Subscriptions Section — untouched */}
         <RelatedListings currentId={listing.id} category={listing.category} />
       </Box>
 
@@ -171,4 +192,3 @@ function ListingDetails() {
 }
 
 export default ListingDetails;
-

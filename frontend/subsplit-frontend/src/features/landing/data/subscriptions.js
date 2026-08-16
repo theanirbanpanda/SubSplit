@@ -83,13 +83,13 @@ export const SUBSCRIPTIONS = [
 ];
 
 export const COMPARISON_CURRENT = [
-  { service: 'Netflix', price: 649 },
+  { service: 'Zoho', price: 899 },
   { service: 'Spotify', price: 179 },
   { service: 'YouTube', price: 149 },
 ];
 
 export const COMPARISON_SUBSPLIT = [
-  { service: 'Netflix', price: 149 },
+  { service: 'Zoho', price: 149 },
   { service: 'Spotify', price: 59 },
   { service: 'YouTube', price: 86 },
 ];

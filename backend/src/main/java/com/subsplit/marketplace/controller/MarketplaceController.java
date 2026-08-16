@@ -217,4 +217,15 @@ public class MarketplaceController {
         }
         return user;
     }
+
+    @DeleteMapping("/listings/{id}/reviews/{reviewId}")
+    public ResponseEntity<ApiResponse<String>> deleteListingReview(
+            Authentication authentication,
+            @PathVariable Long id,
+            @PathVariable Long reviewId) {
+        User currentUser = getAuthenticatedUser(authentication);
+        marketplaceService.deleteListingReview(currentUser, id, reviewId);
+        return ResponseEntity.ok(ApiResponse.success("Review deleted successfully", "Review has been deleted"));
+    }
+
 }

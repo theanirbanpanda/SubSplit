@@ -18,7 +18,7 @@ export const setupInterceptors = (store) => {
   api.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.response && error.response.status === 401) {
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
         store.dispatch(logout());
       }
       return Promise.reject(error);
