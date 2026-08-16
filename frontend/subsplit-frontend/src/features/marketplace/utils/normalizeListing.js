@@ -1,3 +1,6 @@
+import { MOCK_CATALOG } from '../data/mockCatalog';
+import { MOCK_LISTINGS } from '../data/mockListings';
+
 const PROVIDER_THEMES = {
   netflix: { color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
   spotify: { color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
@@ -14,11 +17,11 @@ export const normalizeListing = (backendItem) => {
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-  const providerName = backendItem.subscription?.providerName || 'Subscription';
+  const providerName = backendItem.subscription?.providerName || backendItem.providerName || 'Subscription';
   const themeKey = providerName.toLowerCase();
   const theme = PROVIDER_THEMES[themeKey] || { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' };
 
-  const hostName = backendItem.host?.name || 'Verified Host';
+  const hostName = backendItem.host?.name || backendItem.hostName || 'Verified Host';
   const initials = hostName
     .split(' ')
     .filter(Boolean)
@@ -27,12 +30,46 @@ export const normalizeListing = (backendItem) => {
     .substring(0, 2)
     .toUpperCase() || 'VH';
 
-  const monthlyPrice = backendItem.plan?.monthlyPrice || (backendItem.seatPrice ? Number(backendItem.seatPrice) * 3 : null);
-  const seatPrice = Number(backendItem.seatPrice) || 0;
+  const totalSeats = Number(backendItem.totalSeats ?? 4);
+  const seatPrice = Number(backendItem.seatPrice ?? backendItem.price ?? 0);
 
-  let savingsPercent = backendItem.savingsPercent;
-  if (!savingsPercent && monthlyPrice && monthlyPrice > seatPrice) {
-    savingsPercent = Math.round(((monthlyPrice - seatPrice) / monthlyPrice) * 100);
+  // Dynamic original price from DB (check all possible backend entity fields)
+  let originalPrice = Number(
+    backendItem.originalPrice ??
+    backendItem.plan?.monthlyPrice ??
+    backendItem.plan?.price ??
+    backendItem.subscriptionPlan?.monthlyPrice ??
+    backendItem.subscriptionPlan?.price ??
+    backendItem.subscription?.standardPrice ??
+    backendItem.subscription?.price ??
+    0
+  );
+
+  // If backend didn't provide standard retail price, lookup in catalog / standard provider pricing
+  if (!originalPrice || originalPrice <= seatPrice) {
+    const catalogItem = MOCK_CATALOG.find(
+      (c) => c.name?.toLowerCase().includes(providerName.toLowerCase()) ||
+             providerName.toLowerCase().includes(c.name?.toLowerCase())
+    );
+    if (catalogItem?.recommendedPrice) {
+      originalPrice = catalogItem.recommendedPrice * totalSeats;
+    } else {
+      const mockItem = MOCK_LISTINGS.find(
+        (m) => m.platform?.toLowerCase() === providerName.toLowerCase() ||
+               m.title?.toLowerCase().includes(providerName.toLowerCase())
+      );
+      if (mockItem?.originalPrice) {
+        originalPrice = mockItem.originalPrice;
+      } else if (seatPrice > 0) {
+        originalPrice = Math.round(seatPrice * totalSeats);
+      }
+    }
+  }
+
+  // Calculate dynamic savings percent
+  let savingsPercent = Number(backendItem.savingsPercent) || 0;
+  if (!savingsPercent && originalPrice && originalPrice > seatPrice && seatPrice > 0) {
+    savingsPercent = Math.round(((originalPrice - seatPrice) / originalPrice) * 100);
   }
 
   const normalized = {
@@ -42,7 +79,7 @@ export const normalizeListing = (backendItem) => {
     platform: providerName,
     category: backendItem.subscription?.categoryName || 'OTT',
     price: seatPrice,
-    originalPrice: monthlyPrice ? Number(monthlyPrice) : null,
+    originalPrice: originalPrice > seatPrice ? Number(originalPrice) : null,
     savingsPercent: savingsPercent || 0,
     seatsLeft: backendItem.availableSeats ?? 1,
     totalSeats: backendItem.totalSeats ?? 4,

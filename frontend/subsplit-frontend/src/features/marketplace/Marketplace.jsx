@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { fetchMarketplaceListings, fetchCategories, fetchTopHosts } from './marketplaceSlice';
+import { fetchMarketplaceListings, fetchCategories } from './marketplaceSlice';
 import ScrollToTop from '../landing/components/ScrollToTop';
 
 import MarketplaceHero from './components/MarketplaceHero';
-import HostCarousel from './components/HostCarousel';
 import ListingTable from './components/ListingTable';
-import RecentlyAdded from './components/RecentlyAdded';
 
 import styles from './Marketplace.module.scss';
 
@@ -16,7 +14,6 @@ function Marketplace() {
   useEffect(() => {
     dispatch(fetchMarketplaceListings());
     dispatch(fetchCategories());
-    dispatch(fetchTopHosts());
   }, [dispatch]);
 
   return (
@@ -25,10 +22,6 @@ function Marketplace() {
         <div className={styles.mainFlow}>
           <MarketplaceHero />
           <ListingTable />
-        </div>
-        <div className={styles.carouselSection}>
-          <HostCarousel />
-          <RecentlyAdded />
         </div>
       </div>
 

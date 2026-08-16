@@ -65,11 +65,11 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
         <div className={styles.currentPrice}>
           ₹{price}<span className={styles.period}>/month</span>
         </div>
-        {originalPrice && (
-          <div className={styles.originalPrice}>₹{originalPrice}</div>
+        {originalPrice && originalPrice > price && (
+          <div className={styles.originalPrice}>₹{originalPrice}/month</div>
         )}
         {savingsPercent ? (
-          <div className={styles.discount}>{savingsPercent}% OFF</div>
+          <div className={styles.discount}>Save {savingsPercent}%</div>
         ) : null}
       </div>
 
@@ -78,6 +78,11 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
       <div className={styles.hostRow}>
         <span className={styles.hostLabel}>Host:</span>
         <span className={styles.hostName}>{hostName}</span>
+        {savingsPercent ? (
+          <span style={{ marginLeft: 'auto', background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.7rem', fontWeight: 800 }}>
+            Save {savingsPercent}%
+          </span>
+        ) : null}
       </div>
 
       <div className={styles.bottomRow}>
@@ -97,7 +102,7 @@ const SubscriptionCard = ({ listing, variant = 'large' }) => {
             navigate(`/app/marketplace/${id}`);
           }}
         >
-          Instant Join
+          Instant Buy
         </button>
       </div>
     </div>

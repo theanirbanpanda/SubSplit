@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Menu, MenuItem } from '@mui/material';
@@ -7,18 +7,27 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SubscriptionsIcon from '@mui/icons-material/Subscriptions';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { setFilter, resetFilters } from '../marketplaceSlice';
 import styles from './ListingTable.module.scss';
+
+const PAGE_SIZE = 8;
 
 const ListingTable = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const tableRef = useRef(null);
+
   const { user } = useSelector((state) => state.auth || {});
   const { listings, loading, filters, myJoinRequests = [] } = useSelector((state) => state.marketplace);
   const { subscriptions = [] } = useSelector((state) => state.subscriptions || {});
+  
   const [categoryAnchorEl, setCategoryAnchorEl] = useState(null);
   const [priceAnchorEl, setPriceAnchorEl] = useState(null);
   const [sortAnchorEl, setSortAnchorEl] = useState(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleResetFilters = () => {
     dispatch(resetFilters());
@@ -78,7 +87,6 @@ const ListingTable = () => {
     if (isSubscribed) return false;
 
     // Search Filter
-
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       const matchesSearch = 
@@ -131,9 +139,73 @@ const ListingTable = () => {
     }
   }
 
+  // Reset to page 1 whenever any filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.search, filters.category, filters.priceRangeString, filters.trendingOnly, filters.sortBy]);
+
+  // Pagination calculations
+  const totalFiltered = finalFiltered.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+
+  // If current page is beyond totalPages due to filtering down, adjust it
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, totalFiltered);
+  const paginatedListings = finalFiltered.slice(startIndex, endIndex);
+
+  // Smooth scroll to table top
+  const scrollToTableTop = () => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const mainEl = document.querySelector('main');
+    if (mainEl && tableRef.current) {
+      const topPos = tableRef.current.offsetTop - 80;
+      mainEl.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' });
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage);
+      scrollToTableTop();
+    }
+  };
+
+  // Generate dynamic page list with ellipsis
+  const getPageNumbers = () => {
+    if (totalPages <= 6) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages = [];
+    if (currentPage <= 3) {
+      pages.push(1, 2, 3, 4, '...', totalPages);
+    } else if (currentPage >= totalPages - 2) {
+      pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    } else {
+      pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+    }
+    return pages;
+  };
+
   return (
-    <div className={styles.section}>
-      <h3 className={styles.title}>All Listings</h3>
+    <div className={styles.section} ref={tableRef} id="listings-table-section">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <h3 className={styles.title}>
+          All Listings <span style={{ fontSize: '0.85rem', color: '#9ca3af', fontWeight: 600 }}>({totalFiltered})</span>
+        </h3>
+        {totalPages > 1 && (
+          <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 600 }}>
+            Page <span style={{ color: '#4ade80', fontWeight: 800 }}>{currentPage}</span> of {totalPages}
+          </span>
+        )}
+      </div>
       
       <div className={styles.filtersRow}>
         <div className={styles.leftFilters}>
@@ -262,15 +334,15 @@ const ListingTable = () => {
 
       <div className={styles.listContainer}>
         {loading && listings.length === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', gridColumn: '1 / -1' }}>
             Loading live marketplace listings...
           </div>
         ) : finalFiltered.length === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', gridColumn: '1 / -1' }}>
             No listings found matching criteria.
           </div>
         ) : (
-          finalFiltered.map((listing) => (
+          paginatedListings.map((listing) => (
             <div
               key={listing.id}
               className={styles.listingCard}
@@ -304,15 +376,20 @@ const ListingTable = () => {
                     {listing.hostName || listing.host?.name} 
                     {listing.isVerifiedHost && <VerifiedIcon className={styles.verifiedIcon} />}
                   </span>
+                  {listing.savingsPercent > 0 && (
+                    <span className={styles.savingsBadge}>
+                      Save {listing.savingsPercent}%
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles.cardFooter}>
                   <div className={styles.priceContainer}>
                     <div className={styles.currentPrice}>
-                      ₹{listing.price}<span>/mo</span>
+                      ₹{listing.price}<span>/month</span>
                     </div>
-                    {listing.originalPrice && (
-                      <div className={styles.originalPrice}>₹{listing.originalPrice}</div>
+                    {listing.originalPrice && listing.originalPrice > listing.price && (
+                      <div className={styles.originalPrice}>₹{listing.originalPrice}/month</div>
                     )}
                   </div>
                   <button
@@ -322,7 +399,7 @@ const ListingTable = () => {
                       navigate(`/app/marketplace/${listing.id}`);
                     }}
                   >
-                    ADD
+                    BUY
                   </button>
                 </div>
               </div>
@@ -330,6 +407,80 @@ const ListingTable = () => {
           ))
         )}
       </div>
+
+      {/* Centered Page Navigation */}
+      {totalPages > 1 && (
+        <div className={styles.paginationWrapper}>
+          <div className={styles.paginationControls}>
+            {/* First Page */}
+            <button
+              type="button"
+              className={styles.navBtn}
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(1)}
+              title="First Page"
+            >
+              <ChevronsLeft size={16} />
+            </button>
+
+            {/* Prev Page */}
+            <button
+              type="button"
+              className={styles.navBtn}
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              title="Previous Page"
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {/* Page Number Buttons */}
+            <div className={styles.pagesList}>
+              {getPageNumbers().map((p, idx) => {
+                if (p === '...') {
+                  return (
+                    <span key={`ellipsis-${idx}`} className={styles.pageEllipsis}>
+                      •••
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`${styles.pageNumberBtn} ${currentPage === p ? styles.activePage : ''}`}
+                    onClick={() => handlePageChange(p)}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next Page */}
+            <button
+              type="button"
+              className={styles.navBtn}
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              title="Next Page"
+            >
+              <ChevronRight size={16} />
+            </button>
+
+            {/* Last Page */}
+            <button
+              type="button"
+              className={styles.navBtn}
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(totalPages)}
+              title="Last Page"
+            >
+              <ChevronsRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

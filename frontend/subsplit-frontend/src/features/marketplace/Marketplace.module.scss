@@ -29,22 +29,11 @@
 .mainFlow {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1.1rem;
   width: 100%;
 
   @media (max-width: 48rem) {
-    gap: 1.25rem;
-  }
-}
-
-.carouselSection {
-  display: flex;
-  flex-direction: column;
-  gap: $gap-component-section;
-  width: 100%;
-
-  @media (max-width: 48rem) {
-    gap: $gap-component-section-mobile;
+    gap: 0.9rem;
   }
 }
 

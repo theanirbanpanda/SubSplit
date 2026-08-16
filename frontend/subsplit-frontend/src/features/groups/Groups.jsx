@@ -166,7 +166,7 @@ function Groups() {
               whiteSpace: 'nowrap',
             }}
           >
-            Join New Group
+            Buy Group Pass
           </Button>
         </Stack>
 

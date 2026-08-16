@@ -168,6 +168,13 @@ function CreateListingModal({ open, onClose }) {
     // Build accessMethod description line
     const accessLine = `Access: ${selectedProduct.accessMethod}`;
 
+    // Calculate dynamic original price & savings percent from selected catalog product
+    const recPrice = selectedProduct?.recommendedPrice ? Number(selectedProduct.recommendedPrice) : Math.round(priceNum * 1.5);
+    const calculatedOriginalPrice = Math.round(recPrice * maxMembersNum);
+    const calculatedSavings = calculatedOriginalPrice > priceNum
+      ? Math.round(((calculatedOriginalPrice - priceNum) / calculatedOriginalPrice) * 100)
+      : 0;
+
     const payload = {
       providerName: selectedProduct.name,
       categoryName: selectedProduct.category,
@@ -175,6 +182,8 @@ function CreateListingModal({ open, onClose }) {
       title: `${selectedProduct.name} — ${availableSeats} Seat${availableSeats !== 1 ? 's' : ''} Available`,
       description: accessLine,
       seatPrice: priceNum,
+      originalPrice: calculatedOriginalPrice,
+      savingsPercent: calculatedSavings,
       totalSeats: maxMembersNum,
       availableSeats: availableSeats,
       billingCycle: plan.billingCycle,

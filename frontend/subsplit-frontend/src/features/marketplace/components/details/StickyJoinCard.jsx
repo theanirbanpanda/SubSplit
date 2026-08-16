@@ -212,7 +212,7 @@ function StickyJoinCard({ listing, onJoinClick, isAlreadyJoined, isHost, myReque
             transition: 'all 0.2s ease',
           }}
         >
-          Join Subscription Group
+          Buy Subscription
         </Button>
       )}
 

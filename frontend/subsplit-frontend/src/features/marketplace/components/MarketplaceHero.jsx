@@ -19,11 +19,6 @@ const MarketplaceHero = () => {
         <h1 className={styles.title}>
           Your favourite subscriptions, <span className={styles.highlight}>for less.</span>
         </h1>
-        
-        <p className={styles.subtitle}>
-          Join verified subscription groups and save up to 80% every month. <br />
-          Safe. Affordable. Instant.
-        </p>
 
         <div className={styles.features}>
           <div className={styles.feature}>

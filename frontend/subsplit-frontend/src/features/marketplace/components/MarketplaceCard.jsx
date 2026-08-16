@@ -124,9 +124,9 @@ function MarketplaceCard({ listing }) {
                 /month
               </Typography>
             </Typography>
-            {originalPrice && (
-              <Typography sx={{ fontSize: '0.72rem', color: '#71717A', textDecoration: 'line-through' }}>
-                ₹{originalPrice}
+            {originalPrice && originalPrice > price && (
+              <Typography sx={{ fontSize: '0.74rem', color: '#71717A', textDecoration: 'line-through', mt: 0.3, fontWeight: 600 }}>
+                ₹{originalPrice}/month
               </Typography>
             )}
           </Box>
@@ -216,7 +216,7 @@ function MarketplaceCard({ listing }) {
           </Stack>
         </Stack>
 
-        {/* Join button */}
+        {/* Buy button */}
         <Button
           fullWidth
           variant="contained"
@@ -239,7 +239,7 @@ function MarketplaceCard({ listing }) {
             },
           }}
         >
-          Join Subscription
+          Buy Subscription
         </Button>
       </CardContent>
     </Card>

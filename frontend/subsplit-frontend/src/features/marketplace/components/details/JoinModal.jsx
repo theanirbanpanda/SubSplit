@@ -77,8 +77,8 @@ function JoinModal({ open, onClose, listing }) {
     if (step === 'kyc_required') return 'KYC Verification Required';
     if (step === 'own_listing_error') return 'Action Not Allowed';
     if (step === 'insufficient_balance') return 'Insufficient Wallet Balance';
-    if (step === 'success') return 'Joining Request Sent! 🎉';
-    return 'Confirm Group Joining';
+    if (step === 'success') return 'Purchase Request Sent! 🎉';
+    return 'Confirm Purchase';
   };
 
 
@@ -164,7 +164,7 @@ function JoinModal({ open, onClose, listing }) {
                 boxShadow: '0 4px 16px rgba(37, 99, 235, 0.35)',
               }}
             >
-              {loading ? 'Checking Wallet...' : `Pay ₹${price} & Join Group`}
+              {loading ? 'Checking Wallet...' : `Pay ₹${price} & Buy Pass`}
             </Button>
           </Box>
         )}
