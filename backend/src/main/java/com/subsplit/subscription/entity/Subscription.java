@@ -57,6 +57,10 @@ public class Subscription extends BaseEntity {
     @Builder.Default
     private BigDecimal yearlyPrice = BigDecimal.ZERO;
 
+    /** Official current price per seat from the master catalog (used for ±15% listing validation). */
+    @Column(name = "current_price")
+    private BigDecimal currentPrice;
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean active = true;

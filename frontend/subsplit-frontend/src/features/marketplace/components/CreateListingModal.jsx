@@ -5,6 +5,7 @@ import { Check, ChevronLeft, ChevronRight, X, Layers, ShieldAlert } from 'lucide
 import { useNavigate } from 'react-router-dom';
 
 import { createNewListing, fetchMyListings } from '../marketplaceSlice';
+import { validatePrice } from '../utils/pricingHelpers';
 
 import Step1Product from './wizard/Step1Product';
 import Step2Plan from './wizard/Step2Plan';
@@ -95,6 +96,7 @@ function CreateListingModal({ open, onClose }) {
       case 1: {
         const used = parseInt(plan.seatsUsed, 10);
         const max = parseInt(plan.maxMembers, 10);
+        const hardMax = selectedProduct?.maxCapacity || 10;
 
         let isFutureDate = false;
         if (plan.renewalDate !== '') {
@@ -108,15 +110,20 @@ function CreateListingModal({ open, onClose }) {
           isFutureDate &&
           !isNaN(used) &&
           !isNaN(max) &&
-          max > 1 &&
+          max >= 2 &&
+          max <= hardMax &&
           used >= 1 &&
           selectedProduct &&
           used < max
         );
       }
 
-      case 2:
-        return parseFloat(price) > 0;
+      case 2: {
+        const p = parseFloat(price);
+        if (!p || p <= 0) return false;
+        const { valid } = validatePrice(p, selectedProduct);
+        return valid;
+      }
 
       case 3:
         return Object.values(uploadStates).some((s) => s === 'verified');

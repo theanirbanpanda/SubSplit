@@ -1,8 +1,9 @@
 import React from 'react';
-import { Zap } from 'lucide-react';
+import { Zap, AlertTriangle, CheckCircle } from 'lucide-react';
 import {
   getRecommendedPrice,
-  computeFeeBreakdown,
+  getPriceRange,
+  validatePrice,
   getPriceCompetitiveness,
 } from '../../utils/pricingHelpers';
 import styles from './CreateListingWizard.module.scss';
@@ -16,8 +17,9 @@ import styles from './CreateListingWizard.module.scss';
  */
 function Step3Pricing({ product, price, onChange }) {
   const recommended = getRecommendedPrice(product);
+  const { min: minPrice, max: maxPrice, current: currentPrice } = getPriceRange(product);
   const priceNum = parseFloat(price) || 0;
-  const { fee, earnings } = computeFeeBreakdown(priceNum);
+  const { valid: priceValid, message: priceError } = validatePrice(priceNum, product);
   const { label: compLabel, level: compLevel, markerPct } = getPriceCompetitiveness(priceNum, recommended);
 
   const handleUseRecommended = () => {
@@ -28,7 +30,7 @@ function Step3Pricing({ product, price, onChange }) {
     <div>
       <h2 className={styles.stepHeading}>Set Your Price</h2>
       <p className={styles.stepDescription}>
-        Choose how much members will pay per seat per month. Platform takes a 5% fee.
+        Choose how much members will pay per seat per month. Price must be within ±15% of the official current price.
       </p>
 
       {/* Recommended Price Callout */}
@@ -39,6 +41,9 @@ function Step3Pricing({ product, price, onChange }) {
             Recommended Price
           </div>
           <div className={styles.recommendedAmount}>₹{recommended}/month</div>
+          <div style={{ fontSize: '0.7rem', color: '#71717A', marginTop: 2 }}>
+            Based on official price ₹{currentPrice} + 5%
+          </div>
         </div>
         <button
           className={styles.useThisBtn}
@@ -50,13 +55,16 @@ function Step3Pricing({ product, price, onChange }) {
       </div>
 
       {/* Price Input */}
-      <div className={styles.priceInputWrapper}>
+      <div
+        className={styles.priceInputWrapper}
+        data-error={priceNum > 0 && !priceValid ? 'true' : 'false'}
+      >
         <span className={styles.currencyPrefix}>₹</span>
         <input
           className={styles.priceInput}
           type="number"
-          min={1}
-          max={50000}
+          min={minPrice}
+          max={maxPrice}
           placeholder="0"
           value={price}
           onChange={(e) => onChange(e.target.value)}
@@ -64,24 +72,39 @@ function Step3Pricing({ product, price, onChange }) {
         />
       </div>
 
-      {/* Fee Breakdown */}
-      <div className={styles.feeBreakdown}>
+      {/* Price Bounds Info */}
+      <div className={styles.priceBoundsInfo}>
+        <span>Min: ₹{minPrice}</span>
+        <span style={{ color: '#71717A' }}>Official price: ₹{currentPrice}</span>
+        <span>Max: ₹{maxPrice}</span>
+      </div>
+
+      {/* Validation Message */}
+      {priceNum > 0 && priceError && (
+        <div className={styles.priceValidationMsg} data-type="error">
+          <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+          <span>{priceError}</span>
+        </div>
+      )}
+      {priceNum > 0 && priceValid && (
+        <div className={styles.priceValidationMsg} data-type="success">
+          <CheckCircle size={14} style={{ flexShrink: 0 }} />
+          <span>Price is within the allowed range (±15% of ₹{currentPrice}).</span>
+        </div>
+      )}
+
+      {/* Earnings Breakdown */}
+      <div className={styles.feeBreakdown} style={{ marginTop: 16 }}>
         <div className={styles.feeRow}>
           <span className={styles.feeRowLabel}>Seat Price</span>
           <span className={styles.feeRowValue}>₹{priceNum > 0 ? priceNum.toFixed(2) : '—'}</span>
-        </div>
-        <div className={styles.feeRow}>
-          <span className={styles.feeRowLabel}>Platform Fee (5%)</span>
-          <span className={styles.feeRowValue} data-type="fee">
-            {priceNum > 0 ? `−₹${fee.toFixed(2)}` : '—'}
-          </span>
         </div>
         <div className={styles.feeRow} data-highlight="true">
           <span className={styles.feeRowLabel} style={{ fontWeight: 800, color: '#f3f4f6' }}>
             Your Earnings
           </span>
           <span className={styles.feeRowValue} data-type="earnings">
-            {priceNum > 0 ? `₹${earnings.toFixed(2)}/mo` : '—'}
+            {priceNum > 0 ? `₹${priceNum.toFixed(2)}/mo` : '—'}
           </span>
         </div>
       </div>

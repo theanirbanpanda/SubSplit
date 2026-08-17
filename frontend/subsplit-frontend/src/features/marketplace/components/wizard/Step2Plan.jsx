@@ -1,22 +1,28 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Mail, Users, Calendar, AlertCircle } from 'lucide-react';
 import styles from './CreateListingWizard.module.scss';
 
 /**
- * Step 2 — Plan Details
+ * Step 2 \u2014 Plan Details
  * Props:
- *   product: object — selected catalog product (from Step 1)
+ *   product: object \u2014 selected catalog product (from Step 1)
  *   plan: {
  *     seatsUsed: number,
+ *     maxMembers: string,
  *     renewalDate: string,   // ISO date "YYYY-MM-DD"
  *     billingCycle: 'MONTHLY' | 'YEARLY',
  *   }
  *   onChange: (patch) => void
  */
 function Step2Plan({ product, plan, onChange }) {
-  const { name, category, accessMethod, brandColor, initials } = product;
+  const { name, category, accessMethod, brandColor, initials, maxCapacity } = product;
   const isEmail = accessMethod === 'Invite via Email';
   const tileBg = `${brandColor}28`;
+
+  // Track which fields have been interacted with (touched)
+  const [touched, setTouched] = useState({ maxMembers: false, seatsUsed: false });
+
+  const markTouched = (field) => setTouched((prev) => ({ ...prev, [field]: true }));
 
   const seatsUsedNum = parseInt(plan.seatsUsed, 10) || 0;
   const maxMembersNum = parseInt(plan.maxMembers, 10) || 0;
@@ -38,12 +44,18 @@ function Step2Plan({ product, plan, onChange }) {
     return { daysRemaining: days, progressPct: pct };
   }, [plan.renewalDate]);
 
-  // ── Validation hints (visual only — actual gating is in parent) ─────────────
-  const isMaxEmpty = !plan.maxMembers || String(plan.maxMembers).trim() === '' || String(plan.maxMembers) === 'undefined' || String(plan.maxMembers) === 'null';
-  const maxMembersError = !isMaxEmpty && maxMembersNum < 2;
+  // ── Validation hints (visual only \u2014 actual gating is in parent) ─────────────
+  // maxCapacity from the Excel master catalog (product-level hard limit)
+  const hardMax = maxCapacity || 10;
 
-  const isSeatsEmpty = !plan.seatsUsed || String(plan.seatsUsed).trim() === '' || String(plan.seatsUsed) === 'undefined' || String(plan.seatsUsed) === 'null';
-  const seatsError = !isSeatsEmpty && (seatsUsedNum < 1 || seatsUsedNum >= maxMembersNum);
+  const isMaxEmpty = !plan.maxMembers || String(plan.maxMembers).trim() === '';
+  const maxMembersError = !isMaxEmpty && touched.maxMembers && (maxMembersNum < 2 || maxMembersNum > hardMax);
+  const maxMembersErrorMsg = maxMembersNum < 2
+    ? 'Must be at least 2'
+    : `Cannot exceed ${hardMax} (plan limit)`;
+
+  const isSeatsEmpty = !plan.seatsUsed || String(plan.seatsUsed).trim() === '';
+  const seatsError = !isSeatsEmpty && touched.seatsUsed && (seatsUsedNum < 1 || seatsUsedNum >= maxMembersNum);
 
   // ── Max Renewal Date ────────────────────────────────────────────────────────
   const maxRenewalDate = useMemo(() => {
@@ -60,7 +72,7 @@ function Step2Plan({ product, plan, onChange }) {
     <div>
       <h2 className={styles.stepHeading}>Plan Details</h2>
       <p className={styles.stepDescription}>
-        These details come from the product you selected — you only need to fill in your specific
+        These details come from the product you selected \u2014 you only need to fill in your specific
         plan.
       </p>
 
@@ -75,7 +87,7 @@ function Step2Plan({ product, plan, onChange }) {
         <div className={styles.productSummaryInfo}>
           <div className={styles.productSummaryName}>{name}</div>
           <div className={styles.productSummaryMeta}>
-            {category} · {accessMethod}
+            {category} \u00b7 {accessMethod}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -92,14 +104,19 @@ function Step2Plan({ product, plan, onChange }) {
         <div className={styles.formGroup} style={{ marginBottom: 0 }}>
           <label className={styles.formLabel} htmlFor="wizard-max-members">
             Maximum Members
+            <span style={{ color: '#71717A', fontWeight: 500, fontSize: '0.72rem', marginLeft: 6 }}>
+              (max {hardMax})
+            </span>
           </label>
           <input
             id="wizard-max-members"
             type="number"
             min={2}
+            max={hardMax}
             className={styles.formInput}
             value={plan.maxMembers}
             onChange={(e) => onChange({ maxMembers: e.target.value })}
+            onBlur={() => markTouched('maxMembers')}
             placeholder="e.g. 5"
             style={maxMembersError ? { borderColor: '#EF4444' } : {}}
           />
@@ -107,7 +124,7 @@ function Step2Plan({ product, plan, onChange }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
               <AlertCircle size={12} color="#EF4444" />
               <span style={{ fontSize: '0.72rem', color: '#EF4444', fontWeight: 600 }}>
-                Must be at least 2
+                {maxMembersErrorMsg}
               </span>
             </div>
           )}
@@ -125,6 +142,7 @@ function Step2Plan({ product, plan, onChange }) {
             className={styles.formInput}
             value={plan.seatsUsed}
             onChange={(e) => onChange({ seatsUsed: e.target.value })}
+            onBlur={() => markTouched('seatsUsed')}
             placeholder="1"
             style={seatsError ? { borderColor: '#EF4444' } : {}}
           />
@@ -145,7 +163,7 @@ function Step2Plan({ product, plan, onChange }) {
           <input
             type="text"
             className={styles.formInput}
-            value={availableSeats >= 0 ? availableSeats : '—'}
+            value={availableSeats >= 0 ? availableSeats : '\u2014'}
             readOnly
             style={{ 
               color: availableSeats > 0 ? '#22C55E' : '#EF4444', 
@@ -192,6 +210,12 @@ function Step2Plan({ product, plan, onChange }) {
           className={styles.formInput}
           value={plan.renewalDate}
           onChange={(e) => onChange({ renewalDate: e.target.value })}
+          onClick={(e) => {
+            if (typeof e.target.showPicker === 'function') {
+              try { e.target.showPicker(); } catch (err) {}
+            }
+          }}
+          onKeyDown={(e) => e.preventDefault()}
           min={new Date().toISOString().split('T')[0]}
           max={maxRenewalDate}
         />
@@ -225,3 +249,5 @@ function Step2Plan({ product, plan, onChange }) {
 }
 
 export default Step2Plan;
+
+

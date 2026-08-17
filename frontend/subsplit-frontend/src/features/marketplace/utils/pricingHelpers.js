@@ -3,40 +3,78 @@
  * ----------------------------------------
  * getRecommendedPrice is intentionally isolated behind this single function.
  * When a real pricing engine / backend endpoint is available, replace the
- * body of getRecommendedPrice with a real API call or Redux selector lookup —
- * no other file needs to change.
- *
- * TODO: Wire to real pricing API when available.
+ * body of getRecommendedPrice with a real API call or Redux selector lookup.
  */
 
 /**
  * Returns the recommended seat price for a catalog product.
- * Currently returns the product's static recommendedPrice field from the mock catalog.
+ * Recommended price = currentPrice × 1.05 (5% above the official current price).
  *
  * @param {object} product - Catalog product object (from MOCK_CATALOG)
  * @returns {number} Recommended price in ₹
  */
 export function getRecommendedPrice(product) {
-  // TODO: Replace with real pricing engine call, e.g.:
-  // const response = await api.get(`/pricing/recommend?productId=${product.id}`);
-  // return response.data.recommendedPrice;
-  return product?.recommendedPrice ?? 149;
+  const currentPrice = product?.currentPrice ?? product?.recommendedPrice ?? 149;
+  return Math.round(currentPrice * 1.05);
 }
 
 /**
- * Returns the platform fee percentage (currently 5%).
- * Isolated here so it's a one-line change if the fee structure changes.
+ * Returns the official current price for a catalog product (from master catalog).
+ * This is the anchor for the ±15% listing price validation.
+ *
+ * @param {object} product - Catalog product object
+ * @returns {number} Current price in ₹
  */
-export const PLATFORM_FEE_PERCENT = 5;
+export function getCurrentPrice(product) {
+  return product?.currentPrice ?? product?.recommendedPrice ?? 149;
+}
 
 /**
- * Computes fee and earnings from a given price.
+ * Returns the allowed price range for listing (±15% from currentPrice).
+ * @param {object} product - Catalog product object
+ * @returns {{ min: number, max: number, current: number }}
+ */
+export function getPriceRange(product) {
+  const current = getCurrentPrice(product);
+  const min = Math.floor(current * 0.85);
+  const max = Math.ceil(current * 1.15);
+  return { min, max, current };
+}
+
+/**
+ * Validates a listing price against the ±15% constraint.
+ * @param {number} price - Entered price
+ * @param {object} product - Catalog product
+ * @returns {{ valid: boolean, message: string | null }}
+ */
+export function validatePrice(price, product) {
+  if (!price || price <= 0) return { valid: false, message: null };
+  const { min, max, current } = getPriceRange(product);
+  if (price < min) {
+    return {
+      valid: false,
+      message: `Price is too low. Minimum allowed is ₹${min} (−15% of official price ₹${current}).`,
+    };
+  }
+  if (price > max) {
+    return {
+      valid: false,
+      message: `Price is too high. Maximum allowed is ₹${max} (+15% of official price ₹${current}).`,
+    };
+  }
+  return { valid: true, message: null };
+}
+
+/**
+ * Computes earnings from a given price.
+ * Platform fee has been removed — host keeps 100% of the seat price.
  * @param {number} price - Seat price in ₹
  * @returns {{ fee: number, earnings: number }}
  */
 export function computeFeeBreakdown(price) {
-  const fee = Math.round((price * PLATFORM_FEE_PERCENT) / 100 * 100) / 100;
-  const earnings = Math.round((price - fee) * 100) / 100;
+  // Platform fee removed — host keeps 100% of the seat price
+  const fee = 0;
+  const earnings = price;
   return { fee, earnings };
 }
 
@@ -46,7 +84,7 @@ export function computeFeeBreakdown(price) {
  * and a 0–100 marker position for the gradient bar.
  *
  * @param {number} price - Entered price
- * @param {number} recommended - Recommended price
+ * @param {number} recommended - Recommended price (currentPrice × 1.05)
  * @returns {{ label: string, level: 'excellent'|'good'|'high', markerPct: number }}
  */
 export function getPriceCompetitiveness(price, recommended) {
