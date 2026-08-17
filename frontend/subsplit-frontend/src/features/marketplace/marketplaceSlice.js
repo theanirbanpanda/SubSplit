@@ -19,6 +19,9 @@ import {
   acceptJoinRequestApi,
   submitProofAndSettleApi,
   rejectJoinRequestApi,
+  deleteListingApi,
+  updateListingApi,
+  renewListingApi,
 } from './api/marketplaceApi';
 
 import { normalizeListing } from './utils/normalizeListing';
@@ -84,7 +87,29 @@ export const rejectJoinRequest = createAsyncThunk(
 );
 
 
+export const updateListing = createAsyncThunk(
+  'marketplace/updateListing',
+  async ({ id, listingData }, { rejectWithValue }) => {
+    try {
+      const response = await updateListingApi(id, listingData);
+      return normalizeListing(response.data);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update listing');
+    }
+  }
+);
 
+export const renewListing = createAsyncThunk(
+  'marketplace/renewListing',
+  async ({ id, renewalData }, { rejectWithValue }) => {
+    try {
+      const response = await renewListingApi(id, renewalData);
+      return normalizeListing(response.data);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to renew listing');
+    }
+  }
+);
 
 
 export const fetchMarketplaceListings = createAsyncThunk(
@@ -172,6 +197,18 @@ export const fetchMyListings = createAsyncThunk(
       return raw.map(normalizeListing).filter(Boolean);
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch user listings');
+    }
+  }
+);
+
+export const deleteListing = createAsyncThunk(
+  'marketplace/deleteListing',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await deleteListingApi(id);
+      return id; // return id so reducer knows which one to remove
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete listing');
     }
   }
 );
@@ -361,6 +398,21 @@ const marketplaceSlice = createSlice({
       // fetchMyListings
       .addCase(fetchMyListings.fulfilled, (state, action) => {
         state.myListings = action.payload;
+      })
+      // deleteListing
+      .addCase(deleteListing.fulfilled, (state, action) => {
+        state.myListings = state.myListings.filter(l => l.id !== action.payload);
+        state.listings = state.listings.filter(l => l.id !== action.payload);
+      })
+      // updateListing
+      .addCase(updateListing.fulfilled, (state, action) => {
+        const updated = action.payload;
+        state.myListings = state.myListings.map(l => l.id === updated.id ? updated : l);
+      })
+      // renewListing
+      .addCase(renewListing.fulfilled, (state, action) => {
+        const updated = action.payload;
+        state.myListings = state.myListings.map(l => l.id === updated.id ? updated : l);
       })
       // fetchSimilarListings
       .addCase(fetchSimilarListings.fulfilled, (state, action) => {

@@ -111,6 +111,7 @@ export const normalizeListing = (backendItem) => {
     isAiVerified: backendItem.isAiVerified ?? true,
     isEscrowProtected: backendItem.isEscrowProtected ?? true,
     isFeatured: true,
+    status: backendItem.status || 'ACTIVE',
     memberCount: (backendItem.totalSeats || 4) - (backendItem.availableSeats || 1),
     createdAt: backendItem.createdAt || new Date().toISOString(),
     iconColor: theme.color,

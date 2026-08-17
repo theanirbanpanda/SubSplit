@@ -35,7 +35,7 @@
 
 .container {
   width: $container-width;
-  max-width: $container-max;
+  max-width: 1536px; // Increased to allow spreading further apart
   margin: 0 auto;
   position: relative;
   z-index: 1;

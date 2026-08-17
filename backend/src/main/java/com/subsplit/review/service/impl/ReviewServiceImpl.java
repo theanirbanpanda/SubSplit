@@ -25,7 +25,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ListingReviewResponse getUserReviews(Long userId) {
-        List<Review> reviews = reviewRepository.findByRevieweeIdOrderByCreatedAtDesc(userId);
+        List<Review> reviews = reviewRepository.findAllUserRelatedReviewsOrderByCreatedAtDesc(userId);
 
         if (reviews.isEmpty()) {
             return ListingReviewResponse.builder()

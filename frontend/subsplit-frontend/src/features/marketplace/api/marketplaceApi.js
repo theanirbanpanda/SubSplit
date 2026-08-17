@@ -30,6 +30,11 @@ export const updateListingApi = async (id, listingData) => {
   return response.data;
 };
 
+export const renewListingApi = async (id, renewalData) => {
+  const response = await api.post(`/marketplace/listings/${id}/renew`, renewalData);
+  return response.data;
+};
+
 export const deleteListingApi = async (id) => {
   const response = await api.delete(`/marketplace/listings/${id}`);
   return response.data;

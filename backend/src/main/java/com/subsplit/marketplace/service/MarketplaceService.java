@@ -33,6 +33,7 @@ public interface MarketplaceService {
     ListingResponse createListing(User host, CreateListingRequest request);
 
     ListingResponse updateListing(User host, Long id, UpdateListingRequest request);
+    ListingResponse renewListing(User host, Long id, RenewListingRequest request);
 
     void deleteListing(User host, Long id);
 
