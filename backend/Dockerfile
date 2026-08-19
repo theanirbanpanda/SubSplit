@@ -18,7 +18,7 @@ EXPOSE 8080
 
 # Docker health check running every 10 minutes
 HEALTHCHECK --interval=10m --timeout=10s --retries=3 \
-  CMD wget -qO- https://subsplit-c0hj.onrender.com/api/v1/health || exit 1
+  CMD wget -qO- http://localhost:8080/api/v1/health || exit 1
 
 # Command to run the application
-ENTRYPOINT ["sh", "-c", "exec java -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java -XX:MaxRAMPercentage=50 -XX:InitialRAMPercentage=20 -XX:MaxMetaspaceSize=150m -XX:ReservedCodeCacheSize=64m -jar app.jar"]
