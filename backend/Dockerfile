@@ -21,4 +21,4 @@ HEALTHCHECK --interval=10m --timeout=10s --retries=3 \
   CMD wget -qO- http://localhost:8080/api/v1/health || exit 1
 
 # Command to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -jar app.jar"]
