@@ -41,7 +41,8 @@ public class SecurityConfig {
                                 "/uploads/**",
                                 "/error",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**")
+                                "/v3/api-docs/**",
+                                "/ws/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/marketplace/**",

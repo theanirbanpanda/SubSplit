@@ -17,6 +17,15 @@ import Messages from "../features/messages/Messages";
 import AdminDashboard from "../features/admin/AdminDashboard";
 import PrivateRoute from "../components/routes/PrivateRoute";
 import PublicRoute from "../components/routes/PublicRoute";
+import InfoLayout from "../components/layout/InfoLayout";
+
+import AboutUs from "../features/info/pages/AboutUs";
+import Contact from "../features/info/pages/Contact";
+import HelpCentre from "../features/info/pages/HelpCentre";
+import Safety from "../features/info/pages/Safety";
+import Terms from "../features/info/pages/Terms";
+import Privacy from "../features/info/pages/Privacy";
+import PassDetails from "../features/groups/pages/PassDetails";
 
 import { useSelector } from "react-redux";
 
@@ -57,6 +66,16 @@ export default function AppRoutes() {
           <Route path="/auth" element={<Auth />} />
         </Route>
 
+        {/* Public Informational Pages */}
+        <Route element={<InfoLayout />}>
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/help" element={<HelpCentre />} />
+          <Route path="/safety" element={<Safety />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+        </Route>
+
         {/* Protected Private Routes */}
         <Route element={<PrivateRoute />}>
           <Route path="/app" element={<MainLayout />}>
@@ -64,7 +83,9 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="marketplace/:id" element={<ListingDetails />} />
+
             <Route path="marketplace/listing/:id" element={<ListingDetails />} />
+            <Route path="pass/:id" element={<PassDetails />} />
             <Route path="groups" element={<Navigate to="/app/dashboard" replace />} />
 
             <Route path="expenses" element={<Expenses />} />

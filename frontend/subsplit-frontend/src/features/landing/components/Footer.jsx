@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Shield } from 'lucide-react';
+import { ArrowRight, Shield, CheckCircle2 } from 'lucide-react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import useLogoClick from '../../../hooks/useLogoClick';
@@ -52,6 +52,8 @@ function Footer() {
   const navigate = useNavigate();
   const handleLogoClick = useLogoClick();
   const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
+  const [errorMsg, setErrorMsg] = useState('');
   const footerRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -69,6 +71,17 @@ function Footer() {
     return () => observer.disconnect();
   }, []);
 
+  // Reset form after success
+  useEffect(() => {
+    let timeout;
+    if (status === 'success') {
+      timeout = setTimeout(() => {
+        setStatus('idle');
+      }, 2200); // Reset state just after fade out animation completes
+    }
+    return () => clearTimeout(timeout);
+  }, [status]);
+
   const handleLinkClick = (link) => {
     if (link.isRoute) {
       navigate(link.href);
@@ -80,7 +93,23 @@ function Footer() {
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
-    setEmail('');
+    
+    // Basic email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setStatus('error');
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    setStatus('submitting');
+    setErrorMsg('');
+
+    // Simulate API call
+    setTimeout(() => {
+      setStatus('success');
+      setEmail('');
+    }, 800);
   };
 
   return (
@@ -182,24 +211,88 @@ function Footer() {
             <p className={styles.newsletterDesc}>
               Get the latest deals and offers in your inbox.
             </p>
-            <form className={styles.newsletterForm} onSubmit={handleNewsletterSubmit}>
-              <input
-                type="email"
-                className={styles.newsletterInput}
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                aria-label="Email address"
-                required
-              />
-              <button
-                type="submit"
-                className={styles.newsletterBtn}
-                aria-label="Subscribe"
-              >
-                <ArrowRight size={18} />
-              </button>
-            </form>
+            <Box sx={{ mt: 2, minHeight: '56px' }}>
+              {status === 'success' ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    p: '12px 16px',
+                    borderRadius: '8px',
+                    bgcolor: 'rgba(34, 197, 94, 0.1)',
+                    border: '1px solid rgba(34, 197, 94, 0.2)',
+                    color: '#22c55e',
+                    animation: 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, popOut 0.4s ease-in 1.6s forwards',
+                    '@keyframes popIn': {
+                      from: { opacity: 0, transform: 'scale(0.95) translateY(10px)' },
+                      to: { opacity: 1, transform: 'scale(1) translateY(0)' }
+                    },
+                    '@keyframes popOut': {
+                      from: { opacity: 1, transform: 'scale(1) translateY(0)' },
+                      to: { opacity: 0, transform: 'scale(0.95) translateY(10px)' }
+                    }
+                  }}
+                >
+                  <CheckCircle2 size={20} />
+                  <Typography sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                    Thanks for subscribing! Keep an eye on your inbox.
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  <form 
+                    className={styles.newsletterForm} 
+                    onSubmit={handleNewsletterSubmit}
+                    style={{ animation: 'fadeIn 0.5s ease-out', '@keyframes fadeIn': { from: { opacity: 0 }, to: { opacity: 1 } } }}
+                  >
+                    <input
+                      type="email"
+                      className={styles.newsletterInput}
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (status === 'error') setStatus('idle');
+                      }}
+                      aria-label="Email address"
+                      disabled={status === 'submitting'}
+                      required
+                      style={{ 
+                        borderColor: status === 'error' ? '#ef4444' : undefined,
+                        opacity: status === 'submitting' ? 0.7 : 1
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      className={styles.newsletterBtn}
+                      aria-label="Subscribe"
+                      disabled={status === 'submitting'}
+                      style={{ opacity: status === 'submitting' ? 0.7 : 1 }}
+                    >
+                      {status === 'submitting' ? (
+                        <Box sx={{ 
+                          width: 18, 
+                          height: 18, 
+                          border: '2px solid rgba(255,255,255,0.3)', 
+                          borderTopColor: '#fff', 
+                          borderRadius: '50%', 
+                          animation: 'spin 1s linear infinite', 
+                          '@keyframes spin': { to: { transform: 'rotate(360deg)' } } 
+                        }} />
+                      ) : (
+                        <ArrowRight size={18} />
+                      )}
+                    </button>
+                  </form>
+                  {status === 'error' && (
+                    <Typography sx={{ color: '#ef4444', fontSize: '0.8rem', mt: 1, animation: 'fadeIn 0.2s', '@keyframes fadeIn': { from: { opacity: 0 }, to: { opacity: 1 } } }}>
+                      {errorMsg}
+                    </Typography>
+                  )}
+                </>
+              )}
+            </Box>
           </div>
         </div>
 

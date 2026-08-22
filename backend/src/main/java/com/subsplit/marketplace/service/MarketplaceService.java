@@ -65,6 +65,8 @@ public interface MarketplaceService {
 
     JoinRequestResponse submitProofAndSettle(User member, Long requestId, SubmitProofRequest proofRequest);
 
+    JoinRequestResponse cancelJoinRequest(User member, Long requestId);
+
     JoinRequestResponse rejectJoinRequest(User host, Long requestId);
     void deleteListingReview(User user, Long listingId, Long reviewId);
 }

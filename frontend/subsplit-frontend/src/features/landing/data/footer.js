@@ -11,19 +11,17 @@ export const FOOTER_COLUMNS = [
   {
     title: 'Company',
     links: [
-      { label: 'About Us', href: '#' },
-      { label: 'Blog', href: '#' },
-      { label: 'Careers', href: '#' },
-      { label: 'Contact', href: '#' },
+      { label: 'About Us', href: '/about', isRoute: true },
+      { label: 'Contact', href: '/contact', isRoute: true },
     ],
   },
   {
     title: 'Support',
     links: [
-      { label: 'Help Center', href: '#' },
-      { label: 'Safety', href: '#' },
-      { label: 'Terms of Service', href: '#' },
-      { label: 'Privacy Policy', href: '#' },
+      { label: 'Help Center', href: '/help', isRoute: true },
+      { label: 'Safety', href: '/safety', isRoute: true },
+      { label: 'Terms of Service', href: '/terms', isRoute: true },
+      { label: 'Privacy Policy', href: '/privacy', isRoute: true },
     ],
   },
 ];

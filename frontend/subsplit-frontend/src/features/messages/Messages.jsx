@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
-  Paper,
   Stack,
   Avatar,
   TextField,
@@ -12,27 +11,24 @@ import {
   Button,
   Chip,
   InputAdornment,
-  Divider,
   CircularProgress,
   Tooltip,
-  Alert,
-} from '@mui/material';
+  Badge,
+} from "@mui/material";
 import {
   MessageSquare,
   Send,
   Search,
-  ShieldAlert,
-  ShieldCheck,
   CheckCheck,
-  Clock,
-  Sparkles,
-  Info,
-  ExternalLink,
-  Users,
-  KeyRound,
-  RefreshCw,
   LockOpen,
-} from 'lucide-react';
+  Paperclip,
+  MoreVertical,
+  Phone,
+  Video,
+  Smile,
+  ShieldCheck,
+  ArrowLeft,
+} from "lucide-react";
 import {
   fetchConversations,
   fetchConversationMessages,
@@ -41,682 +37,643 @@ import {
   setActiveConversation,
   markConversationRead,
   fetchUnreadMessageCount,
-} from './messageSlice';
+  addRealtimeMessage,
+} from "./messageSlice";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 const QUICK_RESPONSES = [
-  '🔑 Credentials working smoothly, thank you!',
-  '⚠️ Could you share the verification code / OTP?',
-  '🔄 Monthly renewal payment completed via escrow.',
-  '🛡️ Please verify my slot access.',
+  "🔑 Credentials working smoothly!",
+  "⚠️ Could you share the OTP?",
+  "🔄 Monthly renewal completed.",
+  "🛡️ Please verify my slot access.",
 ];
 
-function Messages() {
+function timeAgo(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHrs = Math.floor(diffMins / 60);
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  return d.toLocaleDateString();
+}
+
+function msgTime(dateStr) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+export default function Messages() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const recipientParam = searchParams.get('recipientId');
-  const listingParam = searchParams.get('listingId');
+  const recipientParam = searchParams.get("recipientId");
+  const listingParam = searchParams.get("listingId");
 
-  const {
-    conversations,
-    activeConversation,
-    messages,
-    loading,
-    messagesLoading,
-    sending,
-  } = useSelector((state) => state.messages);
+  const { conversations, activeConversation, messages, sending } = useSelector(
+    (state) => state.messages
+  );
   const { user } = useSelector((state) => state.auth || {});
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [inputText, setInputText] = useState('');
-  const chatContainerRef = useRef(null);
-  const pollTimerRef = useRef(null);
-  const prevMessagesLengthRef = useRef(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [inputText, setInputText] = useState("");
+  const chatEndRef = useRef(null);
+  const stompClientRef = useRef(null);
+  const inputRef = useRef(null);
 
-  // Initial load & query param trigger
+  // Initial data load
   useEffect(() => {
     dispatch(fetchConversations());
     dispatch(fetchUnreadMessageCount());
+  }, [dispatch]);
 
-    if (recipientParam) {
-      dispatch(
-        startOrGetConversation({
-          recipientId: Number(recipientParam),
-          listingId: listingParam ? Number(listingParam) : null,
-        })
-      ).then((res) => {
-        if (res.payload?.id) {
-          dispatch(fetchConversationMessages(res.payload.id));
-        }
-      });
-    }
+  // Handle recipientId query param (from "Message Host" button)
+  useEffect(() => {
+    if (!recipientParam) return;
+    dispatch(
+      startOrGetConversation({
+        recipientId: Number(recipientParam),
+        listingId: listingParam ? Number(listingParam) : null,
+      })
+    ).then((res) => {
+      if (res.payload?.id) {
+        dispatch(fetchConversationMessages(res.payload.id));
+      }
+    });
   }, [recipientParam, listingParam, dispatch]);
 
-  // Polling every 5 seconds for real-time updates (without resetting loading or triggering window scroll)
+  // WebSocket Real-time
   useEffect(() => {
-    pollTimerRef.current = setInterval(() => {
-      dispatch(fetchConversations());
-      dispatch(fetchUnreadMessageCount());
-      if (activeConversation?.id) {
-        dispatch(fetchConversationMessages(activeConversation.id));
-      }
-    }, 5000);
-
-    return () => {
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-    };
-  }, [activeConversation?.id, dispatch]);
-
-  // Internal chat box scroll only when active conversation switches or new message is added
-  useEffect(() => {
-    if (activeConversation?.id) {
-      prevMessagesLengthRef.current = messages.length;
-      setTimeout(() => {
-        if (chatContainerRef.current) {
-          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
-      }, 50);
-    }
-  }, [activeConversation?.id]);
-
-  useEffect(() => {
-    if (messages.length > prevMessagesLengthRef.current) {
-      prevMessagesLengthRef.current = messages.length;
-      if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTo({
-          top: chatContainerRef.current.scrollHeight,
-          behavior: 'smooth',
+    if (!user) return;
+    const token = localStorage.getItem("token");
+    const client = new Client({
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      connectHeaders: { Authorization: `Bearer ${token}` },
+      debug: () => {},
+      onConnect: () => {
+        client.subscribe("/user/queue/messages", (frame) => {
+          if (frame.body) {
+            const newMsg = JSON.parse(frame.body);
+            dispatch(addRealtimeMessage(newMsg));
+            dispatch(fetchUnreadMessageCount());
+          }
         });
-      }
-    }
-  }, [messages.length]);
+      },
+      onStompError: (frame) => {
+        console.error("STOMP error:", frame.headers["message"]);
+      },
+    });
+    client.activate();
+    stompClientRef.current = client;
+    return () => {
+      stompClientRef.current?.deactivate();
+    };
+  }, [user, dispatch]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSelectConversation = (conv) => {
     dispatch(setActiveConversation(conv));
     dispatch(fetchConversationMessages(conv.id));
     dispatch(markConversationRead(conv.id));
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const handleSendMessage = async (e) => {
+  const handleSend = async (e) => {
     if (e) e.preventDefault();
     const text = inputText.trim();
-    if (!text || !activeConversation) return;
-
-    setInputText('');
-    await dispatch(
-      sendMessage({
-        conversationId: activeConversation.id,
-        content: text,
-      })
-    );
-    dispatch(fetchConversationMessages(activeConversation.id));
+    if (!text || !activeConversation || sending) return;
+    setInputText("");
+    await dispatch(sendMessage({ conversationId: activeConversation.id, content: text }));
+    // Refresh conversations sidebar to update last message
     dispatch(fetchConversations());
+    inputRef.current?.focus();
   };
 
-  const handleQuickResponse = (text) => {
-    setInputText(text);
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
-  const filteredConversations = conversations.filter((c) => {
+  const filtered = conversations.filter((c) => {
     const q = searchQuery.toLowerCase();
     return (
-      (c.otherUserName && c.otherUserName.toLowerCase().includes(q)) ||
-      (c.listingTitle && c.listingTitle.toLowerCase().includes(q)) ||
-      (c.lastMessage && c.lastMessage.toLowerCase().includes(q))
+      c.otherUserName?.toLowerCase().includes(q) ||
+      c.listingTitle?.toLowerCase().includes(q) ||
+      c.lastMessage?.toLowerCase().includes(q)
     );
   });
 
+  // Styles
+  const sidebarBg = "rgba(9, 9, 11, 0.97)";
+  const chatBg = "#0c0c0f";
+  const borderColor = "rgba(255,255,255,0.07)";
+
   return (
-    <Box sx={{ py: 3, px: { xs: 1.5, md: 3 }, maxWidth: 1400, mx: 'auto', minHeight: '85vh' }}>
-      {/* Top Banner: Non-E2EE Moderation & Escrow Safety Transparency */}
-      <Paper
-        elevation={0}
+    <Box
+      sx={{
+        display: "flex",
+        height: "100%",
+        width: "100%",
+        overflow: "hidden",
+        background: "#09090b",
+      }}
+    >
+      {/* ── LEFT SIDEBAR ── */}
+      <Box
         sx={{
-          p: 2,
-          mb: 3,
-          borderRadius: '16px',
-          background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.12) 0%, rgba(249, 115, 22, 0.05) 100%)',
-          border: '1px solid rgba(249, 115, 22, 0.3)',
-          display: 'flex',
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          gap: 2,
+          width: { xs: "100%", md: 340 },
+          flexShrink: 0,
+          display: { xs: activeConversation ? "none" : "flex", md: "flex" },
+          flexDirection: "column",
+          borderRight: `1px solid ${borderColor}`,
+          background: sidebarBg,
+          overflow: "hidden",
         }}
       >
-        <Box
-          sx={{
-            width: 42,
-            height: 42,
-            borderRadius: '12px',
-            background: 'rgba(249, 115, 22, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <LockOpen size={22} color="#f97316" />
-        </Box>
-
-        <Box sx={{ flex: 1 }}>
-          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-            <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#ffedd5' }}>
-              Safety Notice: Chats are NOT End-to-End Encrypted
+        {/* Sidebar Header */}
+        <Box sx={{ px: 3, pt: 3, pb: 2, borderBottom: `1px solid ${borderColor}` }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+            <Typography sx={{ fontSize: "1.3rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>
+              Messages
             </Typography>
-            <Chip
-              label="Monitored for Escrow Safety"
-              size="small"
-              sx={{
-                background: 'rgba(249, 115, 22, 0.2)',
-                color: '#fb923c',
-                fontWeight: 700,
-                fontSize: '0.72rem',
-                height: 20,
-              }}
-            />
+            <IconButton size="small" sx={{ color: "#71717a", "&:hover": { color: "#fff", background: "rgba(255,255,255,0.08)" } }}>
+              <MoreVertical size={18} />
+            </IconButton>
           </Stack>
-          <Typography sx={{ fontSize: '0.82rem', color: '#fed7aa', mt: 0.3 }}>
-            To safeguard member payments, prevent fraud, and allow SubSplit mediators to settle subscription & credential disputes, all messages are logged and monitored on platform servers. Never share banking PINs or unauthorized credentials outside escrow.
-          </Typography>
-        </Box>
-      </Paper>
 
-      {/* Main Chat Container */}
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: '24px',
-          background: '#111114',
-          border: '1px solid #2A2A30',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          height: { xs: 'auto', md: '75vh' },
-          minHeight: 600,
-        }}
-      >
-        {/* Left Sidebar: Conversations List */}
-        <Box
-          sx={{
-            width: { xs: '100%', md: 360 },
-            borderRight: { md: '1px solid #2A2A30' },
-            borderBottom: { xs: '1px solid #2A2A30', md: 'none' },
-            display: 'flex',
-            flexDirection: 'column',
-            background: '#0d0d10',
-          }}
-        >
-          {/* Sidebar Header */}
-          <Box sx={{ p: 2.5, borderBottom: '1px solid #2A2A30' }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <MessageSquare size={20} color="#3b82f6" />
-                <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#ffffff' }}>
-                  Messages
-                </Typography>
-              </Stack>
-              <Chip
-                label={`${conversations.length} Chat${conversations.length !== 1 ? 's' : ''}`}
-                size="small"
-                sx={{ background: '#1c1e24', color: '#9ca3af', fontWeight: 700, fontSize: '0.72rem' }}
-              />
-            </Stack>
-
-            {/* Search Input */}
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search size={16} color="#71717a" />
-                  </InputAdornment>
-                ),
-                sx: {
-                  borderRadius: '12px',
-                  background: '#16161a',
-                  color: '#ffffff',
-                  fontSize: '0.85rem',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A30' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#3b82f6' },
-                },
-              }}
-            />
-          </Box>
-
-          {/* Conversations Scrollable List */}
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5 }}>
-            {filteredConversations.length === 0 ? (
-              <Box sx={{ py: 6, px: 2, textAlign: 'center' }}>
-                <MessageSquare size={32} color="#52525b" style={{ margin: '0 auto 8px' }} />
-                <Typography sx={{ fontSize: '0.88rem', color: '#a1a1aa', fontWeight: 600 }}>
-                  No conversations yet
-                </Typography>
-                <Typography sx={{ fontSize: '0.78rem', color: '#71717a', mt: 0.5 }}>
-                  Click "Chat with Host" on any group listing to start a conversation.
-                </Typography>
-              </Box>
-            ) : (
-              filteredConversations.map((conv) => {
-                const isSelected = activeConversation?.id === conv.id;
-                const hasUnread = conv.unreadCount > 0;
-
-                return (
-                  <Box
-                    key={conv.id}
-                    onClick={() => handleSelectConversation(conv)}
-                    sx={{
-                      p: 1.75,
-                      mb: 1,
-                      borderRadius: '16px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      background: isSelected
-                        ? 'linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(29,78,216,0.12) 100%)'
-                        : '#141417',
-                      border: isSelected ? '1px solid #3b82f6' : '1px solid #222227',
-                      '&:hover': {
-                        background: isSelected ? undefined : '#1a1a1f',
-                        borderColor: isSelected ? undefined : '#33333d',
-                      },
-                    }}
-                  >
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Avatar
-                        src={conv.otherUserAvatar}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                          fontWeight: 800,
-                          fontSize: '0.92rem',
-                          color: '#ffffff',
-                          border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
-                        }}
-                      >
-                        {conv.otherUserInitials || 'M'}
-                      </Avatar>
-
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={0.2}>
-                          <Typography
-                            noWrap
-                            sx={{
-                              fontWeight: hasUnread ? 900 : 700,
-                              fontSize: '0.92rem',
-                              color: isSelected ? '#ffffff' : '#f3f4f6',
-                            }}
-                          >
-                            {conv.otherUserName}
-                          </Typography>
-                          {hasUnread && (
-                            <Chip
-                              label={conv.unreadCount}
-                              size="small"
-                              sx={{
-                                height: 18,
-                                minWidth: 18,
-                                fontSize: '0.68rem',
-                                fontWeight: 800,
-                                background: '#3b82f6',
-                                color: '#ffffff',
-                              }}
-                            />
-                          )}
-                        </Stack>
-
-                        <Typography
-                          noWrap
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: '#38bdf8',
-                            fontWeight: 600,
-                            mb: 0.2,
-                          }}
-                        >
-                          {conv.listingTitle || 'Direct Support Chat'}
-                        </Typography>
-
-                        <Typography
-                          noWrap
-                          sx={{
-                            fontSize: '0.78rem',
-                            color: hasUnread ? '#e4e4e7' : '#71717a',
-                            fontWeight: hasUnread ? 700 : 500,
-                          }}
-                        >
-                          {conv.lastMessage || 'Conversation started'}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Box>
-                );
-              })
-            )}
-          </Box>
+          {/* Search */}
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={16} color="#52525b" />
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.04)",
+                "& fieldset": { border: "1px solid rgba(255,255,255,0.08)" },
+                "&:hover fieldset": { borderColor: "rgba(255,255,255,0.16) !important" },
+                "&.Mui-focused fieldset": { borderColor: "#3b82f6 !important" },
+                input: { color: "#e4e4e7", fontSize: "0.9rem", py: "9px" },
+              },
+            }}
+          />
         </Box>
 
-        {/* Right Area: Active Chat Window */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#111114' }}>
-          {activeConversation ? (
-            <>
-              {/* Chat Window Header */}
-              <Box
-                sx={{
-                  p: 2.2,
-                  borderBottom: '1px solid #2A2A30',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: '#141418',
-                }}
-              >
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Avatar
-                    src={activeConversation.otherUserAvatar}
-                    sx={{
-                      width: 44,
-                      height: 44,
-                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                      fontWeight: 800,
-                      color: '#ffffff',
-                    }}
-                  >
-                    {activeConversation.otherUserInitials || 'M'}
-                  </Avatar>
-                  <Box>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#ffffff' }}>
-                        {activeConversation.otherUserName}
-                      </Typography>
-                      <Chip
-                        icon={<ShieldCheck size={11} color="#22c55e" />}
-                        label="Verified"
-                        size="small"
-                        sx={{
-                          height: 18,
-                          fontSize: '0.65rem',
-                          fontWeight: 700,
-                          background: 'rgba(34,197,94,0.12)',
-                          color: '#22c55e',
-                        }}
-                      />
-                    </Stack>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#a1a1aa' }}>
-                      Re: {activeConversation.listingTitle || 'Group Support & Credentials'}
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                {/* Transparency Tag */}
-                <Tooltip title="This conversation is recorded on SubSplit servers to protect member escrow funds and resolve disputes. It is NOT end-to-end encrypted.">
-                  <Chip
-                    icon={<LockOpen size={12} color="#f97316" />}
-                    label="Not E2EE • Moderated"
-                    size="small"
-                    sx={{
-                      background: 'rgba(249, 115, 22, 0.12)',
-                      color: '#fb923c',
-                      fontWeight: 800,
-                      border: '1px solid rgba(249, 115, 22, 0.3)',
-                      fontSize: '0.72rem',
-                    }}
-                  />
-                </Tooltip>
-              </Box>
-
-              {/* Chat Message Stream */}
-              <Box
-                ref={chatContainerRef}
-                sx={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  p: { xs: 2, md: 3 },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  background: '#0e0e11',
-                }}
-              >
-                {/* Embedded Escrow Notice */}
+        {/* Conversation List */}
+        <Box sx={{ flex: 1, overflowY: "auto", py: 1, "&::-webkit-scrollbar": { width: 3 }, "&::-webkit-scrollbar-thumb": { background: "rgba(255,255,255,0.08)", borderRadius: 4 } }}>
+          {filtered.length === 0 ? (
+            <Box sx={{ py: 10, textAlign: "center" }}>
+              <MessageSquare size={40} color="#3f3f46" strokeWidth={1} style={{ margin: "0 auto 12px" }} />
+              <Typography sx={{ fontSize: "0.9rem", color: "#52525b" }}>No conversations yet</Typography>
+            </Box>
+          ) : (
+            filtered.map((conv) => {
+              const active = activeConversation?.id === conv.id;
+              const unread = conv.unreadCount > 0;
+              return (
                 <Box
+                  key={conv.id}
+                  onClick={() => handleSelectConversation(conv)}
                   sx={{
-                    p: 1.5,
-                    borderRadius: '12px',
-                    background: 'rgba(39, 39, 42, 0.4)',
-                    border: '1px dashed #3f3f46',
-                    textAlign: 'center',
-                    maxWidth: 540,
-                    mx: 'auto',
+                    mx: 1.5,
+                    mb: 0.5,
+                    px: 2,
+                    py: 1.5,
+                    borderRadius: "14px",
+                    cursor: "pointer",
+                    background: active ? "rgba(59,130,246,0.12)" : "transparent",
+                    border: "1px solid",
+                    borderColor: active ? "rgba(59,130,246,0.25)" : "transparent",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      background: active ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.04)",
+                      borderColor: active ? "rgba(59,130,246,0.3)" : "rgba(255,255,255,0.06)",
+                    },
                   }}
                 >
-                  <Typography sx={{ fontSize: '0.74rem', color: '#a1a1aa' }}>
-                    🛡️ <strong style={{ color: '#ffffff' }}>Escrow Protection Active:</strong> For your security, all messages regarding credentials and renewals in this group are logged for fraud protection.
-                  </Typography>
-                </Box>
-
-                {messages.length === 0 ? (
-                  <Box sx={{ py: 6, textAlign: 'center' }}>
-                    <MessageSquare size={36} color="#52525b" style={{ margin: '0 auto 8px' }} />
-                    <Typography sx={{ fontSize: '0.9rem', color: '#e4e4e7', fontWeight: 700 }}>
-                      Say hello to {activeConversation.otherUserName}!
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.78rem', color: '#71717a', mt: 0.5 }}>
-                      Ask for login credentials, renewal schedules, or slot assistance.
-                    </Typography>
-                  </Box>
-                ) : (
-                  messages.map((msg) => {
-                    const isMine = msg.isMine;
-                    const timeStr = msg.createdAt
-                      ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      : '';
-
-                    return (
-                      <Box
-                        key={msg.id}
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Badge
+                      color="success"
+                      variant="dot"
+                      overlap="circular"
+                      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                      invisible={!active}
+                      sx={{ "& .MuiBadge-badge": { width: 9, height: 9, border: "2px solid #09090b" } }}
+                    >
+                      <Avatar
+                        src={conv.otherUserAvatar || ""}
                         sx={{
-                          display: 'flex',
-                          justifyContent: isMine ? 'flex-end' : 'flex-start',
+                          width: 46,
+                          height: 46,
+                          fontSize: "0.95rem",
+                          fontWeight: 800,
+                          background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                          outline: active ? "2px solid #3b82f6" : "none",
+                          outlineOffset: 2,
                         }}
                       >
-                        <Box
-                          sx={{
-                            maxWidth: { xs: '85%', md: '65%' },
-                            p: 2,
-                            borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                            background: isMine
-                              ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
-                              : '#18181b',
-                            border: isMine ? 'none' : '1px solid #27272a',
-                            color: '#ffffff',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                          }}
-                        >
-                          {!isMine && (
-                            <Typography sx={{ fontSize: '0.72rem', color: '#60a5fa', fontWeight: 800, mb: 0.4 }}>
-                              {msg.senderName}
-                            </Typography>
-                          )}
-                          <Typography sx={{ fontSize: '0.9rem', lineHeight: 1.5, wordBreak: 'break-word' }}>
-                            {msg.content}
-                          </Typography>
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            justifyContent="flex-end"
-                            spacing={0.5}
-                            mt={0.8}
-                          >
-                            <Typography sx={{ fontSize: '0.68rem', color: isMine ? 'rgba(255,255,255,0.7)' : '#71717a' }}>
-                              {timeStr}
-                            </Typography>
-                            {isMine && <CheckCheck size={13} color="rgba(255,255,255,0.9)" />}
-                          </Stack>
-                        </Box>
-                      </Box>
-                    );
-                  })
-                )}
-              </Box>
+                        {conv.otherUserInitials || "?"}
+                      </Avatar>
+                    </Badge>
 
-              {/* Quick Response Chips */}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography
+                          noWrap
+                          sx={{ fontWeight: unread ? 800 : 600, fontSize: "0.92rem", color: active ? "#fff" : "#e4e4e7" }}
+                        >
+                          {conv.otherUserName || "Member"}
+                        </Typography>
+                        <Typography sx={{ fontSize: "0.7rem", color: unread ? "#60a5fa" : "#52525b", flexShrink: 0, ml: 1 }}>
+                          {timeAgo(conv.lastMessageAt)}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" mt={0.3}>
+                        <Typography
+                          noWrap
+                          sx={{ fontSize: "0.82rem", color: unread ? "#a1a1aa" : "#52525b", fontWeight: unread ? 600 : 400, flex: 1 }}
+                        >
+                          {conv.lastMessage || "Tap to start chatting"}
+                        </Typography>
+                        {unread && (
+                          <Box
+                            sx={{
+                              ml: 1,
+                              width: 20,
+                              height: 20,
+                              borderRadius: "50%",
+                              background: "#3b82f6",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Typography sx={{ fontSize: "0.65rem", fontWeight: 800, color: "#fff" }}>
+                              {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </Box>
+              );
+            })
+          )}
+        </Box>
+      </Box>
+
+      {/* ── RIGHT CHAT PANEL ── */}
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: { xs: activeConversation ? "flex" : "none", md: "flex" },
+          flexDirection: "column",
+          overflow: "hidden",
+          background: chatBg,
+        }}
+      >
+        {activeConversation ? (
+          <>
+            {/* Chat Header */}
+            <Box
+              sx={{
+                px: 3,
+                py: 1.8,
+                borderBottom: `1px solid ${borderColor}`,
+                background: "rgba(12,12,15,0.95)",
+                backdropFilter: "blur(10px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexShrink: 0,
+              }}
+            >
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                {/* Mobile back */}
+                <IconButton
+                  onClick={() => dispatch(setActiveConversation(null))}
+                  sx={{ display: { xs: "flex", md: "none" }, color: "#a1a1aa", p: 0.5 }}
+                >
+                  <ArrowLeft size={22} />
+                </IconButton>
+
+                <Avatar
+                  src={activeConversation.otherUserAvatar || ""}
+                  sx={{ width: 44, height: 44, fontWeight: 800, background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", fontSize: "0.95rem" }}
+                >
+                  {activeConversation.otherUserInitials || "?"}
+                </Avatar>
+
+                <Box>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: "#fff" }}>
+                      {activeConversation.otherUserName}
+                    </Typography>
+                    <Chip
+                      icon={<ShieldCheck size={11} color="#10b981" />}
+                      label="Verified"
+                      size="small"
+                      sx={{ height: 18, fontSize: "0.68rem", fontWeight: 700, background: "rgba(16,185,129,0.1)", color: "#10b981", "& .MuiChip-label": { px: "6px" } }}
+                    />
+                  </Stack>
+                  <Typography sx={{ fontSize: "0.76rem", color: "#71717a" }}>
+                    Re:{" "}
+                    <span style={{ color: "#60a5fa" }}>
+                      {activeConversation.listingTitle || "Direct Chat"}
+                    </span>
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Stack direction="row" spacing={0.5}>
+                <IconButton size="small" sx={{ color: "#52525b", "&:hover": { color: "#60a5fa", background: "rgba(59,130,246,0.1)" } }}>
+                  <Phone size={18} />
+                </IconButton>
+                <IconButton size="small" sx={{ color: "#52525b", "&:hover": { color: "#60a5fa", background: "rgba(59,130,246,0.1)" } }}>
+                  <Video size={18} />
+                </IconButton>
+                <Tooltip title="Chats are moderated for escrow safety. Not end-to-end encrypted." placement="bottom">
+                  <IconButton size="small" sx={{ color: "#f59e0b", background: "rgba(245,158,11,0.08)", "&:hover": { background: "rgba(245,158,11,0.15)" } }}>
+                    <LockOpen size={18} />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Box>
+
+            {/* Message Stream */}
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: "auto",
+                px: { xs: 2, md: 4 },
+                py: 3,
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                "&::-webkit-scrollbar": { width: 4 },
+                "&::-webkit-scrollbar-thumb": { background: "rgba(255,255,255,0.08)", borderRadius: 4 },
+              }}
+            >
+              {/* Safety notice */}
               <Box
                 sx={{
-                  px: 2,
-                  py: 1,
-                  background: '#141418',
-                  borderTop: '1px solid #222228',
-                  overflowX: 'auto',
-                  display: 'flex',
-                  gap: 1,
+                  mx: "auto",
+                  mb: 2,
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: "12px",
+                  background: "rgba(245,158,11,0.06)",
+                  border: "1px dashed rgba(245,158,11,0.25)",
+                  textAlign: "center",
+                  maxWidth: 480,
                 }}
               >
-                {QUICK_RESPONSES.map((resp, idx) => (
+                <Typography sx={{ fontSize: "0.78rem", color: "#a16207", fontWeight: 600 }}>
+                  🛡️ Escrow protected · Monitored for fraud prevention
+                </Typography>
+              </Box>
+
+              {messages.length === 0 ? (
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 8 }}>
+                  <MessageSquare size={48} color="#27272a" strokeWidth={1} style={{ marginBottom: 16 }} />
+                  <Typography sx={{ color: "#52525b", fontSize: "0.95rem" }}>
+                    No messages yet — say hello!
+                  </Typography>
+                </Box>
+              ) : (
+                messages.map((msg, idx) => {
+                  const mine = msg.isMine;
+                  const prevMine = messages[idx - 1]?.isMine;
+                  const nextMine = messages[idx + 1]?.isMine;
+                  const isFirst = prevMine !== mine;
+                  const isLast = nextMine !== mine;
+
+                  // WhatsApp-style grouped border radius
+                  let br;
+                  if (mine) {
+                    br = `18px ${isFirst ? "18px" : "5px"} ${isLast ? "18px" : "5px"} 18px`;
+                  } else {
+                    br = `${isFirst ? "18px" : "5px"} 18px 18px ${isLast ? "18px" : "5px"}`;
+                  }
+
+                  return (
+                    <Box
+                      key={msg.id}
+                      sx={{
+                        display: "flex",
+                        justifyContent: mine ? "flex-end" : "flex-start",
+                        mt: isFirst ? 1.5 : 0.25,
+                      }}
+                    >
+                      {/* Avatar for received messages (only show on last in group) */}
+                      {!mine && (
+                        <Avatar
+                          src={activeConversation.otherUserAvatar || ""}
+                          sx={{
+                            width: 28,
+                            height: 28,
+                            fontSize: "0.65rem",
+                            fontWeight: 800,
+                            background: "linear-gradient(135deg,#3b82f6,#1d4ed8)",
+                            mr: 1,
+                            mt: "auto",
+                            opacity: isLast ? 1 : 0,
+                          }}
+                        >
+                          {activeConversation.otherUserInitials || "?"}
+                        </Avatar>
+                      )}
+
+                      <Box
+                        sx={{
+                          maxWidth: { xs: "78%", md: "60%" },
+                          px: 2,
+                          py: 1,
+                          borderRadius: br,
+                          background: mine
+                            ? "linear-gradient(135deg, #2563eb 0%, #1e40af 100%)"
+                            : "rgba(39,39,42,0.9)",
+                          color: "#fff",
+                          boxShadow: mine
+                            ? "0 2px 8px rgba(37,99,235,0.3)"
+                            : "0 2px 8px rgba(0,0,0,0.2)",
+                          border: mine ? "none" : "1px solid rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        <Typography sx={{ fontSize: "0.92rem", lineHeight: 1.5, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
+                          {msg.content}
+                        </Typography>
+                        <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={0.5} mt={0.4}>
+                          <Typography sx={{ fontSize: "0.65rem", color: mine ? "rgba(255,255,255,0.6)" : "#71717a" }}>
+                            {msgTime(msg.createdAt)}
+                          </Typography>
+                          {mine && (
+                            <CheckCheck size={13} color={msg.isRead ? "#60a5fa" : "rgba(255,255,255,0.5)"} />
+                          )}
+                        </Stack>
+                      </Box>
+                    </Box>
+                  );
+                })
+              )}
+              <div ref={chatEndRef} />
+            </Box>
+
+            {/* Input Area */}
+            <Box
+              sx={{
+                px: { xs: 2, md: 3 },
+                py: 2,
+                borderTop: `1px solid ${borderColor}`,
+                background: "rgba(9,9,11,0.97)",
+                flexShrink: 0,
+              }}
+            >
+              {/* Quick Responses */}
+              <Stack direction="row" spacing={1} sx={{ mb: 1.5, overflowX: "auto", "&::-webkit-scrollbar": { display: "none" }, pb: 0.5 }}>
+                {QUICK_RESPONSES.map((r, i) => (
                   <Chip
-                    key={idx}
-                    label={resp}
+                    key={i}
+                    label={r}
                     size="small"
-                    onClick={() => handleQuickResponse(resp)}
+                    onClick={() => setInputText(r)}
                     sx={{
-                      fontSize: '0.74rem',
-                      fontWeight: 600,
-                      background: '#1e1e24',
-                      color: '#d4d4d8',
-                      border: '1px solid #2e2e38',
-                      cursor: 'pointer',
-                      '&:hover': { background: '#272732', borderColor: '#3b82f6', color: '#ffffff' },
+                      flexShrink: 0,
+                      fontSize: "0.78rem",
+                      background: "rgba(255,255,255,0.05)",
+                      color: "#a1a1aa",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      "&:hover": { background: "rgba(59,130,246,0.15)", borderColor: "#3b82f6", color: "#93c5fd" },
+                      cursor: "pointer",
                     }}
                   />
                 ))}
-              </Box>
+              </Stack>
 
-              {/* Input Area */}
+              {/* Message Input Row */}
               <Box
                 component="form"
-                onSubmit={handleSendMessage}
-                sx={{
-                  p: 2,
-                  background: '#141418',
-                  borderTop: '1px solid #2A2A30',
-                  display: 'flex',
-                  gap: 1.5,
-                  alignItems: 'center',
-                }}
+                onSubmit={handleSend}
+                sx={{ display: "flex", alignItems: "flex-end", gap: 1.5 }}
               >
+                <IconButton
+                  sx={{ color: "#52525b", flexShrink: 0, mb: 0.5, "&:hover": { color: "#a1a1aa", background: "rgba(255,255,255,0.06)" } }}
+                >
+                  <Paperclip size={20} />
+                </IconButton>
+
                 <TextField
+                  inputRef={inputRef}
                   fullWidth
-                  size="small"
-                  placeholder="Type a message to host/member (Press Enter to send)..."
+                  multiline
+                  maxRows={5}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
                   InputProps={{
                     sx: {
-                      borderRadius: '14px',
-                      background: '#0d0d10',
-                      color: '#ffffff',
-                      fontSize: '0.9rem',
-                      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A30' },
-                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#3b82f6' },
+                      borderRadius: "16px",
+                      background: "rgba(255,255,255,0.04)",
+                      color: "#e4e4e7",
+                      fontSize: "0.92rem",
+                      "& fieldset": { border: "1px solid rgba(255,255,255,0.1)" },
+                      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2) !important" },
+                      "&.Mui-focused fieldset": { borderColor: "#3b82f6 !important" },
                     },
                   }}
                 />
 
+                <IconButton sx={{ color: "#52525b", flexShrink: 0, mb: 0.5, "&:hover": { color: "#a1a1aa", background: "rgba(255,255,255,0.06)" } }}>
+                  <Smile size={20} />
+                </IconButton>
+
                 <Button
                   type="submit"
-                  variant="contained"
                   disabled={!inputText.trim() || sending}
-                  endIcon={sending ? <CircularProgress size={16} color="inherit" /> : <Send size={16} />}
                   sx={{
-                    px: 3,
-                    py: 1.1,
-                    borderRadius: '14px',
-                    fontWeight: 800,
-                    fontSize: '0.88rem',
-                    textTransform: 'none',
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
-                    },
+                    flexShrink: 0,
+                    minWidth: 48,
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    mb: 0.25,
+                    p: 0,
+                    background: inputText.trim()
+                      ? "linear-gradient(135deg, #3b82f6, #2563eb)"
+                      : "rgba(255,255,255,0.08)",
+                    "&:hover": { background: "linear-gradient(135deg, #2563eb, #1d4ed8)", transform: "scale(1.05)" },
+                    "&.Mui-disabled": { background: "rgba(255,255,255,0.06)" },
+                    transition: "all 0.15s ease",
                   }}
                 >
-                  Send
+                  {sending ? (
+                    <CircularProgress size={18} sx={{ color: "#fff" }} />
+                  ) : (
+                    <Send size={18} color={inputText.trim() ? "#fff" : "#52525b"} style={{ marginLeft: 3 }} />
+                  )}
                 </Button>
               </Box>
-            </>
-          ) : (
-            /* Empty State when no conversation is selected */
+            </Box>
+          </>
+        ) : (
+          /* Empty state — desktop only */
+          <Box
+            sx={{
+              flex: 1,
+              display: { xs: "none", md: "flex" },
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              p: 4,
+              textAlign: "center",
+            }}
+          >
             <Box
               sx={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 4,
-                textAlign: 'center',
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                background: "rgba(59,130,246,0.06)",
+                border: "1px solid rgba(59,130,246,0.12)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Box
-                sx={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: '24px',
-                  background: 'rgba(59, 130, 246, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 2.5,
-                  border: '1px solid rgba(59, 130, 246, 0.2)',
-                }}
-              >
-                <MessageSquare size={36} color="#3b82f6" />
-              </Box>
-
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#ffffff', mb: 1 }}>
-                SubSplit Member Messaging
-              </Typography>
-              <Typography sx={{ color: '#a1a1aa', maxWidth: 440, fontSize: '0.9rem', mb: 3 }}>
-                Connect directly with subscription hosts and group members to receive credentials, coordinate renewals, and request assistance.
-              </Typography>
-
-              <Box
-                sx={{
-                  p: 2,
-                  borderRadius: '16px',
-                  background: '#16161b',
-                  border: '1px solid #27272f',
-                  maxWidth: 420,
-                  textAlign: 'left',
-                }}
-              >
-                <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                  <LockOpen size={18} color="#f97316" style={{ marginTop: 2, flexShrink: 0 }} />
-                  <Box>
-                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#fed7aa' }}>
-                      Security & Non-E2EE Moderation Notice
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#a1a1aa', mt: 0.3 }}>
-                      All chats are monitored and stored on SubSplit servers to resolve disputes and verify credentials.
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Box>
+              <MessageSquare size={44} color="#3b82f6" strokeWidth={1} />
             </Box>
-          )}
-        </Box>
-      </Paper>
+            <Typography sx={{ fontSize: "1.4rem", fontWeight: 800, color: "#e4e4e7", letterSpacing: "-0.02em" }}>
+              SubSplit Messaging
+            </Typography>
+            <Typography sx={{ color: "#71717a", maxWidth: 380, lineHeight: 1.7 }}>
+              Pick a conversation from the sidebar, or start a new one by clicking{" "}
+              <strong style={{ color: "#60a5fa" }}>Message Host</strong> on any subscription listing.
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }
-
-export default Messages;

@@ -22,8 +22,10 @@ import {
   deleteListingApi,
   updateListingApi,
   renewListingApi,
+  cancelJoinRequestApi,
 } from './api/marketplaceApi';
 
+import { fetchMyWallet } from '../settlements/walletSlice';
 import { normalizeListing } from './utils/normalizeListing';
 
 export const fetchMyJoinRequests = createAsyncThunk(
@@ -82,6 +84,19 @@ export const rejectJoinRequest = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to reject join request');
+    }
+  }
+);
+
+export const cancelJoinRequest = createAsyncThunk(
+  'marketplace/cancelJoinRequest',
+  async (requestId, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await cancelJoinRequestApi(requestId);
+      dispatch(fetchMyWallet());
+      return requestId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to cancel join request');
     }
   }
 );
@@ -278,9 +293,10 @@ export const fetchUserReviews = createAsyncThunk(
 
 export const submitJoinRequest = createAsyncThunk(
   'marketplace/submitJoinRequest',
-  async ({ listingId, message }, { rejectWithValue }) => {
+  async ({ listingId, message }, { rejectWithValue, dispatch }) => {
     try {
       const response = await submitJoinRequestApi(listingId, { message });
+      dispatch(fetchMyWallet());
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to submit join request');
@@ -465,6 +481,14 @@ const marketplaceSlice = createSlice({
         state.hostJoinRequests = state.hostJoinRequests.map((r) =>
           r.id === updated.id ? { ...r, status: 'REJECTED' } : r
         );
+      })
+      // cancelJoinRequest
+      .addCase(cancelJoinRequest.fulfilled, (state, action) => {
+        const cancelledId = action.payload;
+        state.myJoinRequests = state.myJoinRequests.filter(r => r.id !== cancelledId);
+        if (state.joinRequestStatus?.id === cancelledId) {
+          state.joinRequestStatus = null;
+        }
       });
   },
 });

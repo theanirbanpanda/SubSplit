@@ -24,7 +24,7 @@ const STEPS = [
  */
 function statusToActiveStep(status, hostView = false) {
   switch (status) {
-    case 'PENDING':            return hostView ? 1 : 0;
+    case 'PENDING':            return 1;
     case 'CREDENTIALS_SHARED': return 2;
     case 'APPROVED':           return 3;
     case 'REJECTED':           return -1;

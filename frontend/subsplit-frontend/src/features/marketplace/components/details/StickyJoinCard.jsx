@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { cancelJoinRequest } from '../../marketplaceSlice';
 import {
   Box,
   Paper,
@@ -7,8 +9,12 @@ import {
   Button,
   Stack,
   Chip,
-  IconButton,
-  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Slide,
 } from '@mui/material';
 import {
   ShieldCheck,
@@ -17,7 +23,12 @@ import {
   CheckCircle2,
   Clock,
   Flag,
+  AlertTriangle,
 } from 'lucide-react';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 // NOTE: RaiseDisputeModal is intentionally NOT imported here.
 // The dispute flow requires an active purchase. Opening it from a pre-purchase
@@ -26,6 +37,8 @@ import {
 
 function StickyJoinCard({ listing, onJoinClick, isAlreadyJoined, isHost, myRequest }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [openCancelDialog, setOpenCancelDialog] = useState(false);
 
   const {
     price,
@@ -174,24 +187,44 @@ function StickyJoinCard({ listing, onJoinClick, isAlreadyJoined, isHost, myReque
           <Typography sx={{ fontSize: '0.78rem', color: '#A1A1AA', mb: 1.5 }}>
             {isConfirmedMember
               ? 'You have joined this group. Your access credentials and escrow pass are ready.'
-              : 'Your join request is active. Track status and access credentials.'}
+              : 'Your join request is active. Escrow is locked.'}
           </Typography>
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => navigate('/app/joinee')}
-            sx={{
-              borderRadius: '10px',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              textTransform: 'none',
-              background: isConfirmedMember
-                ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-            }}
-          >
-            {isConfirmedMember ? 'View Your Group Pass →' : 'View Request Status →'}
-          </Button>
+          {isConfirmedMember ? (
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => navigate('/app/joinee')}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                textTransform: 'none',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+              }}
+            >
+              View Your Group Pass →
+            </Button>
+          ) : (
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => setOpenCancelDialog(true)}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                textTransform: 'none',
+                color: '#ef4444',
+                borderColor: 'rgba(239,68,68,0.3)',
+                '&:hover': {
+                  background: 'rgba(239,68,68,0.08)',
+                  borderColor: '#ef4444'
+                }
+              }}
+            >
+              Delete this request
+            </Button>
+          )}
         </Paper>
       ) : seatsLeft === 0 ? (
         <Button
@@ -274,6 +307,54 @@ function StickyJoinCard({ listing, onJoinClick, isAlreadyJoined, isHost, myReque
           Report this listing
         </Typography>
       </Box>
+
+      {/* Custom Confirmation Dialog */}
+      <Dialog
+        open={openCancelDialog}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={() => setOpenCancelDialog(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            p: 1,
+            maxWidth: '400px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+          <Box sx={{ p: 1, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', display: 'flex' }}>
+            <AlertTriangle size={24} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+            Cancel Join Request
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          <DialogContentText sx={{ color: '#4b5563', fontSize: '0.95rem' }}>
+            Are you sure you want to delete this request? Your escrow deposit will be fully refunded to your wallet immediately.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={() => setOpenCancelDialog(false)} 
+            sx={{ color: '#6b7280', fontWeight: 600, textTransform: 'none' }}
+          >
+            Keep Request
+          </Button>
+          <Button 
+            onClick={() => {
+              dispatch(cancelJoinRequest(myRequest.id));
+              setOpenCancelDialog(false);
+            }} 
+            variant="contained" 
+            color="error"
+            sx={{ borderRadius: '8px', fontWeight: 700, textTransform: 'none', boxShadow: 'none' }}
+          >
+            Yes, Cancel It
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

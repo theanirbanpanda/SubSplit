@@ -312,22 +312,22 @@ function Dashboard() {
             {activeMemberships.map((mem) => {
               const {
                 id,
-                listingId,
                 title,
                 price,
-                filledSeats,
-                totalSeats,
                 Icon,
                 color,
                 bg,
                 border,
                 host,
+                createdAt,
+                expiryDate,
+                daysLeft,
               } = mem;
 
-              const seatLabel =
-                filledSeats != null && totalSeats != null
-                  ? `seat ${filledSeats}/${totalSeats}`
-                  : null;
+              const joinedStr = createdAt ? new Date(createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown';
+              const expireStr = expiryDate ? new Date(expiryDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown';
+              const daysLeftStr = daysLeft != null ? ` · ${daysLeft} days left` : '';
+              const passLabel = `Joined ${joinedStr} · Expires ${expireStr}${daysLeftStr}`;
 
               return (
                 <Paper
@@ -373,7 +373,7 @@ function Dashboard() {
                       </Typography>
                       <Typography sx={{ fontSize: '0.76rem', color: '#9ca3af' }}>
                         Host: {host.name}
-                        {seatLabel && ` · ${seatLabel}`}
+                        {passLabel && ` · ${passLabel}`}
                       </Typography>
                       <Stack direction="row" alignItems="center" spacing={0.5} mt={0.5}>
                         <CheckCircle2 size={12} color="#22c55e" />
@@ -404,7 +404,6 @@ function Dashboard() {
                       <Button
                         variant="outlined"
                         size="small"
-                        onClick={() => navigate(`/app/marketplace/${listingId || id}`)}
                         id={`dashboard-open-access-${id}`}
                         sx={{
                           borderRadius: '10px',
@@ -423,8 +422,9 @@ function Dashboard() {
                           },
                           width: { xs: '100%', sm: 'auto' },
                         }}
+                        onClick={() => navigate('/app/pass/' + id)}
                       >
-                        Open Access
+                        View
                       </Button>
                     </Stack>
                   </Stack>

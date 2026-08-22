@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class MessageServiceImpl implements MessageService {
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
     private final NotificationService notificationService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -228,6 +230,18 @@ public class MessageServiceImpl implements MessageService {
             );
         } catch (Exception e) {
             log.error("Failed to send message notification: ", e);
+        }
+
+        // Broadcast over WebSocket to receiver
+        try {
+            MessageDto receiverDto = mapToMessageDto(saved, recipient);
+            simpMessagingTemplate.convertAndSendToUser(
+                    recipient.getEmail(), 
+                    "/queue/messages", 
+                    receiverDto
+            );
+        } catch (Exception e) {
+            log.error("Failed to broadcast message: ", e);
         }
 
         return mapToMessageDto(saved, currentUser);

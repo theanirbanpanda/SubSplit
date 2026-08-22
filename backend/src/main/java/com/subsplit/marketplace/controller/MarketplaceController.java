@@ -167,6 +167,15 @@ public class MarketplaceController {
         return ResponseEntity.ok(ApiResponse.success("Join request rejected successfully", response));
     }
 
+    @DeleteMapping("/join-requests/{id}")
+    public ResponseEntity<ApiResponse<JoinRequestResponse>> cancelJoinRequest(
+            Authentication authentication,
+            @PathVariable Long id) {
+        User currentUser = getAuthenticatedUser(authentication);
+        JoinRequestResponse response = marketplaceService.cancelJoinRequest(currentUser, id);
+        return ResponseEntity.ok(ApiResponse.success("Join request cancelled successfully", response));
+    }
+
     @GetMapping("/listings/my-listings")
 
     public ResponseEntity<ApiResponse<List<ListingResponse>>> getMyListings(Authentication authentication) {

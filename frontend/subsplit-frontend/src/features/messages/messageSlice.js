@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
   fetchConversationsApi,
-  fetchConversationByIdApi,
   fetchMessagesApi,
   startConversationApi,
   sendMessageApi,
@@ -74,7 +73,8 @@ export const fetchUnreadMessageCount = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetchUnreadMessageCountApi();
-      return response.data?.unreadCount || 0;
+      // response is ApiResponse<{unreadCount: number}>, so response.data = {unreadCount: N}
+      return response.data?.unreadCount ?? 0;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch unread count');
     }
@@ -105,6 +105,29 @@ const messageSlice = createSlice({
     },
     addMessageOptimistic(state, action) {
       state.messages.push(action.payload);
+    },
+    addRealtimeMessage(state, action) {
+      const newMsg = action.payload;
+      // Only append if it belongs to active conversation and isn't already present
+      if (
+        state.activeConversation &&
+        state.activeConversation.id === newMsg.conversationId &&
+        !state.messages.some((m) => m.id === newMsg.id)
+      ) {
+        state.messages.push(newMsg);
+      }
+      
+      // Update conversation list summary
+      const conv = state.conversations.find((c) => c.id === newMsg.conversationId);
+      if (conv) {
+        conv.lastMessage = newMsg.content;
+        conv.lastMessageAt = newMsg.createdAt;
+        if (!newMsg.isMine && state.activeConversation?.id !== newMsg.conversationId) {
+          conv.unreadCount = (conv.unreadCount || 0) + 1;
+        }
+      } else {
+        // If it's a new conversation, we might need to fetch it (or just rely on the next fetch)
+      }
     },
   },
   extraReducers: (builder) => {
@@ -194,5 +217,5 @@ const messageSlice = createSlice({
   },
 });
 
-export const { setActiveConversation, clearActiveConversation, addMessageOptimistic } = messageSlice.actions;
+export const { setActiveConversation, clearActiveConversation, addMessageOptimistic, addRealtimeMessage } = messageSlice.actions;
 export default messageSlice.reducer;

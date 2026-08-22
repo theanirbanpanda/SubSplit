@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -25,6 +25,8 @@ function MainLayout() {
   };
 
   const sidebarWidth = sidebarCollapsed ? 80 : 240;
+  const location = useLocation();
+  const isMessages = location.pathname.startsWith('/app/messages');
 
   return (
     <Box sx={{ display: 'flex', width: '100vw', height: '100vh', maxHeight: '100vh', overflow: 'hidden', background: '#09090b', color: '#f3f4f6' }}>
@@ -50,17 +52,25 @@ function MainLayout() {
           component="main"
           sx={{
             flexGrow: 1,
-            height: '100%',
-            overflowY: 'auto',
+            minHeight: 0,
+            overflowY: isMessages ? 'hidden' : 'auto',
             overflowX: 'hidden',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
-          <Box sx={{ flexGrow: 1, px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2.5, md: 3.5 }, maxWidth: '1500px', mx: 'auto', width: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Outlet />
-          </Box>
-          <Footer />
+          {isMessages ? (
+            <Box sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <Outlet />
+            </Box>
+          ) : (
+            <>
+              <Box sx={{ flexGrow: 1, px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2.5, md: 3.5 }, maxWidth: '1500px', mx: 'auto', width: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Outlet />
+              </Box>
+              <Footer />
+            </>
+          )}
         </Box>
       </Box>
     </Box>

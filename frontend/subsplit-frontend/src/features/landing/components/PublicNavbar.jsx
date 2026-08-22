@@ -8,12 +8,19 @@ import {
 import { Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useLogoClick from '../../../hooks/useLogoClick';
+import { useSelector } from 'react-redux';
+import { isTokenValid } from '../../../utils/tokenUtils';
 import { NAV_LINKS } from '../data/navigation';
 import styles from './PublicNavbar.module.scss';
 
 function PublicNavbar() {
   const navigate = useNavigate();
   const handleLogoClick = useLogoClick();
+
+  const { isAuthenticated, token } = useSelector((state) => state.auth);
+  const currentToken = token || localStorage.getItem('token');
+  const hasValidToken = !!currentToken && isTokenValid(currentToken);
+  const isAuth = isAuthenticated && hasValidToken;
 
   const scrolled = useScrollTrigger({
     disableHysteresis: true,
@@ -93,20 +100,32 @@ function PublicNavbar() {
 
             {/* ── Auth Buttons ── */}
             <div className={styles.authButtons}>
-              <button
-                className={styles.loginBtn}
-                onClick={() => navigate('/auth')}
-                type="button"
-              >
-                Login
-              </button>
-              <button
-                className={styles.signupBtn}
-                onClick={() => navigate('/auth', { state: { mode: 'signup' } })}
-                type="button"
-              >
-                Sign Up
-              </button>
+              {isAuth ? (
+                <button
+                  className={styles.signupBtn}
+                  onClick={() => navigate('/app/marketplace')}
+                  type="button"
+                >
+                  Dashboard
+                </button>
+              ) : (
+                <>
+                  <button
+                    className={styles.loginBtn}
+                    onClick={() => navigate('/auth')}
+                    type="button"
+                  >
+                    Login
+                  </button>
+                  <button
+                    className={styles.signupBtn}
+                    onClick={() => navigate('/auth', { state: { mode: 'signup' } })}
+                    type="button"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
             </div>
 
           </div>
