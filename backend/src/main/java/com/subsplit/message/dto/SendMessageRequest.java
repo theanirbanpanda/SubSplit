@@ -1,6 +1,5 @@
 package com.subsplit.message.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,12 +13,15 @@ import lombok.NoArgsConstructor;
 public class SendMessageRequest {
 
     private Long conversationId;
-
     private Long recipientId;
-
     private Long listingId;
+    private Long replyToId;
 
-    @NotBlank(message = "Message content cannot be blank")
     @Size(max = 2000, message = "Message cannot exceed 2000 characters")
     private String content;
+
+    // messageType: TEXT (default), IMAGE, FILE
+    private String messageType;
+    private String attachmentUrl;
+    private String attachmentName;
 }

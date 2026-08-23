@@ -19,6 +19,34 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
 
     @Override
+    public Review createReview(com.subsplit.common.entity.User user, com.subsplit.review.dto.CreateReviewRequest request) {
+        Review review = new Review();
+        review.setReviewer(user);
+        
+        if (request.getRevieweeId() != null) {
+            com.subsplit.common.entity.User reviewee = new com.subsplit.common.entity.User();
+            reviewee.setId(request.getRevieweeId());
+            review.setReviewee(reviewee);
+        }
+        
+        if (request.getListingId() != null) {
+            com.subsplit.listing.entity.Listing listing = new com.subsplit.listing.entity.Listing();
+            listing.setId(request.getListingId());
+            review.setListing(listing);
+        }
+        
+        if (request.getMembershipId() != null) {
+            com.subsplit.membership.entity.Membership membership = new com.subsplit.membership.entity.Membership();
+            membership.setId(request.getMembershipId());
+            review.setMembership(membership);
+        }
+        
+        review.setRating(request.getRating());
+        review.setReviewText(request.getReviewText());
+        return reviewRepository.save(review);
+    }
+
+    @Override
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
     }
@@ -66,12 +94,20 @@ public class ReviewServiceImpl implements ReviewService {
 
             Long listingId = null;
             String listingTitle = null;
+            Boolean isHost = false;
+            
             if (r.getListing() != null) {
                 listingId = r.getListing().getId();
                 listingTitle = r.getListing().getTitle();
+                if (r.getListing().getHost() != null && r.getListing().getHost().getId().equals(userId)) {
+                    isHost = true;
+                }
             } else if (r.getMembership() != null && r.getMembership().getListing() != null) {
                 listingId = r.getMembership().getListing().getId();
                 listingTitle = r.getMembership().getListing().getTitle();
+                if (r.getMembership().getListing().getHost() != null && r.getMembership().getListing().getHost().getId().equals(userId)) {
+                    isHost = true;
+                }
             }
 
             String dateStr = r.getCreatedAt() != null ?
@@ -93,6 +129,7 @@ public class ReviewServiceImpl implements ReviewService {
                     .helpfulCount(0)
                     .listingId(listingId)
                     .listingTitle(listingTitle)
+                    .isHostReview(isHost)
                     .build();
         }).collect(Collectors.toList());
 

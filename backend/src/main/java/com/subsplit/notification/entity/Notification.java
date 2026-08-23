@@ -24,6 +24,7 @@ public class Notification extends BaseEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 255)
     private NotificationType notificationType;
 
     private String title;

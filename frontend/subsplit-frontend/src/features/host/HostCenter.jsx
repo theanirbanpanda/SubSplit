@@ -505,6 +505,30 @@ function HostCenter() {
                       </Button>
                     ) : null}
                   </Stack>
+                  
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<MessageSquare size={16} />}
+                    onClick={() => navigate(`/app/messages?recipientId=${req.memberId}`)}
+                    sx={{
+                      mt: 1,
+                      borderRadius: '10px',
+                      fontWeight: 700,
+                      py: 1,
+                      color: '#e4e4e7',
+                      borderColor: 'rgba(255,255,255,0.12)',
+                      textTransform: 'none',
+                      '&:hover': {
+                        color: '#ffffff',
+                        borderColor: 'rgba(255,255,255,0.3)',
+                        background: 'rgba(255,255,255,0.04)',
+                      },
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    Chat with Member
+                  </Button>
                 </Paper>
               );
             })}
@@ -721,12 +745,12 @@ function HostCenter() {
 
                         {/* Delete Button */}
                         {(() => {
-                          const hasActiveMembers = filled > 0;
-                          const hasPendingRequests = hostJoinRequests.some(
+                          const hasActiveSubsplitMembers = (listing.activeMembersCount || 0) > 0;
+                          const hasSubsplitActivity = hostJoinRequests.some(
                             req => req.listingId === listing.id && 
-                            ['PENDING', 'CREDENTIALS_SHARED', 'PROOF_SUBMITTED'].includes(req.status)
+                            ['PENDING', 'CREDENTIALS_SHARED', 'PROOF_SUBMITTED', 'APPROVED'].includes(req.status)
                           );
-                          const cannotDelete = hasActiveMembers || hasPendingRequests;
+                          const cannotDelete = hasActiveSubsplitMembers || hasSubsplitActivity;
 
                           return (
                             <Tooltip 

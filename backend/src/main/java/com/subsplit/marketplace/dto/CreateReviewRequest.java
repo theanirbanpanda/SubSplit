@@ -22,4 +22,6 @@ public class CreateReviewRequest {
 
     @NotBlank(message = "Review text cannot be empty")
     private String reviewText;
+
+    private Long revieweeId;
 }

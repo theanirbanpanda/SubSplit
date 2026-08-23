@@ -66,7 +66,7 @@ public class AdminServiceImpl implements AdminService {
             AdminLog log = AdminLog.builder()
                     .id(tx.getId())
                     .action("WALLET_TRANSACTION")
-                    .description(tx.getRemarks() != null ? tx.getRemarks() : "Wallet transaction processed: ₹" + tx.getAmount())
+                    .description(tx.getRemarks() != null ? tx.getRemarks() : "Wallet transaction processed: " + tx.getAmount())
                     .build();
             log.setCreatedAt(tx.getCreatedAt() != null ? tx.getCreatedAt() : LocalDateTime.now());
             dynamicLogs.add(log);
@@ -385,15 +385,15 @@ public class AdminServiceImpl implements AdminService {
                 notificationService.createNotification(
                         host,
                         NotificationType.SYSTEM,
-                        "Admin Verified Payout Released 💸",
-                        "Admin verified member proof for '" + (listing != null ? listing.getTitle() : "Pass") + "'. Escrow funds ₹" + amount + " released to wallet."
+                        "Admin Verified Payout Released ",
+                        "Admin verified member proof for '" + (listing != null ? listing.getTitle() : "Pass") + "'. Escrow funds " + amount + " released to wallet."
                 );
             }
             if (member != null) {
                 notificationService.createNotification(
                         member,
                         NotificationType.JOIN_REQUEST,
-                        "Proof Verified & Subscription Approved 🎉",
+                        "Proof Verified & Subscription Approved ",
                         "Admin manually verified login proof for '" + (listing != null ? listing.getTitle() : "Pass") + "'. Slot activated!"
                 );
             }
@@ -420,7 +420,7 @@ public class AdminServiceImpl implements AdminService {
                 notificationService.createNotification(
                         member,
                         NotificationType.JOIN_REQUEST,
-                        "Proof Verification Rejected ⚠️",
+                        "Proof Verification Rejected ",
                         "Admin rejected screenshot proof for request #" + requestId + ": " + joinReq.getMessage()
                 );
             } catch (Exception ignored) {}

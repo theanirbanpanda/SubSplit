@@ -62,13 +62,13 @@ public class AuthServiceImpl implements AuthService {
             notificationService.createNotification(
                     savedUser,
                     NotificationType.SYSTEM,
-                    "Welcome to SubSplit! 👋",
+                    "Welcome to SubSplit! ",
                     "Your account has been created. Explore subscription groups or list your extra seats."
             );
             notificationService.createNotification(
                     savedUser,
                     NotificationType.SYSTEM,
-                    "Action Required: Complete KYC 🛡️",
+                    "Action Required: Complete KYC ",
                     "Please complete your 1-click identity verification (KYC) to activate your SubSplit wallet and access shared passes."
             );
         } catch (Exception ignored) {}

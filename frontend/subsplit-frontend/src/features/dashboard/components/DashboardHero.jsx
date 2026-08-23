@@ -6,12 +6,24 @@ import styles from './DashboardHero.module.scss';
 
 const DashboardHero = ({ pendingCount = 0, onNeedsActionClick }) => {
   const navigate = useNavigate();
-  const { summaryStats, loading } = useSelector((state) => state.subscriptions);
+  const { subscriptions, loading } = useSelector((state) => state.subscriptions);
   const { myJoinRequests } = useSelector((state) => state.marketplace);
 
-  // Real data — no fallbacks that could pass as real numbers
-  const monthlySpend = summaryStats?.monthlySpend;
-  const totalSavings = summaryStats?.totalSavings;
+  const activeSubscriptions = subscriptions.filter(
+    (s) => s.statusDisplay === 'Active' || s.statusDisplay === 'Renewing Soon'
+  );
+
+  const monthlySpend = activeSubscriptions.reduce(
+    (total, sub) => total + (sub.price ? Number(sub.price) : 0),
+    0
+  );
+
+  const totalSavings = activeSubscriptions.reduce((total, sub) => {
+    if (sub.originalPrice && sub.price && Number(sub.originalPrice) > Number(sub.price)) {
+      return total + (Number(sub.originalPrice) - Number(sub.price));
+    }
+    return total;
+  }, 0);
 
   const needsActionCount = (myJoinRequests || []).filter(
     (r) => r.status === 'PENDING' || r.status === 'CREDENTIALS_SHARED'
@@ -36,14 +48,7 @@ const DashboardHero = ({ pendingCount = 0, onNeedsActionClick }) => {
           </div>
         </div>
 
-        <button
-          className={styles.findPassBtn}
-          onClick={() => navigate('/app/marketplace')}
-          id="dashboard-find-pass-btn"
-        >
-          <Search size={15} strokeWidth={2.5} />
-          <span>Find a Pass</span>
-        </button>
+
       </div>
 
       {/* Divider */}
@@ -57,12 +62,10 @@ const DashboardHero = ({ pendingCount = 0, onNeedsActionClick }) => {
             <CreditCard size={14} color="#a1a1aa" />
           </div>
           <div className={styles.chipText}>
-            {loading && monthlySpend == null ? (
+            {loading && subscriptions.length === 0 ? (
               <span className={styles.loading}>—</span>
-            ) : monthlySpend != null ? (
-              <strong className={styles.spendValue}>{formatRs(monthlySpend)}</strong>
             ) : (
-              <span className={styles.noData}>—</span>
+              <strong className={styles.spendValue}>{formatRs(monthlySpend)}</strong>
             )}
             <span className={styles.chipLabel}>spend/mo</span>
           </div>
@@ -74,12 +77,10 @@ const DashboardHero = ({ pendingCount = 0, onNeedsActionClick }) => {
             <TrendingUp size={14} color="#22c55e" />
           </div>
           <div className={styles.chipText}>
-            {loading && totalSavings == null ? (
+            {loading && subscriptions.length === 0 ? (
               <span className={styles.loading}>—</span>
-            ) : totalSavings != null ? (
-              <strong className={styles.savedValue}>{formatRs(totalSavings)}</strong>
             ) : (
-              <span className={styles.noData}>—</span>
+              <strong className={styles.savedValue}>{formatRs(totalSavings)}</strong>
             )}
             <span className={styles.chipLabel}>saved</span>
           </div>

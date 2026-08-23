@@ -12,6 +12,7 @@ import {
   submitListingReviewApi,
   deleteListingReviewApi,
   fetchUserReviewsApi,
+  fetchListingMembersApi,
   submitJoinRequestApi,
   checkJoinStatusApi,
   fetchMyJoinRequestsApi,
@@ -284,9 +285,21 @@ export const fetchUserReviews = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await fetchUserReviewsApi(userId);
-      return response.data || null;
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user reviews');
+      return rejectWithValue(error.response?.data?.message || 'Failed to load user reviews');
+    }
+  }
+);
+
+export const fetchListingMembers = createAsyncThunk(
+  'marketplace/fetchListingMembers',
+  async (listingId, { rejectWithValue }) => {
+    try {
+      const response = await fetchListingMembersApi(listingId);
+      return response.data; // List of ListingMemberDto
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch listing members');
     }
   }
 );
@@ -328,6 +341,7 @@ const initialState = {
 
   currentReviews: null,
   userReviews: null,
+  listingMembers: [],
   joinRequestStatus: null,
   loading: false,
   detailsLoading: false,
@@ -454,7 +468,20 @@ const marketplaceSlice = createSlice({
       .addCase(fetchMyJoinRequests.fulfilled, (state, action) => {
         state.myJoinRequests = action.payload;
       })
-      // fetchHostJoinRequests
+      
+      // fetchListingMembers
+      .addCase(fetchListingMembers.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchListingMembers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.listingMembers = action.payload;
+      })
+      .addCase(fetchListingMembers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+// fetchHostJoinRequests
       .addCase(fetchHostJoinRequests.fulfilled, (state, action) => {
         state.hostJoinRequests = action.payload;
       })

@@ -4,8 +4,10 @@ import com.subsplit.common.entity.User;
 import com.subsplit.message.dto.ConversationDto;
 import com.subsplit.message.dto.MessageDto;
 import com.subsplit.message.dto.SendMessageRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MessageService {
 
@@ -22,4 +24,11 @@ public interface MessageService {
     void markConversationAsRead(User currentUser, Long conversationId);
 
     long getUnreadCount(User currentUser);
+
+    // New methods
+    Map<String, Object> reactToMessage(User currentUser, Long messageId, String emoji);
+
+    MessageDto deleteMessage(User currentUser, Long messageId);
+
+    String uploadAttachment(MultipartFile file);
 }

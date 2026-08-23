@@ -14,6 +14,8 @@ import lombok.*;
 @Builder
 public class Message extends BaseEntity {
 
+    public enum MessageType { TEXT, IMAGE, FILE }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,4 +37,22 @@ public class Message extends BaseEntity {
 
     @Builder.Default
     private Boolean isRead = false;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private MessageType messageType = MessageType.TEXT;
+
+    @Column(length = 512)
+    private String attachmentUrl;
+
+    @Column(length = 255)
+    private String attachmentName;
+
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reply_to_id")
+    private Message replyTo;
 }

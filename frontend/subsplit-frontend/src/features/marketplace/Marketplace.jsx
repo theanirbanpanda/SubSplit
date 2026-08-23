@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { fetchMarketplaceListings, fetchCategories } from './marketplaceSlice';
 import ScrollToTop from '../landing/components/ScrollToTop';
 
@@ -10,11 +10,12 @@ import styles from './Marketplace.module.scss';
 
 function Marketplace() {
   const dispatch = useDispatch();
+  const { filters } = useSelector((state) => state.marketplace);
 
   useEffect(() => {
-    dispatch(fetchMarketplaceListings());
+    dispatch(fetchMarketplaceListings(filters));
     dispatch(fetchCategories());
-  }, [dispatch]);
+  }, [dispatch, filters]);
 
   return (
     <div className={styles.marketplacePage}>

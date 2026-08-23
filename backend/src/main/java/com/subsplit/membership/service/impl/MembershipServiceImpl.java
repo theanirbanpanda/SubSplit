@@ -51,7 +51,7 @@ public class MembershipServiceImpl implements MembershipService {
         List<Membership> userMemberships = membershipRepository.findByMemberIdOrderByCreatedAtDesc(targetUser.getId());
 
         if (userMemberships.isEmpty()) {
-            return getSeedSubscriptions();
+            return new ArrayList<>();
         }
 
         return userMemberships.stream()
@@ -90,7 +90,7 @@ public class MembershipServiceImpl implements MembershipService {
                             .credentialType(s.getCredentialType())
                             .inviteLink(s.getCredentialLink())
                             .username("user@subsplit.com")
-                            .password("••••••••")
+                            .password("")
                             .instructions("Click the invite link above to accept family slot join invitation.")
                             .isEscrowProtected(true)
                             .build())

@@ -34,8 +34,8 @@ public class CreateListingRequest {
     private String description;
 
     @NotNull(message = "Seat price is required")
-    @DecimalMin(value = "1.00", message = "Seat price must be at least ₹1")
-    @DecimalMax(value = "50000.00", message = "Seat price cannot exceed ₹50,000")
+    @DecimalMin(value = "1.00", message = "Seat price must be at least 1")
+    @DecimalMax(value = "50000.00", message = "Seat price cannot exceed 50,000")
     private BigDecimal seatPrice;
 
     @NotNull(message = "Total seats is required")

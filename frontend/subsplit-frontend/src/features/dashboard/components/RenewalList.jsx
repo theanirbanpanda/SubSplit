@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { setFilter } from '../../marketplace/marketplaceSlice';
 import { Tv2, Music, Bot, Zap } from 'lucide-react';
 import styles from './RenewalList.module.scss';
 
@@ -13,6 +14,7 @@ const DEFAULT_ICON = { Icon: Zap, color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' 
 
 const RenewalList = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { subscriptions, loading } = useSelector((state) => state.subscriptions);
 
   // Derive renewal items from real subscription data
@@ -22,12 +24,20 @@ const RenewalList = () => {
       const prov = (s.providerName || s.title || '').toLowerCase();
       const key = Object.keys(PROVIDER_ICONS).find((k) => prov.includes(k));
       const { Icon, color, bg } = key ? PROVIDER_ICONS[key] : DEFAULT_ICON;
-      const dateLabel =
-        s.daysLeft != null && s.daysLeft <= 1
-          ? 'Tomorrow'
-          : s.renewalDate || (s.daysLeft != null ? `In ${s.daysLeft} days` : 'Upcoming');
-      return { id: s.id, title: s.title, date: dateLabel, price: s.price != null ? `Rs.${s.price}` : null, Icon, color, bg };
+      let dateLabel = 'Upcoming';
+      if (s.daysLeft != null) {
+        if (s.daysLeft <= 1) dateLabel = 'Ends tomorrow';
+        else dateLabel = `Ends in ${s.daysLeft} days`;
+      } else if (s.renewalDate) {
+        dateLabel = `Ends on ${s.renewalDate}`;
+      }
+      return { id: s.id, title: s.title, providerName: prov || s.title, date: dateLabel, Icon, color, bg };
     });
+
+  const handleItemClick = (item) => {
+    dispatch(setFilter({ search: item.providerName, category: 'All', priceRangeString: 'All Prices', trendingOnly: false }));
+    navigate('/app/marketplace');
+  };
 
   if (loading && renewalItems.length === 0) {
     return (
@@ -54,7 +64,12 @@ const RenewalList = () => {
       ) : (
         <div className={styles.list}>
           {renewalItems.map((item) => (
-            <div key={item.id} className={styles.listItem}>
+            <div 
+              key={item.id} 
+              className={styles.listItem}
+              onClick={() => handleItemClick(item)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className={styles.leftContent}>
                 <div className={styles.logo} style={{ backgroundColor: item.bg, color: item.color }}>
                   <item.Icon size={18} />
@@ -64,7 +79,17 @@ const RenewalList = () => {
                   <span className={styles.date}>{item.date}</span>
                 </div>
               </div>
-              {item.price && <div className={styles.price}>{item.price}</div>}
+              <div className={styles.rightContent}>
+                <button 
+                  className={styles.renewBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleItemClick(item);
+                  }}
+                >
+                  Check Listings
+                </button>
+              </div>
             </div>
           ))}
         </div>

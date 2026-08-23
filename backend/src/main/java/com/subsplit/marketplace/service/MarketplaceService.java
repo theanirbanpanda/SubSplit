@@ -69,4 +69,5 @@ public interface MarketplaceService {
 
     JoinRequestResponse rejectJoinRequest(User host, Long requestId);
     void deleteListingReview(User user, Long listingId, Long reviewId);
+    List<ListingMemberDto> getListingMembers(User host, Long listingId);
 }

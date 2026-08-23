@@ -89,14 +89,14 @@ public class DisputeServiceImpl implements DisputeService {
             notificationService.createNotification(
                     user,
                     NotificationType.SYSTEM,
-                    "Dispute Raised Successfully ⚠️",
+                    "Dispute Raised Successfully ",
                     "Dispute #" + saved.getId() + " raised for '" + (listing != null ? listing.getTitle() : "Listing") + "'. Our admin team will audit and resolve it shortly."
             );
             if (againstUser != null) {
                 notificationService.createNotification(
                         againstUser,
                         NotificationType.SYSTEM,
-                        "Dispute Flagged on Listing ⚠️",
+                        "Dispute Flagged on Listing ",
                         "A dispute #" + saved.getId() + " was raised on '" + (listing != null ? listing.getTitle() : "Listing") + "'. Reason: " + saved.getReason()
                 );
             }
@@ -178,8 +178,8 @@ public class DisputeServiceImpl implements DisputeService {
                     notificationService.createNotification(
                             member,
                             NotificationType.SYSTEM,
-                            "Dispute Resolved - Refund Credited 💸",
-                            "Admin resolved dispute #" + disputeId + ". Refund of ₹" + refundAmount + " credited to your wallet balance."
+                            "Dispute Resolved - Refund Credited ",
+                            "Admin resolved dispute #" + disputeId + ". Refund of " + refundAmount + " credited to your wallet balance."
                     );
                 }
             } catch (Exception ignored) {}
@@ -191,7 +191,7 @@ public class DisputeServiceImpl implements DisputeService {
                     notificationService.createNotification(
                             member,
                             NotificationType.SYSTEM,
-                            "Dispute Audit Completed ℹ️",
+                            "Dispute Audit Completed ",
                             "Admin resolved dispute #" + disputeId + ": " + (request.getResolutionNotes() != null ? request.getResolutionNotes() : "Dispute dismissed following verification.")
                     );
                 }

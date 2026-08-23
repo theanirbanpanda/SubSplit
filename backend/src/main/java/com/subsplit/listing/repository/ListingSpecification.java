@@ -69,7 +69,12 @@ public class ListingSpecification {
                 Predicate descLike = cb.like(cb.lower(root.get("description")), searchPattern);
                 Predicate providerLike = cb.like(cb.lower(subJoin.get("providerName")), searchPattern);
 
-                predicates.add(cb.or(titleLike, descLike, providerLike));
+                Join<Object, Object> hostJoin = root.join("host", JoinType.LEFT);
+                Predicate hostFirstLike = cb.like(cb.lower(hostJoin.get("firstName")), searchPattern);
+                Predicate hostLastLike = cb.like(cb.lower(hostJoin.get("lastName")), searchPattern);
+                Predicate hostEmailLike = cb.like(cb.lower(hostJoin.get("email")), searchPattern);
+
+                predicates.add(cb.or(titleLike, descLike, providerLike, hostFirstLike, hostLastLike, hostEmailLike));
             }
 
             // Category filter (by category name or id)

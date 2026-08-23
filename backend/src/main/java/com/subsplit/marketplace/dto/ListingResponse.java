@@ -23,6 +23,7 @@ public class ListingResponse {
     private BigDecimal seatPrice;
     private Integer totalSeats;
     private Integer availableSeats;
+    private Integer activeMembersCount;
     private BillingCycle billingCycle;
     private ListingStatus status;
     private LocalDate startDate;

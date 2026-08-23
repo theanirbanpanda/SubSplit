@@ -93,7 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification n1 = Notification.builder()
                 .user(user)
                 .notificationType(NotificationType.SYSTEM)
-                .title("Welcome to SubSplit! 🎉")
+                .title("Welcome to SubSplit! ")
                 .message("Your account setup is complete. Explore subscription group passes or list your own slot.")
                 .isRead(false)
                 .build();

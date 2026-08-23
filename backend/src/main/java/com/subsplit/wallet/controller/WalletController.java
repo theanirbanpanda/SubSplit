@@ -61,7 +61,7 @@ public class WalletController {
         return ResponseEntity.ok(
                 ApiResponse.<WalletResponse>builder()
                         .success(true)
-                        .message("₹" + amount + " added to wallet successfully!")
+                        .message("" + amount + " added to wallet successfully!")
                         .data(updatedWallet)
                         .build());
     }

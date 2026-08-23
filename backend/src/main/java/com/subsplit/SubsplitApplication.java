@@ -76,7 +76,7 @@ public class SubsplitApplication {
                 jdbcTemplate.execute("ALTER TABLE join_requests ADD COLUMN activation_code VARCHAR(255)");
             } catch (Exception e) {}
 
-            // ── current_price migration (master catalog Excel data) ──────────────
+            //  current_price migration (master catalog Excel data) 
             try {
                 jdbcTemplate.execute("ALTER TABLE subscriptions ADD COLUMN current_price DECIMAL(10,2)");
                 System.out.println("   [DB Migration] Added subscriptions.current_price column.");

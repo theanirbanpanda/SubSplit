@@ -60,6 +60,7 @@ public class Listing extends BaseEntity {
     private BillingCycle billingCycle;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 255)
     private ListingStatus status;
 
     @Column(name = "start_date")

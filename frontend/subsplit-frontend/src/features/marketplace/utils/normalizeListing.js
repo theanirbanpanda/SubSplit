@@ -112,6 +112,7 @@ export const normalizeListing = (backendItem) => {
     isEscrowProtected: backendItem.isEscrowProtected ?? true,
     isFeatured: true,
     status: backendItem.status || 'ACTIVE',
+    activeMembersCount: backendItem.activeMembersCount || 0,
     memberCount: (backendItem.totalSeats || 4) - (backendItem.availableSeats || 1),
     createdAt: backendItem.createdAt || new Date().toISOString(),
     iconColor: theme.color,

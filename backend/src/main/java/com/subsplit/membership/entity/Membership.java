@@ -8,6 +8,7 @@ import com.subsplit.listing.entity.Listing;
 import com.subsplit.common.entity.User;
 import com.subsplit.wallet.entity.EscrowTransaction;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -56,6 +57,7 @@ public class Membership extends BaseEntity {
     private LocalDate expiryDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 255)
     private MembershipStatus status;
 
     @Builder.Default

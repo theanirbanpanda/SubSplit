@@ -18,6 +18,8 @@ import {
   DialogContent,
   TextField,
   InputAdornment,
+  Collapse,
+  IconButton,
 } from '@mui/material';
 import {
   Wallet,
@@ -36,6 +38,8 @@ import {
   Gift,
   Award,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import RaiseDisputeModal from '../disputes/RaiseDisputeModal';
@@ -61,6 +65,7 @@ function Settlements() {
   const [addMoneyOpen, setAddMoneyOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('500');
   const [adding, setAdding] = useState(false);
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(true);
 
   const [raiseDisputeOpen, setRaiseDisputeOpen] = useState(false);
   const [disputesList, setDisputesList] = useState([]);
@@ -446,17 +451,27 @@ function Settlements() {
       <Grid container spacing={3} mb={4}>
         {/* Left 65%: Recent Transactions Timeline */}
         <Grid size={{ xs: 12, md: 7.8 }}>
-          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
+          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.15rem' }}>
                 Recent Wallet Transactions
               </Typography>
-              <Button size="small" endIcon={<ChevronRight size={16} />} sx={{ textTransform: 'none', fontWeight: 700, color: '#3b82f6', fontSize: '0.82rem' }}>
-                Export History
-              </Button>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Button size="small" endIcon={<ChevronRight size={16} />} sx={{ textTransform: 'none', fontWeight: 700, color: '#3b82f6', fontSize: '0.82rem' }}>
+                  Export History
+                </Button>
+                <IconButton 
+                  size="small" 
+                  onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
+                  sx={{ color: '#9ca3af', '&:hover': { background: 'rgba(255,255,255,0.05)' } }}
+                >
+                  {isHistoryExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </IconButton>
+              </Stack>
             </Stack>
 
-            <Stack spacing={2}>
+            <Collapse in={isHistoryExpanded}>
+              <Stack spacing={2}>
               {recentTransactions && recentTransactions.length > 0 ? (
                 recentTransactions.map((tx) => {
                   const isCredit = tx.type === 'CREDIT';
@@ -532,14 +547,15 @@ function Settlements() {
                   <Typography sx={{ fontSize: '0.9rem' }}>No wallet transactions recorded yet.</Typography>
                 </Box>
               )}
-            </Stack>
+              </Stack>
+            </Collapse>
 
           </Paper>
         </Grid>
 
         {/* Right 35%: SubSplit Escrow Trust Control Card */}
         <Grid size={{ xs: 12, md: 4.2 }}>
-          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', height: '100%' }}>
+          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Stack direction="row" alignItems="center" spacing={1.25} mb={2.5}>
               <ShieldCheck size={22} color="#22c55e" />
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.1rem' }}>

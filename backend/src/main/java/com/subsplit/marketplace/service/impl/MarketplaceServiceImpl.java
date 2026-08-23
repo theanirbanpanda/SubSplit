@@ -199,7 +199,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             throw new BadRequestException("Listing title must be at least 3 characters long");
         }
         if (request.getSeatPrice() == null || request.getSeatPrice().compareTo(BigDecimal.ONE) < 0) {
-            throw new BadRequestException("Seat price must be at least ₹1");
+            throw new BadRequestException("Seat price must be at least 1");
         }
         if (request.getTotalSeats() == null || request.getTotalSeats() < 1) {
             throw new BadRequestException("Total seats must be at least 1");
@@ -238,7 +238,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 notificationService.createNotification(
                         host,
                         NotificationType.SYSTEM,
-                        "Group Pass Published 🚀",
+                        "Group Pass Published ",
                         "Your subscription pass '" + savedListing.getTitle() + "' is now active on the Marketplace!");
             }
         } catch (Exception e) {
@@ -310,7 +310,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         validateOwnership(listing, host);
 
-        boolean hasActiveOrPendingMembers = joinRequestRepository.existsByListingIdAndStatusIn(
+        boolean hasPendingRequests = joinRequestRepository.existsByListingIdAndStatusIn(
                 id,
                 java.util.List.of(
                         com.subsplit.common.enums.JoinRequestStatus.PENDING,
@@ -319,8 +319,12 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                         com.subsplit.common.enums.JoinRequestStatus.APPROVED
                 )
         );
+        
+        long activeMembersCount = membershipRepository.findByListingId(id).stream()
+                .filter(m -> m.getStatus() == com.subsplit.common.enums.MembershipStatus.ACTIVE)
+                .count();
 
-        if (hasActiveOrPendingMembers) {
+        if (hasPendingRequests || activeMembersCount > 0) {
             throw new IllegalStateException("Cannot delete listing. There are active members or pending payments for this listing.");
         }
 
@@ -479,6 +483,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     private ListingResponse mapToListingResponse(Listing listing) {
+        long activeMembersCount = membershipRepository.findByListingId(listing.getId()).stream()
+                .filter(m -> m.getStatus() == com.subsplit.common.enums.MembershipStatus.ACTIVE)
+                .count();
         User host = listing.getHost();
         SubscriptionPlan plan = listing.getPlan();
         Subscription subscription = plan != null ? plan.getSubscription() : null;
@@ -542,6 +549,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 .seatPrice(listing.getSeatPrice())
                 .totalSeats(listing.getTotalSeats())
                 .availableSeats(listing.getAvailableSeats())
+                .activeMembersCount((int) activeMembersCount)
                 .billingCycle(listing.getBillingCycle())
                 .status(listing.getStatus())
                 .startDate(listing.getStartDate())
@@ -764,29 +772,47 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             reviewer = userRepository.findAll().stream().findFirst().orElseThrow();
         }
 
-        // Constraint 1: Host cannot review themselves
-        if (listing.getHost() != null && Objects.equals(listing.getHost().getId(), reviewer.getId())) {
-            throw new BadRequestException("You cannot submit a review on your own listing");
+        boolean isHostReviewingBuyer = listing.getHost() != null && Objects.equals(listing.getHost().getId(), reviewer.getId());
+        User reviewee;
+        Membership membership = null;
+
+        if (isHostReviewingBuyer) {
+            if (request.getRevieweeId() == null) {
+                throw new BadRequestException("Reviewee ID is required when host is reviewing a buyer");
+            }
+            if (Objects.equals(reviewer.getId(), request.getRevieweeId())) {
+                throw new BadRequestException("You cannot review yourself");
+            }
+            reviewee = userRepository.findById(request.getRevieweeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Reviewee not found with id: " + request.getRevieweeId()));
+            membership = membershipRepository.findByMemberIdAndListingId(reviewee.getId(), listingId)
+                    .orElseThrow(() -> new BadRequestException("Buyer is not a member of this listing"));
+            
+            if (reviewRepository.existsByReviewerIdAndRevieweeId(reviewer.getId(), reviewee.getId())) {
+                throw new BadRequestException("You have already submitted a review for this buyer");
+            }
+        } else {
+            reviewee = listing.getHost();
+            if (reviewee != null && Objects.equals(reviewee.getId(), reviewer.getId())) {
+                throw new BadRequestException("You cannot review yourself");
+            }
+            membership = membershipRepository.findByMemberIdAndListingId(reviewer.getId(), listingId)
+                    .orElse(null);
+
+            if (reviewRepository.existsByReviewerIdAndMembershipListingId(reviewer.getId(), listingId)) {
+                throw new BadRequestException("You have already submitted a review for this listing");
+            }
         }
 
-        // Constraint 2: One review per joinee per listing
-        if (reviewRepository.existsByReviewerIdAndMembershipListingId(reviewer.getId(), listingId)) {
-            throw new BadRequestException("You have already submitted a review for this listing");
-        }
-
-        // Constraint 3: Plain text only & max 500 characters validation
         String plainText = request.getReviewText() != null ? request.getReviewText().replaceAll("<[^>]*>", "").trim()
                 : "";
         if (plainText.length() < 5 || plainText.length() > 500) {
             throw new BadRequestException("Review comment must be plain text between 5 and 500 characters");
         }
 
-        Membership membership = membershipRepository.findByMemberIdAndListingId(reviewer.getId(), listingId)
-                .orElse(null);
-
         Review review = Review.builder()
                 .reviewer(reviewer)
-                .reviewee(listing.getHost())
+                .reviewee(reviewee)
                 .listing(listing)
                 .membership(membership)
                 .rating(request.getRating())
@@ -853,8 +879,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         // Check if user has enough amount available in wallet
         if (wallet.getBalance().compareTo(requiredAmount) < 0) {
-            throw new IllegalArgumentException("Not enough balance in wallet. Available: ₹" + wallet.getBalance()
-                    + ", Required: ₹" + requiredAmount);
+            throw new IllegalArgumentException("Not enough balance in wallet. Available: " + wallet.getBalance()
+                    + ", Required: " + requiredAmount);
         }
 
         // Deduct amount from user wallet
@@ -895,14 +921,14 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 notificationService.createNotification(
                         listing.getHost(),
                         NotificationType.JOIN_REQUEST,
-                        "New Join Request Received 📩",
+                        "New Join Request Received ",
                         memberName + " requested to join your group pass '" + listing.getTitle() + "'.");
             }
             notificationService.createNotification(
                     member,
                     NotificationType.JOIN_REQUEST,
-                    "Group Join Request Sent 🎉",
-                    "Your request to join '" + listing.getTitle() + "' was sent. ₹" + requiredAmount
+                    "Group Join Request Sent ",
+                    "Your request to join '" + listing.getTitle() + "' was sent. " + requiredAmount
                             + " reserved in escrow.");
         } catch (Exception e) {
             log.error("Failed to generate notification for join request: ", e);
@@ -1159,9 +1185,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         // Real-time notification to member
         try {
             if (member != null) {
-                String notifTitle = "INVITATION_LINK".equals(targetShareType) ? "Invitation Link Shared 🔗"
-                        : "ACTIVATION_CODE".equals(targetShareType) ? "Activation Code Shared 🔑"
-                                : "Credentials Shared 🔑";
+                String notifTitle = "INVITATION_LINK".equals(targetShareType) ? "Invitation Link Shared "
+                        : "ACTIVATION_CODE".equals(targetShareType) ? "Activation Code Shared "
+                                : "Credentials Shared ";
 
                 String notifMsg = "INVITATION_LINK".equals(targetShareType)
                         ? "Host " + host.getFullName() + " shared an invitation link for '" + listing.getTitle()
@@ -1248,6 +1274,25 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         joinReq.setStatus(JoinRequestStatus.APPROVED);
         JoinRequest savedReq = joinRequestRepository.save(joinReq);
 
+        // Create Membership record so the pass appears in buyer's dashboard
+        try {
+            boolean alreadyExists = membershipRepository
+                    .findByMemberIdAndListingId(member.getId(), listing != null ? listing.getId() : -1L)
+                    .isPresent();
+            if (!alreadyExists && listing != null) {
+                Membership newMembership = Membership.builder()
+                        .listing(listing)
+                        .member(member)
+                        .status(com.subsplit.common.enums.MembershipStatus.ACTIVE)
+                        .autoRenew(true)
+                        .expiryDate(java.time.LocalDate.now().plusDays(30))
+                        .build();
+                membershipRepository.save(newMembership);
+            }
+        } catch (Exception e) {
+            log.error("Failed to create membership record on proof approval: ", e);
+        }
+
         // Update available seats on listing
         if (listing != null && listing.getAvailableSeats() != null && listing.getAvailableSeats() > 0) {
             listing.setAvailableSeats(listing.getAvailableSeats() - 1);
@@ -1290,7 +1335,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             notificationService.createNotification(
                     member,
                     NotificationType.JOIN_REQUEST,
-                    "Subscription Pass Activated 🎉",
+                    "Subscription Pass Activated ",
                     "Your login proof for '" + (listing != null ? listing.getTitle() : "Pass")
                             + "' was verified! Pass is active.");
 
@@ -1298,8 +1343,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 notificationService.createNotification(
                         host,
                         NotificationType.PAYMENT,
-                        "Member Verified & Payout Settled 💰",
-                        "₹" + amount + " released from escrow to your wallet for member " + memberName + ".");
+                        "Member Verified & Payout Settled ",
+                        "" + amount + " released from escrow to your wallet for member " + memberName + ".");
             }
         } catch (Exception e) {
             log.error("Failed to send notification on proof verification: ", e);
@@ -1415,8 +1460,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 notificationService.createNotification(
                         member,
                         NotificationType.JOIN_REQUEST,
-                        "Join Request Declined ❌",
-                        "Your request to join '" + listing.getTitle() + "' was declined by the host. ₹" + refundAmount
+                        "Join Request Declined ",
+                        "Your request to join '" + listing.getTitle() + "' was declined by the host. " + refundAmount
                                 + " has been refunded to your wallet.");
             }
         } catch (Exception e) {
@@ -1446,4 +1491,29 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         reviewRepository.delete(review);
     }
 
+
+@Override
+    public List<ListingMemberDto> getListingMembers(User host, Long listingId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new RuntimeException("Listing not found"));
+
+        if (!listing.getHost().getId().equals(host.getId())) {
+            throw new RuntimeException("You do not have permission to view members for this listing");
+        }
+
+        List<com.subsplit.membership.entity.Membership> memberships = membershipRepository.findByListingId(listingId);
+        
+        return memberships.stream()
+                .filter(m -> m.getStatus() == com.subsplit.common.enums.MembershipStatus.ACTIVE)
+                .map(m -> ListingMemberDto.builder()
+                        .membershipId(m.getId())
+                        .userId(m.getMember().getId())
+                        .name(m.getMember().getFullName())
+                        .email(m.getMember().getEmail())
+                        .profileImage(m.getMember().getProfileImage())
+                        .joinedDate(m.getCreatedAt())
+                        .status(m.getStatus().name())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

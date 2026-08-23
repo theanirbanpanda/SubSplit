@@ -247,4 +247,12 @@ public class MarketplaceController {
         return ResponseEntity.ok(ApiResponse.success("Review deleted successfully", "Review has been deleted"));
     }
 
+
+    @GetMapping("/listings/{id}/members")
+    public ResponseEntity<ApiResponse<List<com.subsplit.marketplace.dto.ListingMemberDto>>> getListingMembers(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal User user,
+            @PathVariable Long id) {
+        List<com.subsplit.marketplace.dto.ListingMemberDto> members = marketplaceService.getListingMembers(user, id);
+        return ResponseEntity.ok(ApiResponse.success("Listing members retrieved successfully", members));
+    }
 }

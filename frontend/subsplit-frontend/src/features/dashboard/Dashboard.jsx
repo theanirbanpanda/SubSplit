@@ -83,6 +83,8 @@ function Dashboard() {
 
   const [copiedId, setCopiedId]   = useState(null);
   const [chatHost, setChatHost]   = useState(null);
+  const [activePassesOpen, setActivePassesOpen] = useState(true);
+  const [requestsSentOpen, setRequestsSentOpen] = useState(true);
   const [renewalsOpen, setRenewalsOpen]   = useState(false);
   const [activityOpen, setActivityOpen]   = useState(false);
 
@@ -249,9 +251,9 @@ function Dashboard() {
       </div>
 
       {/* ── Section 1: My Active Passes ──────────────────────────────────────── */}
-      <Box id="my-subscriptions">
+      <Paper elevation={0} id="my-subscriptions" sx={{ borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', mb: 5 }}>
         {/* Section header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" px={2.5} py={2} onClick={() => setActivePassesOpen(o => !o)} sx={{ cursor: 'pointer', userSelect: 'none' }}>
           <Stack direction="row" alignItems="center" spacing={1.25}>
             <SectionIconChip
               icon={ShieldCheck}
@@ -285,27 +287,21 @@ function Dashboard() {
               </Box>
             )}
           </Stack>
+          <ChevronRight size={18} color="#9ca3af" style={{ transition: 'transform 0.25s ease', transform: activePassesOpen ? 'rotate(90deg)' : 'rotate(0deg)' }} />
         </Stack>
-
+        
+        <Collapse in={activePassesOpen}>
+        <Box px={2.5} pb={2.5} pt={0}>
         {/* Pass cards */}
         {subsLoading && activeMemberships.length === 0 ? (
-          <Paper elevation={0} sx={{ p: 3, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: '18px', background: '#111114', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
             <Typography sx={{ fontSize: '0.9rem', color: '#9ca3af' }}>Loading your passes…</Typography>
           </Paper>
         ) : activeMemberships.length === 0 ? (
-          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.9rem', color: '#9ca3af', mb: 1.5 }}>
+          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '18px', background: '#111114', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+            <Typography sx={{ fontSize: '0.9rem', color: '#9ca3af' }}>
               You don't have any active passes yet.
             </Typography>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Search size={14} />}
-              onClick={() => navigate('/app/marketplace')}
-              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, fontSize: '0.82rem' }}
-            >
-              Find a Pass
-            </Button>
           </Paper>
         ) : (
           <Stack spacing={1.5}>
@@ -336,7 +332,7 @@ function Dashboard() {
                   sx={{
                     p: { xs: 2, sm: 2.25 },
                     borderRadius: '18px',
-                    background: '#14161a',
+                    background: '#111114',
                     border: '1px solid rgba(255,255,255,0.08)',
                     transition: 'border-color 0.2s ease',
                     '&:hover': { borderColor: 'rgba(59,130,246,0.35)' },
@@ -433,12 +429,15 @@ function Dashboard() {
             })}
           </Stack>
         )}
-      </Box>
+        </Box>
+        </Collapse>
+      </Paper>
 
       {/* ── Section 2: My Requests Sent ──────────────────────────────────────── */}
-      <Box ref={pendingSentRef} id="my-requests-sent">
+      <Paper elevation={0} ref={pendingSentRef} id="my-requests-sent" sx={{ borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', mb: 5 }}>
         {/* Section header */}
-        <Stack direction="row" alignItems="center" spacing={1.25} mb={2.5}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" px={2.5} py={2} onClick={() => setRequestsSentOpen(o => !o)} sx={{ cursor: 'pointer', userSelect: 'none' }}>
+          <Stack direction="row" alignItems="center" spacing={1.25}>
           <SectionIconChip
             icon={Clock}
             color="#f59e0b"
@@ -470,10 +469,14 @@ function Dashboard() {
               {pendingRequests.length}
             </Box>
           )}
+          </Stack>
+          <ChevronRight size={18} color="#9ca3af" style={{ transition: 'transform 0.25s ease', transform: requestsSentOpen ? 'rotate(90deg)' : 'rotate(0deg)' }} />
         </Stack>
 
+        <Collapse in={requestsSentOpen}>
+        <Box px={2.5} pb={2.5} pt={0}>
         {pendingRequests.length === 0 ? (
-          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '18px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+          <Paper elevation={0} sx={{ p: 3.5, borderRadius: '18px', background: '#111114', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
             <Typography sx={{ fontSize: '0.9rem', color: '#9ca3af', mb: 1.5 }}>
               You have no pending requests.
             </Typography>
@@ -634,7 +637,9 @@ function Dashboard() {
             })}
           </Stack>
         )}
-      </Box>
+        </Box>
+        </Collapse>
+      </Paper>
 
       {/* ── Upcoming Renewals (collapsed accordion) ──────────────────────────── */}
       <Paper

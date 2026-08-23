@@ -24,6 +24,7 @@ import {
   Clock,
   Flag,
   AlertTriangle,
+  MessageSquare,
 } from 'lucide-react';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -270,6 +271,37 @@ function StickyJoinCard({ listing, onJoinClick, isAlreadyJoined, isHost, myReque
           }}
         >
           Buy
+        </Button>
+      )}
+
+      {!isHost && (
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<MessageSquare size={18} />}
+          onClick={() => {
+            const hostId = listing.host?.id || listing.hostId;
+            if (hostId) {
+              navigate(`/app/messages?recipientId=${hostId}&listingId=${listingId}`);
+            }
+          }}
+          sx={{
+            mb: 2,
+            borderRadius: '12px',
+            fontWeight: 700,
+            py: 1.2,
+            color: '#e4e4e7',
+            borderColor: 'rgba(255,255,255,0.12)',
+            textTransform: 'none',
+            '&:hover': {
+              color: '#ffffff',
+              borderColor: 'rgba(255,255,255,0.3)',
+              background: 'rgba(255,255,255,0.04)',
+            },
+            transition: 'all 0.2s ease',
+          }}
+        >
+          Chat with Host
         </Button>
       )}
 

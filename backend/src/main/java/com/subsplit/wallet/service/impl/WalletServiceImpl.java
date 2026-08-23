@@ -92,8 +92,8 @@ public class WalletServiceImpl implements WalletService {
             notificationService.createNotification(
                     user,
                     NotificationType.PAYMENT,
-                    "Wallet Top-Up Successful 💳",
-                    "₹" + amount + " added to your SubSplit wallet balance."
+                    "Wallet Top-Up Successful ",
+                    "" + amount + " added to your SubSplit wallet balance."
             );
         } catch (Exception ignored) {}
 

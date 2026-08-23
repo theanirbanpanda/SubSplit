@@ -109,3 +109,9 @@ export const cancelJoinRequestApi = async (requestId) => {
   const response = await api.delete(`/marketplace/join-requests/${requestId}`);
   return response.data;
 };
+
+export const fetchListingMembersApi = async (id) => {
+  const response = await api.get(`/marketplace/listings/${id}/members`);
+  return response.data;
+};
+

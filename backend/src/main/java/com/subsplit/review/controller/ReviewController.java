@@ -17,6 +17,12 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
+    @PostMapping
+    public ResponseEntity<ApiResponse<Review>> createReview(@org.springframework.security.core.annotation.AuthenticationPrincipal com.subsplit.common.entity.User user, @RequestBody com.subsplit.review.dto.CreateReviewRequest request) {
+        Review review = reviewService.createReview(user, request);
+        return ResponseEntity.ok(ApiResponse.success(review));
+    }
+
     @GetMapping
     public List<Review> getAllReviews() {
         return reviewService.getAllReviews();

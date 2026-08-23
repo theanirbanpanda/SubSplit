@@ -6,6 +6,9 @@ import {
   sendMessageApi,
   markConversationAsReadApi,
   fetchUnreadMessageCountApi,
+  reactToMessageApi,
+  deleteMessageApi,
+  uploadAttachmentApi,
 } from './api/messageApi';
 
 export const fetchConversations = createAsyncThunk(
@@ -73,10 +76,45 @@ export const fetchUnreadMessageCount = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetchUnreadMessageCountApi();
-      // response is ApiResponse<{unreadCount: number}>, so response.data = {unreadCount: N}
       return response.data?.unreadCount ?? 0;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch unread count');
+    }
+  }
+);
+
+export const toggleReaction = createAsyncThunk(
+  'messages/toggleReaction',
+  async ({ messageId, emoji }, { rejectWithValue }) => {
+    try {
+      const response = await reactToMessageApi(messageId, emoji);
+      return response.data; // { messageId, reactions, added }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to react');
+    }
+  }
+);
+
+export const deleteMessage = createAsyncThunk(
+  'messages/deleteMessage',
+  async (messageId, { rejectWithValue }) => {
+    try {
+      const response = await deleteMessageApi(messageId);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to delete message');
+    }
+  }
+);
+
+export const uploadAttachment = createAsyncThunk(
+  'messages/uploadAttachment',
+  async (file, { rejectWithValue }) => {
+    try {
+      const response = await uploadAttachmentApi(file);
+      return response.data; // { url, name }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to upload file');
     }
   }
 );
@@ -89,7 +127,9 @@ const initialState = {
   loading: false,
   messagesLoading: false,
   sending: false,
+  uploading: false,
   error: null,
+  typingUsers: {}, // { conversationId: { senderId, senderName, timestamp } }
 };
 
 const messageSlice = createSlice({
@@ -103,12 +143,8 @@ const messageSlice = createSlice({
       state.activeConversation = null;
       state.messages = [];
     },
-    addMessageOptimistic(state, action) {
-      state.messages.push(action.payload);
-    },
     addRealtimeMessage(state, action) {
       const newMsg = action.payload;
-      // Only append if it belongs to active conversation and isn't already present
       if (
         state.activeConversation &&
         state.activeConversation.id === newMsg.conversationId &&
@@ -116,8 +152,6 @@ const messageSlice = createSlice({
       ) {
         state.messages.push(newMsg);
       }
-      
-      // Update conversation list summary
       const conv = state.conversations.find((c) => c.id === newMsg.conversationId);
       if (conv) {
         conv.lastMessage = newMsg.content;
@@ -125,18 +159,36 @@ const messageSlice = createSlice({
         if (!newMsg.isMine && state.activeConversation?.id !== newMsg.conversationId) {
           conv.unreadCount = (conv.unreadCount || 0) + 1;
         }
+      }
+    },
+    updateMessageReactions(state, action) {
+      const { messageId, reactions } = action.payload;
+      const msg = state.messages.find((m) => m.id === messageId);
+      if (msg) msg.reactions = reactions;
+    },
+    setTypingUser(state, action) {
+      const { conversationId, senderId, senderName, typing } = action.payload;
+      if (typing) {
+        state.typingUsers[conversationId] = { senderId, senderName, timestamp: Date.now() };
       } else {
-        // If it's a new conversation, we might need to fetch it (or just rely on the next fetch)
+        delete state.typingUsers[conversationId];
+      }
+    },
+    markMessageDeleted(state, action) {
+      const { messageId } = action.payload;
+      const msg = state.messages.find((m) => m.id === messageId);
+      if (msg) {
+        msg.isDeleted = true;
+        msg.content = 'This message was deleted';
+        msg.attachmentUrl = null;
+        msg.attachmentName = null;
       }
     },
   },
   extraReducers: (builder) => {
     builder
-      // fetchConversations
       .addCase(fetchConversations.pending, (state) => {
-        if (state.conversations.length === 0) {
-          state.loading = true;
-        }
+        if (state.conversations.length === 0) state.loading = true;
         state.error = null;
       })
       .addCase(fetchConversations.fulfilled, (state, action) => {
@@ -148,22 +200,17 @@ const messageSlice = createSlice({
         state.error = action.payload;
       })
 
-      // fetchConversationMessages
       .addCase(fetchConversationMessages.pending, (state) => {
-        if (state.messages.length === 0) {
-          state.messagesLoading = true;
-        }
+        if (state.messages.length === 0) state.messagesLoading = true;
       })
       .addCase(fetchConversationMessages.fulfilled, (state, action) => {
         state.messagesLoading = false;
         const newMsgs = action.payload?.messages || [];
-        // Only update array if length or latest message changed
         const currentLen = state.messages.length;
         const newLen = newMsgs.length;
         if (currentLen !== newLen || (newLen > 0 && state.messages[currentLen - 1]?.id !== newMsgs[newLen - 1]?.id)) {
           state.messages = newMsgs;
         }
-        // zero out unread count for this conversation in list
         const conv = state.conversations.find((c) => c.id === action.payload?.conversationId);
         if (conv && conv.unreadCount > 0) conv.unreadCount = 0;
       })
@@ -172,27 +219,19 @@ const messageSlice = createSlice({
         state.error = action.payload;
       })
 
-      // startOrGetConversation
       .addCase(startOrGetConversation.fulfilled, (state, action) => {
         state.activeConversation = action.payload;
         const exists = state.conversations.find((c) => c.id === action.payload.id);
-        if (!exists) {
-          state.conversations.unshift(action.payload);
-        }
+        if (!exists) state.conversations.unshift(action.payload);
       })
 
-      // sendMessage
-      .addCase(sendMessage.pending, (state) => {
-        state.sending = true;
-      })
+      .addCase(sendMessage.pending, (state) => { state.sending = true; })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.sending = false;
         const newMsg = action.payload;
-        // check if not already present
         if (!state.messages.some((m) => m.id === newMsg.id)) {
           state.messages.push(newMsg);
         }
-        // update conversation last message
         const conv = state.conversations.find((c) => c.id === newMsg.conversationId);
         if (conv) {
           conv.lastMessage = newMsg.content;
@@ -204,18 +243,42 @@ const messageSlice = createSlice({
         state.error = action.payload;
       })
 
-      // markConversationRead
       .addCase(markConversationRead.fulfilled, (state, action) => {
         const conv = state.conversations.find((c) => c.id === action.payload);
         if (conv) conv.unreadCount = 0;
       })
 
-      // fetchUnreadMessageCount
       .addCase(fetchUnreadMessageCount.fulfilled, (state, action) => {
         state.unreadCount = action.payload;
-      });
+      })
+
+      .addCase(toggleReaction.fulfilled, (state, action) => {
+        const { messageId, reactions } = action.payload;
+        const msg = state.messages.find((m) => m.id === messageId);
+        if (msg) msg.reactions = reactions;
+      })
+
+      .addCase(deleteMessage.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const idx = state.messages.findIndex((m) => m.id === updated.id);
+        if (idx !== -1) {
+          state.messages[idx] = { ...state.messages[idx], ...updated };
+        }
+      })
+
+      .addCase(uploadAttachment.pending, (state) => { state.uploading = true; })
+      .addCase(uploadAttachment.fulfilled, (state) => { state.uploading = false; })
+      .addCase(uploadAttachment.rejected, (state) => { state.uploading = false; });
   },
 });
 
-export const { setActiveConversation, clearActiveConversation, addMessageOptimistic, addRealtimeMessage } = messageSlice.actions;
+export const {
+  setActiveConversation,
+  clearActiveConversation,
+  addRealtimeMessage,
+  updateMessageReactions,
+  setTypingUser,
+  markMessageDeleted,
+} = messageSlice.actions;
+
 export default messageSlice.reducer;

@@ -115,9 +115,11 @@ function Profile() {
 
   useEffect(() => {
     if (user) {
-      const fn = user.firstName || '';
+      const emailUsername = user.email ? user.email.split('@')[0] : '';
+      const fn = user.firstName || emailUsername;
       const ln = user.lastName || '';
-      const full = `${fn} ${ln}`.trim();
+      const full = `${fn} ${ln}`.trim() || emailUsername;
+      
       setFirstName(fn);
       setLastName(ln);
       setName(full);
@@ -125,9 +127,8 @@ function Profile() {
       setPhone(user.phone || '');
       setStateName(user.state || '');
       setCityName(user.city || '');
-      if (user.bio) {
-        setBio(user.bio);
-      }
+      setBio(user.bio || 'Product designer & tech enthusiast sharing 4K streaming and AI subscriptions.');
+
       if (user.city && user.state) {
         setLocationDisplay(`${user.city}, ${user.state}`);
       } else if (user.city || user.state) {
@@ -135,8 +136,9 @@ function Profile() {
       } else {
         setLocationDisplay('India');
       }
+      
       if (user.email) {
-        setUsername(user.email.split('@')[0]);
+        setUsername(emailUsername);
       }
     }
   }, [user]);
@@ -161,8 +163,8 @@ function Profile() {
   const initials = firstName
     ? `${firstName[0]}${lastName ? lastName[0] : ''}`.toUpperCase()
     : user?.firstName
-    ? `${user.firstName[0]}${user.lastName ? user.lastName[0] : ''}`.toUpperCase()
-    : 'U';
+      ? `${user.firstName[0]}${user.lastName ? user.lastName[0] : ''}`.toUpperCase()
+      : 'U';
 
   const handleShareProfile = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -617,8 +619,8 @@ function Profile() {
                   border: kycStatus?.isKycVerified
                     ? '1px solid rgba(34,197,94,0.35)'
                     : (kycStatus?.kycStatus === 'VERIFYING'
-                        ? '1px solid rgba(59,130,246,0.6)'
-                        : '1px solid rgba(245,158,11,0.35)'),
+                      ? '1px solid rgba(59,130,246,0.6)'
+                      : '1px solid rgba(245,158,11,0.35)'),
                   boxShadow: kycStatus?.kycStatus === 'VERIFYING' ? '0 0 20px rgba(59,130,246,0.15)' : 'none',
                 }}
               >

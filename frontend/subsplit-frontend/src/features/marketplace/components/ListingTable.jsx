@@ -95,16 +95,7 @@ const ListingTable = () => {
     );
     if (isSubscribed) return false;
 
-    // Search Filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const matchesSearch = 
-        listing.title?.toLowerCase().includes(searchLower) ||
-        listing.category?.toLowerCase().includes(searchLower) ||
-        listing.hostName?.toLowerCase().includes(searchLower) ||
-        listing.host?.name?.toLowerCase().includes(searchLower);
-      if (!matchesSearch) return false;
-    }
+
 
     // Category Filter
     if (filters.category && filters.category !== 'All') {

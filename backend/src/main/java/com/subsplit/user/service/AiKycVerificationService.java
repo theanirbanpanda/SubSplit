@@ -76,7 +76,7 @@ public class AiKycVerificationService {
                         notificationService.createNotification(
                                 savedUser,
                                 NotificationType.AI,
-                                "KYC AI Verification Approved ✅",
+                                "KYC AI Verification Approved ",
                                 "Your " + docLabel + " document has been verified successfully by SubSplit AI! Wallet and escrow access are unlocked."
                         );
                     } catch (Exception e) {
@@ -94,7 +94,7 @@ public class AiKycVerificationService {
                         notificationService.createNotification(
                                 savedUser,
                                 NotificationType.AI,
-                                "KYC AI Verification Failed ❌",
+                                "KYC AI Verification Failed ",
                                 "AI verification could not verify your " + docLabel + ". Please ensure your document photo is clear, readable, and not expired, then try uploading again."
                         );
                     } catch (Exception e) {
@@ -113,7 +113,7 @@ public class AiKycVerificationService {
                         notificationService.createNotification(
                                 user,
                                 NotificationType.AI,
-                                "KYC AI Verification Failed ❌",
+                                "KYC AI Verification Failed ",
                                 "Verification could not be completed. Please upload a clear document image and try again."
                         );
                     }

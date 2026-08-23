@@ -33,6 +33,7 @@ public class JoinRequest extends BaseEntity {
     private User member;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 255)
     private JoinRequestStatus status;
 
     private String message;

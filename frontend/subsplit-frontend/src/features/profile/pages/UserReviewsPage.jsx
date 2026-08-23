@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,9 +9,10 @@ import {
   Stack,
   Avatar,
   Chip,
-  Button,
   LinearProgress,
   IconButton,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Star,
@@ -38,48 +39,29 @@ function UserReviewsPage() {
     }
   }, [userId, dispatch]);
 
-  const reviewsList = userReviews?.reviews || [
-    {
-      id: 1,
-      reviewerName: 'Rohan Sharma',
-      reviewerInitials: 'RS',
-      avatarBg: '#2563eb',
-      rating: 5,
-      formattedDate: 'Aug 02, 2026',
-      reviewText: 'Super fast credential delivery! Host responded within 5 minutes and the Netflix 4K profile works flawlessly.',
-      isVerifiedMember: true,
-      listingTitle: 'Netflix Premium 4K Ultra HD',
-    },
-    {
-      id: 2,
-      reviewerName: 'Priya Patel',
-      reviewerInitials: 'PP',
-      avatarBg: '#a855f7',
-      rating: 5,
-      formattedDate: 'Jul 28, 2026',
-      reviewText: 'Great experience splitting Spotify Family. Monthly renewal was smooth with zero interruptions.',
-      isVerifiedMember: true,
-      listingTitle: 'Spotify Family Plan',
-    },
-    {
-      id: 3,
-      reviewerName: 'Ananya Verma',
-      reviewerInitials: 'AV',
-      avatarBg: '#22c55e',
-      rating: 4,
-      formattedDate: 'Jul 15, 2026',
-      reviewText: 'Reliable host! Verified KYC and instant escrow release.',
-      isVerifiedMember: true,
-      listingTitle: 'ChatGPT Plus Team Account',
-    },
-  ];
+  const rawReviewsList = userReviews?.reviews || [];
 
-  const totalReviews = userReviews?.totalReviews ?? reviewsList.length;
-  const avgRating = userReviews?.averageRating ?? 4.9;
+  const hostReviews = rawReviewsList.filter(r => r.isHostReview === true);
+  const buyerReviews = rawReviewsList.filter(r => r.isHostReview === false);
+
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const currentReviewsList = activeTab === 0 ? hostReviews : buyerReviews;
+  
+  const totalReviews = currentReviewsList.length;
+  let sumRating = 0;
+  currentReviewsList.forEach((r) => {
+    sumRating += r.rating || 5;
+  });
+  const avgRating = totalReviews > 0 ? (sumRating / totalReviews) : 0;
 
   // Calculate rating breakdown distribution
   const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-  reviewsList.forEach((r) => {
+  currentReviewsList.forEach((r) => {
     const star = Math.min(5, Math.max(1, r.rating || 5));
     ratingCounts[star] = (ratingCounts[star] || 0) + 1;
   });
@@ -105,20 +87,27 @@ function UserReviewsPage() {
         <Box>
           <Stack direction="row" alignItems="center" spacing={1.25}>
             <Typography variant="h4" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.6rem', letterSpacing: '-0.02em' }}>
-              Host Reputation & Reviews
+              My Reputation & Reviews
             </Typography>
             <Chip
-              icon={<Award size={14} color="#f59e0b" />}
-              label="Verified Host Reviews"
+              icon={<Award size={14} color="#3b82f6" />}
+              label="Verified Feedback"
               size="small"
-              sx={{ background: 'rgba(245,158,11,0.12)', color: '#f59e0b', fontWeight: 800, border: '1px solid rgba(245,158,11,0.3)' }}
+              sx={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', fontWeight: 800, border: '1px solid rgba(59,130,246,0.3)' }}
             />
           </Stack>
           <Typography sx={{ fontSize: '0.84rem', color: '#9ca3af', mt: 0.3 }}>
-            Transparent ratings and feedback received from verified group joinees
+            Transparent ratings and feedback received as a Host or a Buyer
           </Typography>
         </Box>
       </Stack>
+
+      <Box sx={{ borderBottom: 1, borderColor: 'rgba(255,255,255,0.1)', mb: 4 }}>
+        <Tabs value={activeTab} onChange={handleTabChange} textColor="inherit" indicatorColor="primary">
+          <Tab label="Reviews as a Host" sx={{ fontWeight: 800, color: activeTab === 0 ? '#3b82f6' : '#9ca3af', textTransform: 'none', fontSize: '0.95rem' }} />
+          <Tab label="Reviews as a Buyer" sx={{ fontWeight: 800, color: activeTab === 1 ? '#3b82f6' : '#9ca3af', textTransform: 'none', fontSize: '0.95rem' }} />
+        </Tabs>
+      </Box>
 
       {/* ─── Summary Overview Card ─── */}
       <Paper
@@ -134,14 +123,14 @@ function UserReviewsPage() {
       >
         <Grid container spacing={4} alignItems="center">
           {/* Left Column: Big Average Rating */}
-          <Grid size={{ xs: 12, md: 4.5 }} sx={{ borderRight: { md: '1px solid rgba(255,255,255,0.08)' }, pr: { md: 4 } }}>
+          <Grid item xs={12} md={4.5} sx={{ borderRight: { md: '1px solid rgba(255,255,255,0.08)' }, pr: { md: 4 } }}>
             <Stack direction="column" alignItems="center" textAlign="center">
               <Typography sx={{ fontSize: '0.84rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1 }}>
-                Overall Host Score
+                Overall {activeTab === 0 ? 'Host' : 'Buyer'} Score
               </Typography>
 
               <Typography sx={{ fontWeight: 900, fontSize: '3.6rem', color: '#f59e0b', lineHeight: 1, letterSpacing: '-0.03em' }}>
-                {Number(avgRating).toFixed(1)}
+                {totalReviews > 0 ? Number(avgRating).toFixed(1) : '0.0'}
               </Typography>
 
               <Stack direction="row" alignItems="center" spacing={0.5} my={1.5}>
@@ -154,13 +143,13 @@ function UserReviewsPage() {
                 Based on {totalReviews} {totalReviews === 1 ? 'Verified Review' : 'Verified Reviews'}
               </Typography>
               <Typography sx={{ fontSize: '0.74rem', color: '#22c55e', mt: 0.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <ShieldCheck size={14} /> 100% Verified Escrow Purchases
+                <ShieldCheck size={14} /> 100% Verified Interactions
               </Typography>
             </Stack>
           </Grid>
 
           {/* Right Column: Rating Breakdown Progress Bars */}
-          <Grid size={{ xs: 12, md: 7.5 }}>
+          <Grid item xs={12} md={7.5}>
             <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: '#f3f4f6', mb: 2 }}>
               Rating Distribution
             </Typography>
@@ -168,7 +157,7 @@ function UserReviewsPage() {
             <Stack spacing={1.25}>
               {[5, 4, 3, 2, 1].map((star) => {
                 const count = ratingCounts[star] || 0;
-                const percent = totalReviews > 0 ? (count / totalReviews) * 100 : star === 5 ? 85 : star === 4 ? 15 : 0;
+                const percent = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
 
                 return (
                   <Stack key={star} direction="row" alignItems="center" spacing={2}>
@@ -207,89 +196,93 @@ function UserReviewsPage() {
       <Box>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2.5}>
           <Typography variant="h5" sx={{ fontWeight: 900, color: '#f3f4f6', fontSize: '1.25rem' }}>
-            All Received Reviews ({reviewsList.length})
+            Received Feedback ({currentReviewsList.length})
           </Typography>
-          <Chip label="Read-Only Feedback" size="small" sx={{ background: '#1c1e24', color: '#9ca3af', fontSize: '0.72rem', fontWeight: 700 }} />
         </Stack>
 
-        {reviewsList.length === 0 ? (
+        {currentReviewsList.length === 0 ? (
           <Paper elevation={0} sx={{ p: 5, borderRadius: '22px', background: '#14161a', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
             <MessageSquare size={40} color="#64748b" style={{ marginBottom: 12 }} />
             <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#f3f4f6', mb: 0.5 }}>
               No Reviews Received Yet
             </Typography>
             <Typography sx={{ fontSize: '0.82rem', color: '#9ca3af', maxWidth: 400, mx: 'auto' }}>
-              When joinees purchase passes from your subscription listings and submit reviews, their verified feedback will appear here.
+              When other users interact with you and leave a review, their feedback will appear here.
             </Typography>
           </Paper>
         ) : (
           <Grid container spacing={2.5}>
-            {reviewsList.map((rev) => {
-              const name = rev.reviewerName || 'Verified Member';
-              const initials = rev.reviewerInitials || 'VM';
+            {currentReviewsList.map((rev) => {
+              const name = rev.reviewerName || 'Verified User';
+              const initials = rev.reviewerInitials || 'VU';
               const avatarBg = rev.avatarBg || '#2563eb';
               const rating = rev.rating || 5;
               const date = rev.formattedDate || 'Recently';
               const comment = rev.reviewText || '';
-              const listingTitle = rev.listingTitle || 'Subscription Group';
+              const listingTitle = rev.listingTitle || (activeTab === 0 ? 'Subscription Group' : 'Group Purchase');
 
               return (
-                <Grid size={{ xs: 12 }} key={rev.id}>
+                <Grid item xs={12} key={rev.id}>
                   <Paper
+                    onClick={() => {
+                      if (rev.listingId) {
+                        navigate(`/app/marketplace/${rev.listingId}`);
+                      }
+                    }}
                     elevation={0}
                     sx={{
                       p: 3,
                       borderRadius: '20px',
                       background: '#14161a',
+                      cursor: rev.listingId ? 'pointer' : 'default',
                       border: '1px solid rgba(255,255,255,0.08)',
-                      transition: 'border-color 0.2s ease',
-                      '&:hover': { borderColor: 'rgba(59,130,246,0.3)' },
+                      transition: 'all 0.2s ease',
+                      '&:hover': { 
+                        borderColor: 'rgba(59,130,246,0.3)',
+                        transform: rev.listingId ? 'translateY(-2px)' : 'none'
+                      },
                     }}
                   >
                     <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2} mb={2}>
                       <Stack direction="row" alignItems="center" spacing={1.75}>
-                        <Avatar
-                          src={rev.reviewerAvatar}
-                          sx={{ width: 44, height: 44, bgcolor: avatarBg, fontWeight: 900, fontSize: '0.92rem' }}
-                        >
+                        <Avatar sx={{ width: 44, height: 44, background: avatarBg, fontSize: '1rem', fontWeight: 800, border: '2px solid rgba(255,255,255,0.1)' }}>
                           {initials}
                         </Avatar>
-
                         <Box>
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#f3f4f6' }}>
+                          <Stack direction="row" alignItems="center" spacing={0.75}>
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.94rem', color: '#f3f4f6' }}>
                               {name}
                             </Typography>
-                            <Chip
-                              icon={<ShieldCheck size={11} color="#22c55e" />}
-                              label="Verified Joinee"
-                              size="small"
-                              sx={{ background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', fontSize: '0.65rem', fontWeight: 800, height: 20 }}
-                            />
+                            {rev.isVerifiedMember && (
+                              <Sparkles size={14} color="#3b82f6" />
+                            )}
                           </Stack>
-                          <Typography sx={{ fontSize: '0.74rem', color: '#3b82f6', mt: 0.2, fontWeight: 700 }}>
-                            Pass: {listingTitle}
+                          <Typography sx={{ fontSize: '0.78rem', color: '#9ca3af', fontWeight: 600 }}>
+                            {date}
                           </Typography>
                         </Box>
                       </Stack>
 
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Stack direction="row" alignItems="center" spacing={0.4}>
-                          {[...Array(rating)].map((_, i) => (
-                            <Star key={i} size={15} fill="#f59e0b" color="#f59e0b" />
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ background: '#1c1e24', px: 1.5, py: 0.75, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#f59e0b' }}>{rating}.0</Typography>
+                        <Stack direction="row" spacing={0.25}>
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={14} fill={i < rating ? '#f59e0b' : 'none'} color={i < rating ? '#f59e0b' : '#374151'} />
                           ))}
                         </Stack>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#9ca3af', fontWeight: 600 }}>
-                          {date}
-                        </Typography>
                       </Stack>
                     </Stack>
 
-                    <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: '#1c1e24', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <Typography sx={{ fontSize: '0.88rem', color: '#f3f4f6', lineHeight: 1.6, fontStyle: 'italic' }}>
-                        "{comment}"
+                    <Typography sx={{ fontSize: '0.92rem', color: '#d1d5db', lineHeight: 1.6, mb: 2 }}>
+                      {comment}
+                    </Typography>
+
+                    <Box sx={{ p: 1.5, borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <Typography sx={{ fontSize: '0.76rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 0.75, fontWeight: 600 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6' }} />
+                        Reviewed for: <span style={{ color: '#f3f4f6', fontWeight: 700 }}>{listingTitle}</span>
                       </Typography>
-                    </Paper>
+                    </Box>
                   </Paper>
                 </Grid>
               );
