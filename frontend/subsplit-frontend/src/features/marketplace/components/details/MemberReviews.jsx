@@ -237,6 +237,9 @@ function MemberReviews({ listingId, reviewSummary, hostId, hostName, isConfirmed
 
   return (
     <Box sx={{ mb: 3 }}>
+      <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#ffffff', mb: 2 }}>
+        Host Rating and Reviews
+      </Typography>
       {totalCount > 0 && (
         <Box sx={{ mb: 2.5 }}>
           <Stack direction="row" alignItems="baseline" spacing={1.5} mb={0.5}>
@@ -341,7 +344,7 @@ function MemberReviews({ listingId, reviewSummary, hostId, hostName, isConfirmed
               const sanitized = e.target.value.replace(/<[^>]*>?/gm, '');
               if (sanitized.length <= 500) setReviewText(sanitized);
             }}
-            placeholder="How was your experience with this host and plan?"
+            placeholder="How was your experience with this host?"
             variant="outlined"
             sx={{
               mb: 2,

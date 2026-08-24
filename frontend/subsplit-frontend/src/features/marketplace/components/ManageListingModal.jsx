@@ -21,8 +21,14 @@ import { useSelector } from 'react-redux';
 import { Avatar, Tooltip } from '@mui/material';
 import { MessageSquare, Star as StarIcon } from 'lucide-react';
 import Confetti from 'react-confetti';
+import { MOCK_CATALOG } from '../data/mockCatalog';
 
 const ManageListingModal = ({ open, handleClose, listing }) => {
+  const catalogItem = MOCK_CATALOG.find(
+    (item) => item.name === listing?.title || item.name === listing?.plan?.name || item.id === listing?.platformId || item.supportedPlan === listing?.title
+  );
+  const maxCapacity = catalogItem?.maxCapacity || listing?.totalSeats || 5;
+
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState(0);
   
@@ -57,7 +63,7 @@ const ManageListingModal = ({ open, handleClose, listing }) => {
 
   useEffect(() => {
     if (listing && open) {
-      setAvailableSeats(listing.availableSeats || 0);
+      setAvailableSeats(listing.seatsLeft ?? 0);
       setActiveTab(0);
       setSeatsSuccess(false);
       setRenewSuccess(false);
@@ -74,8 +80,8 @@ const ManageListingModal = ({ open, handleClose, listing }) => {
         id: listing.id,
         listingData: {
           availableSeats: availableSeats,
-          seatPrice: listing.seatPrice, // keep current price
-          status: listing.status
+          seatPrice: listing.price, // keep current price
+          status: availableSeats === 0 ? 'FULL' : (listing.status === 'FULL' ? 'ACTIVE' : listing.status)
         }
       }));
       if (updateListing.fulfilled.match(resultAction)) {
@@ -193,7 +199,7 @@ const ManageListingModal = ({ open, handleClose, listing }) => {
             <Box sx={{ p: 3, borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Available Seats</Typography>
               <Typography variant="body2" sx={{ color: '#9ca3af', mb: 3 }}>
-                Update the number of seats available. If you sold a seat offline, you can reduce this number so buyers don't over-purchase. Total capacity is {listing.totalSeats}.
+                Update the number of seats available. If you sold a seat offline, you can reduce this number so buyers don't over-purchase. Total capacity is {maxCapacity}.
               </Typography>
               
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -207,7 +213,7 @@ const ManageListingModal = ({ open, handleClose, listing }) => {
                   {availableSeats}
                 </Typography>
                 <IconButton 
-                  onClick={() => setAvailableSeats(Math.min(listing.totalSeats, availableSeats + 1))}
+                  onClick={() => setAvailableSeats(Math.min(maxCapacity, availableSeats + 1))}
                   sx={{ background: 'rgba(255,255,255,0.08)', '&:hover': { background: 'rgba(255,255,255,0.15)' } }}
                 >
                   <Plus size={20} color="#fff" />
@@ -218,7 +224,11 @@ const ManageListingModal = ({ open, handleClose, listing }) => {
             <Button
               variant="contained"
               fullWidth
-              disabled={seatsLoading || availableSeats === listing.availableSeats}
+              disabled={
+                seatsLoading || 
+                (availableSeats === listing.seatsLeft && 
+                 (availableSeats === 0 ? 'FULL' : (listing.status === 'FULL' ? 'ACTIVE' : listing.status)) === listing.status)
+              }
               onClick={handleUpdateSeats}
               sx={{
                 background: seatsSuccess ? '#10b981' : 'linear-gradient(135deg, #3b82f6, #2563eb)',

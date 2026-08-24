@@ -45,7 +45,9 @@ public class ListingSpecification {
             // Avoid duplicate rows when fetching joins
             if (query != null && Long.class != query.getResultType() && long.class != query.getResultType()) {
                 root.fetch("host", JoinType.LEFT);
-                root.fetch("plan", JoinType.LEFT);
+                jakarta.persistence.criteria.Fetch<Object, Object> planFetch = root.fetch("plan", JoinType.LEFT);
+                jakarta.persistence.criteria.Fetch<Object, Object> subFetch = planFetch.fetch("subscription", JoinType.LEFT);
+                subFetch.fetch("category", JoinType.LEFT);
             }
 
             // Status filter (only filter if status parameter is passed, otherwise include all non-cancelled listings)

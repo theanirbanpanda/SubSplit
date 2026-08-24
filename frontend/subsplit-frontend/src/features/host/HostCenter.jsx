@@ -52,6 +52,7 @@ import CreateListingModal from '../marketplace/components/CreateListingModal';
 import RaiseDisputeModal from '../disputes/RaiseDisputeModal';
 import ManageListingModal from '../marketplace/components/ManageListingModal';
 import ShareCredentialsModal from './components/ShareCredentialsModal';
+import BuyerReviewsModal from './components/BuyerReviewsModal';
 import TrustRail from '../dashboard/components/TrustRail';
 import styles from './HostCenter.module.scss';
 
@@ -96,6 +97,8 @@ function HostCenter() {
   const [aiInsightsOpen,           setAiInsightsOpen]           = useState(true);
   const [deleteDialogOpen,         setDeleteDialogOpen]         = useState(false);
   const [listingToDelete,          setListingToDelete]          = useState(null);
+  const [buyerReviewsModalOpen,    setBuyerReviewsModalOpen]    = useState(false);
+  const [selectedBuyerForReviews,  setSelectedBuyerForReviews]  = useState(null);
 
   const pendingReviewRef = useRef(null);
 
@@ -376,39 +379,97 @@ function HostCenter() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderLeft: '3px solid #f59e0b',
                     overflow: 'hidden',
+                    position: 'relative',
                   }}
                 >
                   {/* Member row */}
-                  <Stack direction="row" alignItems="center" spacing={1.5} mb={0.75}>
-                    <Avatar
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        background: gradBg,
-                        fontWeight: 900,
-                        fontSize: '0.9rem',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {initials}
-                    </Avatar>
-                    <Box>
-                      <Stack direction="row" alignItems="center" spacing={0.75}>
-                        <Typography sx={{ fontWeight: 800, fontSize: '0.97rem', color: '#f3f4f6', lineHeight: 1.2 }}>
-                          {memberName || 'Member'}
-                        </Typography>
-                        <ShieldCheck size={14} color="#22c55e" />
-                      </Stack>
-                      {price != null && (
-                        <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                          Escrow reserved:{' '}
-                          <Box component="span" sx={{ color: '#22c55e', fontWeight: 700 }}>
-                            Rs.{price}
-                          </Box>
-                        </Typography>
-                      )}
+                  <Stack direction="row" alignItems="center" mb={0.75}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Avatar
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          background: gradBg,
+                          fontWeight: 900,
+                          fontSize: '0.9rem',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {initials}
+                      </Avatar>
+                      <Box>
+                        <Stack direction="row" alignItems="center" spacing={0.75}>
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.97rem', color: '#f3f4f6', lineHeight: 1.2 }}>
+                            {memberName || 'Member'}
+                          </Typography>
+                          <ShieldCheck size={14} color="#22c55e" />
+                        </Stack>
+                        {price != null && (
+                          <Typography sx={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                            Escrow reserved:{' '}
+                            <Box component="span" sx={{ color: '#22c55e', fontWeight: 700 }}>
+                              Rs.{price}
+                            </Box>
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
                   </Stack>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      setSelectedBuyerForReviews(memberName || 'Member');
+                      setBuyerReviewsModalOpen(true);
+                    }}
+                    startIcon={<Star size={14} fill="currentColor" />}
+                    sx={{ 
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
+                      fontSize: '0.75rem', 
+                      fontWeight: 700,
+                      textTransform: 'none', 
+                      color: '#f59e0b',
+                      borderColor: 'rgba(245,158,11,0.3)',
+                      borderRadius: '8px',
+                      py: 0.5,
+                      px: 1.5,
+                      whiteSpace: 'nowrap',
+                      background: '#14161a', // Ensure it has a solid background over any overlapping elements
+                      '&:hover': { background: 'rgba(245,158,11,0.1)', borderColor: '#f59e0b' },
+                      display: { xs: 'none', sm: 'inline-flex' } // hide on very small screens if it overlaps, or we can just leave it inline-flex
+                    }}
+                  >
+                    Buyer Reviews
+                  </Button>
+                  
+                  {/* Mobile-only fallback if absolute positioning overlaps too much on tiny screens */}
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      setSelectedBuyerForReviews(memberName || 'Member');
+                      setBuyerReviewsModalOpen(true);
+                    }}
+                    startIcon={<Star size={14} fill="currentColor" />}
+                    sx={{ 
+                      display: { xs: 'inline-flex', sm: 'none' },
+                      mb: 2,
+                      fontSize: '0.75rem', 
+                      fontWeight: 700,
+                      textTransform: 'none', 
+                      color: '#f59e0b',
+                      borderColor: 'rgba(245,158,11,0.3)',
+                      borderRadius: '8px',
+                      py: 0.5,
+                      px: 1.5,
+                      '&:hover': { background: 'rgba(245,158,11,0.1)', borderColor: '#f59e0b' }
+                    }}
+                  >
+                    Buyer Reviews
+                  </Button>
 
                   {/* Listing title */}
                   <Typography sx={{ fontSize: '0.82rem', color: '#9ca3af', mb: 1.5 }}>
@@ -1187,10 +1248,15 @@ function HostCenter() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Buyer Reviews Modal */}
+      <BuyerReviewsModal
+        open={buyerReviewsModalOpen}
+        onClose={() => setBuyerReviewsModalOpen(false)}
+        buyerName={selectedBuyerForReviews}
+      />
     </div>
   );
 }
-
-
 
 export default HostCenter;

@@ -221,11 +221,13 @@ function UserReviewsPage() {
               const comment = rev.reviewText || '';
               const listingTitle = rev.listingTitle || (activeTab === 0 ? 'Subscription Group' : 'Group Purchase');
 
+              const isClickable = rev.listingId && activeTab === 0;
+
               return (
                 <Grid item xs={12} key={rev.id}>
                   <Paper
                     onClick={() => {
-                      if (rev.listingId) {
+                      if (isClickable) {
                         navigate(`/app/marketplace/${rev.listingId}`);
                       }
                     }}
@@ -234,12 +236,12 @@ function UserReviewsPage() {
                       p: 3,
                       borderRadius: '20px',
                       background: '#14161a',
-                      cursor: rev.listingId ? 'pointer' : 'default',
+                      cursor: isClickable ? 'pointer' : 'default',
                       border: '1px solid rgba(255,255,255,0.08)',
                       transition: 'all 0.2s ease',
                       '&:hover': { 
-                        borderColor: 'rgba(59,130,246,0.3)',
-                        transform: rev.listingId ? 'translateY(-2px)' : 'none'
+                        borderColor: isClickable ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.08)',
+                        transform: isClickable ? 'translateY(-2px)' : 'none'
                       },
                     }}
                   >

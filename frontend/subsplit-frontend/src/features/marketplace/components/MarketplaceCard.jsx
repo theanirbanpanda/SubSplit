@@ -26,7 +26,9 @@ function MarketplaceCard({ listing }) {
         ) : null}
         <SubscriptionsIcon className={styles.coverIcon} style={{ color: listing.iconColor || '#2563eb', display: listing.logoUrl ? 'none' : 'block' }} />
         <div className={styles.categoryBadge}>{listing.category}</div>
-        <div className={styles.seatsBadge}>{listing.seatsLeft} slots left</div>
+        <div className={`${styles.seatsBadge} ${listing.seatsLeft === 0 || listing.status === 'FULL' ? styles.fullBadge : ''}`}>
+          {listing.seatsLeft === 0 || listing.status === 'FULL' ? 'All slots full' : `${listing.seatsLeft} slots left`}
+        </div>
       </div>
       
       <div className={styles.cardBody}>

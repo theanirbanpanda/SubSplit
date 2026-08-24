@@ -36,7 +36,7 @@ export function getCurrentPrice(product) {
  */
 export function getPriceRange(product) {
   const current = getCurrentPrice(product);
-  const min = Math.floor(current * 0.85);
+  const min = 1;
   const max = Math.ceil(current * 1.15);
   return { min, max, current };
 }
@@ -53,7 +53,7 @@ export function validatePrice(price, product) {
   if (price < min) {
     return {
       valid: false,
-      message: `Price is too low. Minimum allowed is ₹${min} (−15% of official price ₹${current}).`,
+      message: `Price is too low. Minimum allowed is ₹${min}.`,
     };
   }
   if (price > max) {

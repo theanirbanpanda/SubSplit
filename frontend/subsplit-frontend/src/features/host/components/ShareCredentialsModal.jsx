@@ -13,10 +13,12 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { ShieldCheck, Eye, EyeOff, X, KeyRound, Link as LinkIcon, Ticket } from 'lucide-react';
+import { MOCK_CATALOG } from '../../marketplace/data/mockCatalog';
 import styles from './ShareCredentialsModal.module.scss';
 
 function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
   const [shareType, setShareType] = useState('CREDENTIALS'); // 'CREDENTIALS' | 'INVITATION_LINK' | 'ACTIVATION_CODE'
+  const [allowedShareType, setAllowedShareType] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [invitationLink, setInvitationLink] = useState('');
@@ -24,6 +26,42 @@ function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
   const [notes, setNotes] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (open && requestItem) {
+      const product = MOCK_CATALOG.find((p) => {
+        const pName = (p.name || '').toLowerCase().trim();
+        const rTitle = (requestItem.listingTitle || '').toLowerCase().trim();
+        const pId = (p.id || '').toLowerCase().trim();
+        const rProd = (requestItem.productId || '').toLowerCase().trim();
+        const rPlat = (requestItem.platform || '').toLowerCase().trim();
+
+        if (pName && rTitle && (pName === rTitle || rTitle.includes(pName) || pName.includes(rTitle))) {
+          return true;
+        }
+        if (pId && rProd && pId === rProd) return true;
+        if (pId && rPlat && (pId === rPlat || pId.includes(rPlat))) return true;
+        return false;
+      });
+
+      if (product) {
+        if (product.accessMethod === 'Invite via Email') {
+          setShareType('INVITATION_LINK');
+          setAllowedShareType('INVITATION_LINK');
+        } else if (product.accessMethod === 'Shared Login') {
+          setShareType('CREDENTIALS');
+          setAllowedShareType('CREDENTIALS');
+        } else if (product.accessMethod === 'Activation Code') {
+          setShareType('ACTIVATION_CODE');
+          setAllowedShareType('ACTIVATION_CODE');
+        } else {
+          setAllowedShareType(null);
+        }
+      } else {
+        setAllowedShareType(null);
+      }
+    }
+  }, [open, requestItem]);
 
   const isFormValid = () => {
     if (shareType === 'CREDENTIALS') {
@@ -79,11 +117,13 @@ function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
     <Dialog
       open={open}
       onClose={onClose}
-      PaperProps={{ className: styles.modalPaper }}
+      PaperProps={{
+        className: styles.modalPaper
+      }}
       maxWidth="sm"
       fullWidth
     >
-      <DialogTitle sx={{ p: 0, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle sx={{ px: 3, pt: 3, pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <KeyRound size={22} color="#22c55e" />
           <Typography className={styles.modalTitle}>
@@ -96,10 +136,11 @@ function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
       </DialogTitle>
 
       <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={{ px: 3, pb: 2 }}>
           {/* Share Type Options Toggle */}
           <Box sx={{ display: 'flex', gap: 1, mb: 2.5 }}>
-            <Button
+            {(!allowedShareType || allowedShareType === 'CREDENTIALS') && (
+              <Button
               fullWidth
               variant={shareType === 'CREDENTIALS' ? 'contained' : 'outlined'}
               onClick={() => setShareType('CREDENTIALS')}
@@ -122,7 +163,9 @@ function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
             >
               Credentials
             </Button>
-            <Button
+            )}
+            {(!allowedShareType || allowedShareType === 'INVITATION_LINK') && (
+              <Button
               fullWidth
               variant={shareType === 'INVITATION_LINK' ? 'contained' : 'outlined'}
               onClick={() => setShareType('INVITATION_LINK')}
@@ -145,7 +188,9 @@ function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
             >
               Invite Link
             </Button>
-            <Button
+            )}
+            {(!allowedShareType || allowedShareType === 'ACTIVATION_CODE') && (
+              <Button
               fullWidth
               variant={shareType === 'ACTIVATION_CODE' ? 'contained' : 'outlined'}
               onClick={() => setShareType('ACTIVATION_CODE')}
@@ -168,6 +213,7 @@ function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
             >
               Activation Code
             </Button>
+            )}
           </Box>
 
           <Box className={styles.badgeEncrypted}>
@@ -318,7 +364,7 @@ function ShareCredentialsModal({ open, onClose, onSubmit, requestItem }) {
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ p: 0, mt: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3, pt: 2 }}>
           <Button
             onClick={onClose}
             sx={{ color: '#9ca3af', textTransform: 'none', fontWeight: 600 }}

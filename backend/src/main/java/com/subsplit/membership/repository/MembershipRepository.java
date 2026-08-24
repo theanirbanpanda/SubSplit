@@ -22,6 +22,9 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Long> findListingIdsByMemberId(@org.springframework.data.repository.query.Param("memberId") Long memberId);
 
     java.util.Optional<Membership> findByMemberIdAndListingId(Long memberId, Long listingId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT m.listing.id, COUNT(m) FROM Membership m WHERE m.listing.id IN :listingIds AND m.status = :status GROUP BY m.listing.id")
+    List<Object[]> countActiveMembershipsByListingIds(@org.springframework.data.repository.query.Param("listingIds") List<Long> listingIds, @org.springframework.data.repository.query.Param("status") com.subsplit.common.enums.MembershipStatus status);
 }
 
 

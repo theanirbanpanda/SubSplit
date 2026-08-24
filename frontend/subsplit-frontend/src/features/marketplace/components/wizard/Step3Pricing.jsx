@@ -30,7 +30,7 @@ function Step3Pricing({ product, price, onChange }) {
     <div>
       <h2 className={styles.stepHeading}>Set Your Price</h2>
       <p className={styles.stepDescription}>
-        Choose how much members will pay per seat per month. Price must be within ±15% of the official current price.
+        Choose how much members will pay per seat per month. Price can be up to +15% of the official current price (minimum ₹1).
       </p>
 
       {/* Recommended Price Callout */}
@@ -89,7 +89,7 @@ function Step3Pricing({ product, price, onChange }) {
       {priceNum > 0 && priceValid && (
         <div className={styles.priceValidationMsg} data-type="success">
           <CheckCircle size={14} style={{ flexShrink: 0 }} />
-          <span>Price is within the allowed range (±15% of ₹{currentPrice}).</span>
+          <span>Price is within the allowed range.</span>
         </div>
       )}
 

@@ -151,7 +151,17 @@ public class MarketplaceServiceImpl implements MarketplaceService {
                 status, verifiedOnly);
 
         Page<Listing> listingPage = listingRepository.findAll(spec, pageable);
-        Page<ListingResponse> responsePage = listingPage.map(this::mapToListingResponse);
+        
+        List<Long> listingIds = listingPage.getContent().stream().map(Listing::getId).collect(Collectors.toList());
+        java.util.Map<Long, Long> memberCounts = new java.util.HashMap<>();
+        if (!listingIds.isEmpty()) {
+            List<Object[]> counts = membershipRepository.countActiveMembershipsByListingIds(listingIds, com.subsplit.common.enums.MembershipStatus.ACTIVE);
+            for (Object[] row : counts) {
+                memberCounts.put((Long) row[0], (Long) row[1]);
+            }
+        }
+        
+        Page<ListingResponse> responsePage = listingPage.map(l -> mapToListingResponse(l, memberCounts.getOrDefault(l.getId(), 0L)));
 
         return PagedResponse.fromPage(responsePage);
     }
@@ -159,8 +169,17 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @Transactional(readOnly = true)
     public List<ListingResponse> getAllListings() {
-        return listingRepository.findAll().stream()
-                .map(this::mapToListingResponse)
+        List<Listing> listings = listingRepository.findAll();
+        List<Long> listingIds = listings.stream().map(Listing::getId).collect(Collectors.toList());
+        java.util.Map<Long, Long> memberCounts = new java.util.HashMap<>();
+        if (!listingIds.isEmpty()) {
+            List<Object[]> counts = membershipRepository.countActiveMembershipsByListingIds(listingIds, com.subsplit.common.enums.MembershipStatus.ACTIVE);
+            for (Object[] row : counts) {
+                memberCounts.put((Long) row[0], (Long) row[1]);
+            }
+        }
+        return listings.stream()
+                .map(l -> mapToListingResponse(l, memberCounts.getOrDefault(l.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -486,6 +505,10 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         long activeMembersCount = membershipRepository.findByListingId(listing.getId()).stream()
                 .filter(m -> m.getStatus() == com.subsplit.common.enums.MembershipStatus.ACTIVE)
                 .count();
+        return mapToListingResponse(listing, activeMembersCount);
+    }
+
+    private ListingResponse mapToListingResponse(Listing listing, long activeMembersCount) {
         User host = listing.getHost();
         SubscriptionPlan plan = listing.getPlan();
         Subscription subscription = plan != null ? plan.getSubscription() : null;
@@ -716,9 +739,20 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         Listing listing = listingRepository.findById(listingId).orElse(null);
         List<Review> dbReviews = new ArrayList<>();
         if (listing != null) {
-            dbReviews = reviewRepository.findByListingId(listingId);
-            if (dbReviews.isEmpty() && listing.getHost() != null) {
-                dbReviews = reviewRepository.findByRevieweeId(listing.getHost().getId());
+            List<Review> allListingReviews = reviewRepository.findByListingId(listingId);
+            
+            // Filter to only include reviews where the Host is the reviewee (i.e. Buyer rating the Host/Listing)
+            if (listing.getHost() != null) {
+                Long hostId = listing.getHost().getId();
+                dbReviews = allListingReviews.stream()
+                        .filter(r -> r.getReviewee() != null && java.util.Objects.equals(r.getReviewee().getId(), hostId))
+                        .collect(java.util.stream.Collectors.toList());
+                        
+                if (dbReviews.isEmpty()) {
+                    dbReviews = reviewRepository.findByRevieweeId(hostId);
+                }
+            } else {
+                dbReviews = allListingReviews;
             }
         }
 
