@@ -110,7 +110,7 @@ export const updateListing = createAsyncThunk(
       const response = await updateListingApi(id, listingData);
       return normalizeListing(response.data);
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update listing');
+      return rejectWithValue(error.response?.data || error.response?.data?.message || 'Failed to update listing');
     }
   }
 );

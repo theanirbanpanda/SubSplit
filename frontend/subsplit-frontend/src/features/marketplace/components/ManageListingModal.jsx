@@ -79,9 +79,19 @@ const ManageListingModal = ({ open, handleClose, listing }) => {
       const resultAction = await dispatch(updateListing({
         id: listing.id,
         listingData: {
+          providerName: listing.platform,
+          categoryName: listing.category,
+          planName: listing.plan?.name || listing.platform,
+          title: listing.title,
+          description: listing.description,
+          seatPrice: listing.price,
+          originalPrice: listing.originalPrice,
+          savingsPercent: listing.savingsPercent,
+          totalSeats: listing.totalSeats,
           availableSeats: availableSeats,
-          seatPrice: listing.price, // keep current price
-          status: availableSeats === 0 ? 'FULL' : (listing.status === 'FULL' ? 'ACTIVE' : listing.status)
+          billingCycle: listing.billingCycle?.toUpperCase() || 'MONTHLY',
+          expiryDate: listing.renewalDate,
+          status: listing.status
         }
       }));
       if (updateListing.fulfilled.match(resultAction)) {
@@ -224,11 +234,7 @@ const ManageListingModal = ({ open, handleClose, listing }) => {
             <Button
               variant="contained"
               fullWidth
-              disabled={
-                seatsLoading || 
-                (availableSeats === listing.seatsLeft && 
-                 (availableSeats === 0 ? 'FULL' : (listing.status === 'FULL' ? 'ACTIVE' : listing.status)) === listing.status)
-              }
+              disabled={seatsLoading || availableSeats === listing.seatsLeft}
               onClick={handleUpdateSeats}
               sx={{
                 background: seatsSuccess ? '#10b981' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
