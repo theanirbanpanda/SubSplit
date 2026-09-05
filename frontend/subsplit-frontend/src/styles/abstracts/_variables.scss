@@ -24,6 +24,7 @@ $accent-cyan: #06B6D4;
 // ── Gradients ──
 $gradient-primary: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
 $gradient-primary-hover: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+$gradient-green: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
 
 // ── Spacing ──
 $radius-sm: 8px;
@@ -32,6 +33,15 @@ $radius-lg: 16px;
 $radius-xl: 20px;
 $radius-2xl: 24px;
 $radius-3xl: 28px;
+
+// ── Spacing Tokens ──
+$spacing-1: 8px;
+$spacing-2: 16px;
+$spacing-3: 24px;
+$spacing-4: 32px;
+$spacing-5: 40px;
+$spacing-6: 48px;
+$spacing-8: 64px;
 
 // ── Container ──
 $container-width: 92%;
@@ -55,4 +65,3 @@ $gap-grid-cards: 24px;
 $gap-grid-cards-mobile: 16px;
 $gap-component-section: 40px;
 $gap-component-section-mobile: 24px;
-

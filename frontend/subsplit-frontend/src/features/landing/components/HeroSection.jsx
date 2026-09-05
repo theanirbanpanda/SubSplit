@@ -21,17 +21,12 @@ function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
+    // The hero section is always at the top of the page.
+    // Trigger animation immediately after initial render rather than relying on scroll observers.
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const currentData = COMPARISON_CURRENT;
@@ -115,7 +110,7 @@ function HeroSection() {
           </Grid>
 
           {/* ── Middle Spacer ── */}
-          <Grid item xs={0} md={1} lg={2} sx={{ display: { xs: 'none', md: 'block' } }} />
+          <Grid item sx={{ display: { xs: 'none', md: 'block' } }} md={1} lg={2} />
 
           {/* ── Right Column — Comparison Widget ── */}
           <Grid item xs={12} md={6} lg={5}>

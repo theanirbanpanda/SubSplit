@@ -257,9 +257,16 @@ function NotificationsCenter() {
                     >
                       {getIconForType(item.notificationType)}
                     </Box>
-                    <Box>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Typography sx={{ fontWeight: 800, fontSize: '0.98rem', color: '#f3f4f6', lineHeight: 1.2 }}>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                        <Typography sx={{ 
+                          fontWeight: 800, 
+                          fontSize: '0.98rem', 
+                          color: '#f3f4f6', 
+                          lineHeight: 1.2,
+                          wordBreak: 'break-word',
+                          whiteSpace: 'normal'
+                        }}>
                           {item.title}
                         </Typography>
                         {!item.isRead && (
@@ -307,7 +314,18 @@ function NotificationsCenter() {
                   </Stack>
                 </Stack>
 
-                <Typography sx={{ fontSize: '0.88rem', color: '#9ca3af', lineHeight: 1.5, pl: { sm: 6.5 } }}>
+                <Typography sx={{ 
+                  fontSize: '0.88rem', 
+                  color: '#9ca3af', 
+                  lineHeight: 1.5, 
+                  pl: { sm: 0 }, 
+                  mt: 1,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
                   {item.message}
                 </Typography>
               </div>

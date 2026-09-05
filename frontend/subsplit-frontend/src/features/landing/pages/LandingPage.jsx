@@ -33,8 +33,6 @@ function LandingPage() {
         overflowX: 'hidden',
         background: '#09090B',
         color: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
       }}
     >
       <PublicNavbar />

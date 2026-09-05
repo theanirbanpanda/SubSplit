@@ -39,18 +39,23 @@
 .pageTitle {
   font-weight: 900;
   font-size: clamp(1.5rem, 3.5vw, 2rem);
-  color: #f1f5f9;
+  color: $text-primary;
   letter-spacing: -0.03em;
   margin: 0;
   line-height: 1.1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .subtitle {
   font-size: 0.875rem;
-  color: #64748b;
+  color: $text-secondary;
   margin: 0;
   max-width: 48rem;
   line-height: 1.55;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .headerActions {
@@ -83,7 +88,7 @@
 .metricLabel {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #64748b;
+  color: $text-secondary;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -102,13 +107,13 @@
 
 // ─── Metric Card ──────────────────────────────────────────────────────────────
 .metricCard {
-  background: #14161e;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: $bg-card;
+  border: 1px solid $border-subtle;
   border-radius: 18px;
   padding: 1.375rem 1.25rem;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;  // LEFT-ALIGNED
+  align-items: flex-start; // LEFT-ALIGNED
   text-align: left;
   gap: 0.375rem;
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
@@ -118,9 +123,11 @@
   &::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.09), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
   }
 
   &:hover {
@@ -133,8 +140,8 @@
 // ─── Table Panel ──────────────────────────────────────────────────────────────
 .tablePanel {
   width: 100%;
-  background: #14161e;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: $bg-card;
+  border: 1px solid $border-subtle;
   border-radius: 20px;
   padding: 1.625rem;
   margin-bottom: 0;
@@ -153,8 +160,7 @@
 .tableTitle {
   font-weight: 900;
   font-size: 1.1rem;
-  color: #f1f5f9;
+  color: $text-primary;
   margin: 0;
   letter-spacing: -0.02em;
 }
-

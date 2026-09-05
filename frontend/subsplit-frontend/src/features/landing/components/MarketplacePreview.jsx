@@ -69,7 +69,7 @@ function MarketplacePreview() {
         </div>
 
         {/* ── Cards Grid ── */}
-        <div className={styles.cardsGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginTop: '32px' }}>
+        <div className={styles.cardsGrid}>
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', width: '100%' }}>
               Loading listings...

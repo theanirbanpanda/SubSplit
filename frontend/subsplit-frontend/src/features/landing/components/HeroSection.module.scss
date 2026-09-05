@@ -54,6 +54,12 @@
   font-weight: 700;
   font-size: 0.74rem;
   margin-bottom: 20px;
+
+  @media (max-width: 599px) {
+    display: flex;
+    margin: 0 auto 20px;
+    width: fit-content;
+  }
 }
 
 .eyebrowIcon {
@@ -75,7 +81,8 @@
   }
 
   @media (max-width: 599px) {
-    font-size: 2rem;
+    font-size: 2.1rem;
+    text-align: center;
   }
 }
 
@@ -106,6 +113,9 @@
 
   @media (max-width: 599px) {
     font-size: 1rem;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -118,12 +128,14 @@
 
   @media (max-width: 599px) {
     flex-direction: column;
+    gap: 12px;
   }
 }
 
 .ctaPrimary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-weight: 700;
   font-size: 0.98rem;
@@ -138,6 +150,11 @@
   box-shadow: $shadow-primary;
   transition: $transition-default;
 
+  @media (max-width: 599px) {
+    width: 100%;
+    padding: 14px 20px;
+  }
+
   &:hover {
     background: $gradient-primary-hover;
     box-shadow: $shadow-primary-hover;
@@ -148,6 +165,7 @@
 .ctaSecondary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-weight: 600;
   font-size: 0.98rem;
@@ -160,6 +178,11 @@
   background: $bg-secondary;
   color: $text-primary;
   transition: $transition-default;
+
+  @media (max-width: 599px) {
+    width: 100%;
+    padding: 14px 20px;
+  }
 
   &:hover {
     border-color: $accent-blue-light;
@@ -175,6 +198,12 @@
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
+
+  @media (max-width: 599px) {
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
 }
 
 .trustItem {
@@ -199,8 +228,12 @@
   overflow: hidden;
 
   @media (max-width: 599px) {
-    padding: 20px;
+    padding: 20px 16px;
     border-radius: $radius-xl;
+    background: rgba(20, 20, 24, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -271,6 +304,10 @@
   align-items: center;
   padding: 14px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  @media (max-width: 599px) {
+    padding: 10px 0;
+  }
 
   &:last-child {
     border-bottom: none;

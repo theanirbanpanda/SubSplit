@@ -16,9 +16,10 @@
   gap: $spacing-2;
   overflow-x: auto;
   padding-bottom: $spacing-2;
-  
+
   // Hide scrollbar but keep functionality
   scrollbar-width: none;
+
   &::-webkit-scrollbar {
     display: none;
   }
@@ -44,7 +45,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     svg {
       width: 20px;
       height: 20px;
@@ -65,8 +66,9 @@
   &.active {
     border-color: $accent-green-border;
     background: $marketplace-card-bg;
-    
-    .iconWrapper, span {
+
+    .iconWrapper,
+    span {
       color: $accent-green;
     }
   }

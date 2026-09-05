@@ -12,8 +12,8 @@ function MarketplaceCard({ listing }) {
       className={styles.listingCard}
       onClick={() => navigate(`/app/marketplace/${listing.id}`)}
     >
-      <div 
-        className={styles.cardCover} 
+      <div
+        className={styles.cardCover}
         style={{ backgroundColor: listing.iconBg || 'rgba(37,99,235,0.12)', overflow: 'hidden' }}
       >
         {listing.logoUrl ? (
@@ -30,16 +30,16 @@ function MarketplaceCard({ listing }) {
           {listing.seatsLeft === 0 || listing.status === 'FULL' ? 'All slots full' : `${listing.seatsLeft} slots left`}
         </div>
       </div>
-      
+
       <div className={styles.cardBody}>
         <h4 className={styles.listingTitle}>{listing.title}</h4>
-        
+
         <div className={styles.hostRow}>
           <div className={styles.hostAvatar} style={{ backgroundColor: listing.host?.avatarBg || '#2563eb' }}>
             {listing.host?.initials || listing.hostName?.charAt(0) || 'VH'}
           </div>
           <span className={styles.hostName}>
-            {listing.hostName || listing.host?.name} 
+            {listing.hostName || listing.host?.name}
             {listing.isVerifiedHost && <VerifiedIcon className={styles.verifiedIcon} />}
           </span>
           {listing.savingsPercent > 0 && (

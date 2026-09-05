@@ -1,8 +1,8 @@
 @import '../../marketplace/styles/marketplaceVariables.scss';
 
 .headerCard {
-  background: #111114;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: $bg-card;
+  border: 1px solid $border-subtle;
   border-radius: $radius-xl;
   padding: $spacing-4;
   display: flex;
@@ -14,6 +14,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: $spacing-4;
+    padding: $spacing-3;
   }
 }
 
@@ -29,7 +30,7 @@
 
 .avatarWrapper {
   position: relative;
-  
+
   .avatar {
     width: 120px;
     height: 120px;
@@ -52,8 +53,8 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+
     svg {
       width: 16px;
       height: 16px;
@@ -133,7 +134,7 @@
       background: rgba(255, 255, 255, 0.05);
       border-color: rgba(255, 255, 255, 0.25);
     }
-    
+
     svg {
       width: 16px;
       height: 16px;
@@ -165,7 +166,7 @@
   min-width: 100px;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   padding-left: $spacing-4;
-  
+
   &:first-child {
     border-left: none;
     padding-left: 0;
@@ -189,11 +190,26 @@
       width: 20px;
       height: 20px;
     }
-    
-    &.green { background: rgba(34, 197, 94, 0.1); color: $accent-green; }
-    &.purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
-    &.yellow { background: rgba(234, 179, 8, 0.1); color: #eab308; }
-    &.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+
+    &.green {
+      background: rgba(34, 197, 94, 0.1);
+      color: $accent-green;
+    }
+
+    &.purple {
+      background: rgba(168, 85, 247, 0.1);
+      color: #a855f7;
+    }
+
+    &.yellow {
+      background: rgba(234, 179, 8, 0.1);
+      color: #eab308;
+    }
+
+    &.blue {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+    }
   }
 
   .statLabel {
@@ -207,7 +223,7 @@
     font-size: 1.5rem;
     font-weight: 800;
   }
-  
+
   .statSub {
     color: $text-secondary;
     font-size: 0.75rem;

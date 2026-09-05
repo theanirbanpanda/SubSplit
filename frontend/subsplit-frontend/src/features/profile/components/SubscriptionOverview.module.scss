@@ -30,7 +30,7 @@
     &:hover {
       opacity: 0.8;
     }
-    
+
     svg {
       width: 14px;
       height: 14px;
@@ -42,19 +42,19 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: $spacing-3;
-  
+
   @media (max-width: 1200px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
   }
 }
 
 .miniCard {
-  background: #111114;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: $bg-card;
+  border: 1px solid $border-subtle;
   border-radius: $radius-xl;
   padding: $spacing-3;
   display: flex;
@@ -65,7 +65,7 @@
   &:hover {
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.15);
-    background: lighten(#111114, 2%);
+    background: $bg-elevated;
   }
 }
 
@@ -118,7 +118,7 @@
   border-radius: $radius-md;
   font-size: 0.75rem;
   color: $text-secondary;
-  
+
   strong {
     color: $text-primary;
   }

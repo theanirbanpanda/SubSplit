@@ -41,16 +41,15 @@ const SubscriptionCard = ({ listing, variant = 'large', isBlurred = false }) => 
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: variant === 'small' ? '12px' : '16px' }}>
+      <div className={`${styles.cardHeader} ${variant === 'small' ? styles.smallHeader : ''}`}>
         <div 
           className={`${styles.logoContainer} ${variant === 'small' ? styles.small : ''}`}
-          style={{ backgroundColor: iconBg || 'rgba(37,99,235,0.12)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 0 }}
+          style={{ backgroundColor: iconBg || 'rgba(37,99,235,0.12)' }}
         >
           {logoUrl ? (
             <img
               src={logoUrl}
               alt={platform || title}
-              style={{ width: '60%', height: '60%', objectFit: 'contain' }}
               onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
             />
           ) : null}
@@ -59,20 +58,20 @@ const SubscriptionCard = ({ listing, variant = 'large', isBlurred = false }) => 
             style={{ color: iconColor || '#2563eb', display: logoUrl ? 'none' : undefined }}
           />
         </div>
-        <div style={{ flex: 1 }}>
-          <h3 className={styles.title} style={{ marginBottom: '2px', fontSize: variant === 'small' ? '1.05rem' : '1.15rem' }}>{title}</h3>
-          {variant !== 'small' && <div className={styles.category} style={{ marginBottom: 0 }}>{category}</div>}
+        <div className={styles.titleWrapper}>
+          <h3 className={styles.title}>{title}</h3>
+          {variant !== 'small' && <div className={styles.category}>{category}</div>}
         </div>
       </div>
 
       {variant === 'small' ? (
-        <div className={styles.priceRow} style={{ marginBottom: '16px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Starts from</span>
-            <span style={{ fontSize: '1rem', fontWeight: 800, color: '#3b82f6' }}>₹{price}/mo</span>
+        <div className={`${styles.priceRow} ${styles.smallPriceRow}`}>
+          <div className={styles.priceLeft}>
+            <span className={styles.startsFromLabel}>Starts from</span>
+            <span className={styles.currentPriceText}>₹{price}/mo</span>
           </div>
           {savingsPercent ? (
-            <span style={{ marginLeft: 'auto', background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', padding: '2px 6px', borderRadius: '5px', fontSize: '0.7rem', fontWeight: 800 }}>
+            <span className={styles.savingsBadge}>
               Save {savingsPercent}%
             </span>
           ) : null}

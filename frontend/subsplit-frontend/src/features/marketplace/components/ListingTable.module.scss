@@ -82,21 +82,26 @@
 
 .listContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: $gap-grid-cards;
   width: 100%;
 
   @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: $gap-grid-cards-mobile;
   }
 
   @media (min-width: 641px) and (max-width: 1024px) {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.25rem;
   }
 
-  @media (min-width: 1025px) {
+  @media (min-width: 1025px) and (max-width: 1440px) {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: $gap-grid-cards;
+  }
+
+  @media (min-width: 1441px) {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: $gap-grid-cards;
   }
@@ -129,10 +134,18 @@
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  
+
+  @media (max-width: 640px) {
+    height: 100px;
+  }
+
   .coverIcon {
     font-size: 72px !important;
     opacity: 0.85;
+
+    @media (max-width: 640px) {
+      font-size: 48px !important;
+    }
   }
 }
 
@@ -175,6 +188,11 @@
   flex: 1;
   justify-content: space-between;
   gap: $spacing-2;
+
+  @media (max-width: 640px) {
+    padding: $spacing-2;
+    gap: 0.5rem;
+  }
 }
 
 .listingTitle {
@@ -185,6 +203,10 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 640px) {
+    font-size: 0.95rem;
+  }
 }
 
 .hostRow {
@@ -257,10 +279,18 @@
     font-weight: 800;
     color: $text-primary;
 
+    @media (max-width: 640px) {
+      font-size: 1.05rem;
+    }
+
     span {
       font-size: 0.8rem;
       color: $text-secondary;
       font-weight: 500;
+
+      @media (max-width: 640px) {
+        font-size: 0.7rem;
+      }
     }
   }
 
@@ -270,6 +300,10 @@
     text-decoration: line-through;
     font-weight: 600;
     margin-top: 2px;
+
+    @media (max-width: 640px) {
+      font-size: 0.65rem;
+    }
   }
 }
 
@@ -285,6 +319,11 @@
   transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+
+  @media (max-width: 640px) {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
 
   &:hover {
     background: #22c55e;

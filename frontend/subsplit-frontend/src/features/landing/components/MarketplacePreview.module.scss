@@ -71,6 +71,7 @@
   /* Hide scrollbar */
   -ms-overflow-style: none;
   scrollbar-width: none;
+
   &::-webkit-scrollbar {
     display: none;
   }
@@ -104,14 +105,11 @@
 /* ── Cards Grid ── */
 .cardsGrid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
 
-  @media (max-width: 1199px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 599px) {
+  @media (max-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }

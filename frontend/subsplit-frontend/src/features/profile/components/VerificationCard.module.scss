@@ -1,13 +1,17 @@
 @import '../../marketplace/styles/marketplaceVariables.scss';
 
 .card {
-  background: #111114;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: $bg-card;
+  border: 1px solid $border-subtle;
   border-radius: $radius-xl;
   padding: $spacing-4;
   height: 100%;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 48rem) {
+    padding: $spacing-3;
+  }
 }
 
 .title {
