@@ -1,0 +1,48 @@
+services:
+  # ---------- Backend (Spring Boot, Docker) ----------
+  - type: web
+    name: subsplit-api
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRATION
+        value: "900000"
+      - key: JWT_REFRESH_EXPIRATION
+        value: "604800000"
+      # Set this to the static site URL after the first deploy
+      - key: FRONTEND_URL
+        sync: false
+
+  # ---------- Frontend (Vite build -> static site) ----------
+  - type: web
+    name: subsplit-web
+    runtime: static
+    plan: free
+    region: singapore
+    rootDir: frontend/subsplit-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Must be https://<your-api-service>.onrender.com/api/v1
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
