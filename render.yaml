@@ -33,8 +33,6 @@ services:
   - type: web
     name: subsplit-web
     runtime: static
-    plan: free
-    region: singapore
     rootDir: frontend/subsplit-frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
